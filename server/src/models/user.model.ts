@@ -1,11 +1,12 @@
 import { Pool } from 'pg';
+import pool from '../config/database';
 
 export interface User {
   id: string;
   email: string;
   name: string;
   avatar?: string;
-  provider: 'google' | 'instagram' | 'email';
+  provider: 'google' | 'facebook' | 'email';
   providerId?: string;
   isVerified: boolean;
   createdAt: Date;
@@ -16,18 +17,16 @@ export interface CreateUserInput {
   email: string;
   name: string;
   avatar?: string;
-  provider: 'google' | 'instagram' | 'email';
+  provider: 'google' | 'facebook' | 'email';
   providerId?: string;
+  isVerified?: boolean;
 }
 
 class UserModel {
   private pool: Pool;
 
   constructor() {
-    this.pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }
-    });
+    this.pool = pool;
   }
 
   async createUser(userData: CreateUserInput): Promise<User> {
@@ -43,7 +42,7 @@ class UserModel {
       userData.avatar,
       userData.provider,
       userData.providerId,
-      true // OAuth users are verified by default
+      userData.isVerified !== undefined ? userData.isVerified : true
     ];
 
     const result = await this.pool.query(query, values);

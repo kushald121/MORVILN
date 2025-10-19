@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS products (
     slug VARCHAR(255) UNIQUE NOT NULL,
     description TEXT,
     short_description TEXT,
-    base_price DECIMAL(10, 2) NOT NULL,
+    base_price DECIMAL(10, 2) NOT NULL CHECK (base_price >= 0),
     compare_at_price DECIMAL(10, 2), -- Original price for showing discounts
     cost_price DECIMAL(10, 2), -- For profit calculation
     category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS product_variants (
     color VARCHAR(50),
     color_code VARCHAR(7), -- Hex color code
     material VARCHAR(100),
-    additional_price DECIMAL(10, 2) DEFAULT 0, -- Price adjustment for this variant
+    additional_price DECIMAL(10, 2) DEFAULT 0 CHECK (additional_price >= 0),
     stock_quantity INTEGER DEFAULT 0,
     reserved_quantity INTEGER DEFAULT 0, -- For carts/orders in progress
     low_stock_threshold INTEGER DEFAULT 5,
@@ -128,11 +128,11 @@ CREATE TABLE IF NOT EXISTS orders (
     products JSONB NOT NULL, -- Array of products with variants, quantities, prices
     
     -- Order amounts
-    subtotal_amount DECIMAL(10, 2) NOT NULL,
+    subtotal_amount DECIMAL(10, 2) NOT NULL CHECK (subtotal_amount >= 0),
     shipping_amount DECIMAL(10, 2) DEFAULT 0,
     tax_amount DECIMAL(10, 2) DEFAULT 0,
     discount_amount DECIMAL(10, 2) DEFAULT 0,
-    total_amount DECIMAL(10, 2) NOT NULL,
+    total_amount DECIMAL(10, 2) NOT NULL CHECK (total_amount >= 0),
     
     -- Status tracking
     payment_status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'paid', 'failed', 'refunded'
@@ -155,9 +155,9 @@ CREATE TABLE IF NOT EXISTS orders (
 CREATE TABLE IF NOT EXISTS payment_verifications (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
-    upi_transaction_id VARCHAR(255),
+    upi_transaction_id VARCHAR(255) UNIQUE,
     upi_reference_number VARCHAR(255),
-    amount_paid DECIMAL(10, 2) NOT NULL,
+    amount_paid DECIMAL(10, 2) NOT NULL CHECK (amount_paid >= 0),
     verification_status VARCHAR(50) DEFAULT 'pending', -- 'pending', 'verified', 'rejected'
     payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     verified_at TIMESTAMP,
@@ -296,29 +296,6 @@ CREATE INDEX IF NOT EXISTS idx_product_reviews_approved ON product_reviews(is_ap
 
 -- Locked sections indexes
 CREATE INDEX IF NOT EXISTS idx_locked_sections_dates ON locked_sections(start_date, end_date) WHERE is_active = true;
-
--- ========== CONSTRAINTS ==========
-
-ALTER TABLE products 
-ADD CONSTRAINT IF NOT EXISTS check_positive_base_price 
-CHECK (base_price >= 0);
-
-ALTER TABLE product_variants 
-ADD CONSTRAINT IF NOT EXISTS check_positive_additional_price 
-CHECK (additional_price >= 0);
-
-ALTER TABLE orders 
-ADD CONSTRAINT IF NOT EXISTS check_positive_total_amount 
-CHECK (total_amount >= 0);
-
-ALTER TABLE payment_verifications 
-ADD CONSTRAINT IF NOT EXISTS check_positive_amount_paid 
-CHECK (amount_paid >= 0);
-
--- Unique constraints
-ALTER TABLE payment_verifications 
-ADD CONSTRAINT IF NOT EXISTS unique_upi_transaction_id 
-UNIQUE (upi_transaction_id);
 
 -- ========== TRIGGERS ==========
 

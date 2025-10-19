@@ -30,8 +30,14 @@ export class AuthController {
 
       const authResponse = generateAuthResponse(user);
       
-      // Redirect to frontend with token
-      res.redirect(`${process.env.FRONTEND_URL}/auth/success?token=${authResponse.token}`);
+      res.cookie('auth_token', authResponse.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+      
+      res.redirect(`${process.env.FRONTEND_URL}/auth/success`);
     } catch (error) {
       console.error('OAuth callback error:', error);
       res.redirect(`${process.env.FRONTEND_URL}/auth/error?message=Authentication failed`);
@@ -76,8 +82,12 @@ export class AuthController {
   }
 
   async logout(req: Request, res: Response) {
-    // Since we're using JWT, we can't invalidate the token on server-side
-    // The frontend should remove the token from storage
+    res.clearCookie('auth_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    });
+    
     res.json({
       success: true,
       message: 'Logged out successfully'

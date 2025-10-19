@@ -17,15 +17,15 @@ router.get(
   authController.oauthCallback
 );
 
-// Instagram OAuth routes
+// Facebook OAuth routes
 router.get(
-  '/instagram',
-  passport.authenticate('instagram')
+  '/facebook',
+  passport.authenticate('facebook', { scope: ['email'] })
 );
 
 router.get(
-  '/instagram/callback',
-  passport.authenticate('instagram', { session: false }),
+  '/facebook/callback',
+  passport.authenticate('facebook', { session: false }),
   authController.oauthCallback
 );
 

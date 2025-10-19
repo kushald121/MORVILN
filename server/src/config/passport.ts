@@ -1,8 +1,8 @@
 import passport from "passport";
-import { googleStrategy, instagramStrategy } from './oauth';
+import { googleStrategy, facebookStrategy } from './oauth';
 
 passport.use(googleStrategy);
-passport.use(instagramStrategy);
+passport.use(facebookStrategy);
 
 passport.serializeUser((user: any, done) => {
   done(null, user);

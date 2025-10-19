@@ -1,12 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const pg_1 = require("pg");
+const database_1 = __importDefault(require("../config/database"));
 class UserModel {
     constructor() {
-        this.pool = new pg_1.Pool({
-            connectionString: process.env.DATABASE_URL,
-            ssl: { rejectUnauthorized: false }
-        });
+        this.pool = database_1.default;
     }
     async createUser(userData) {
         const query = `
@@ -20,7 +20,7 @@ class UserModel {
             userData.avatar,
             userData.provider,
             userData.providerId,
-            true // OAuth users are verified by default
+            userData.isVerified !== undefined ? userData.isVerified : true
         ];
         const result = await this.pool.query(query, values);
         return this.mapRowToUser(result.rows[0]);

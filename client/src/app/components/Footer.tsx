@@ -218,7 +218,7 @@ const Footer = () => {
                   </li>
 
                   <li>
-                    <Link href="/Rachna/shipping&delivery" className="text-muted-foreground text-lg lg:text-xl font-medium transition hover:text-primary hover:underline">
+                    <Link href="/shipping&delivery" className="text-muted-foreground text-lg lg:text-xl font-medium transition hover:text-primary hover:underline">
                       Shipping & Delivery
                     </Link>
                   </li>

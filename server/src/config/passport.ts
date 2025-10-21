@@ -1,8 +1,7 @@
 import passport from "passport";
-import { googleStrategy, facebookStrategy } from './oauth';
 
-passport.use(googleStrategy);
-passport.use(facebookStrategy);
+// Supabase OAuth doesn't require Passport strategies
+// The OAuth flow is handled entirely by Supabase
 
 passport.serializeUser((user: any, done) => {
   done(null, user);

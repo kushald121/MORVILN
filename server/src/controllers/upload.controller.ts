@@ -29,7 +29,7 @@ export class UploadController {
           }
         );
 
-        uploadStream.end(req.file.buffer);
+        uploadStream.end(req.file!.buffer);
       });
 
       res.json({

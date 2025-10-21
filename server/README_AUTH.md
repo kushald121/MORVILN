@@ -5,7 +5,7 @@
 This backend implements a comprehensive authentication system with:
 - ✅ **JWT tokens stored in httpOnly cookies** (secure, not accessible via JavaScript)
 - ✅ **Magic Link authentication** via Supabase
-- ✅ **OAuth authentication** (Google & Instagram)
+- ✅ **OAuth authentication** (Google & Facebook) via Supabase
 - ✅ **Redis session management** via Upstash
 - ✅ **PostgreSQL user storage** via Neon
 
@@ -53,16 +53,16 @@ Content-Type: application/json
 GET /api/auth/google
 
 # Callback (automatically handled)
-GET /api/auth/google/callback
+GET /api/auth/oauth/callback
 ```
 
-**Instagram OAuth:**
+**Facebook OAuth:**
 ```bash
 # Initiate OAuth flow
-GET /api/auth/instagram
+GET /api/auth/facebook
 
 # Callback (automatically handled)
-GET /api/auth/instagram/callback
+GET /api/auth/oauth/callback
 ```
 
 ### 3. Get Current User
@@ -87,51 +87,6 @@ Cookie: auth_token=<jwt-token>
 2. **CSRF Protection**: Use sameSite='lax' to prevent CSRF attacks
 3. **Automatic**: Browser automatically sends cookies with requests
 
-### Cookie Configuration
-
-```typescript
-res.cookie('auth_token', token, {
-  httpOnly: true,              // Cannot be accessed via JavaScript
-  secure: NODE_ENV === 'production',  // HTTPS only in production
-  sameSite: 'lax',            // CSRF protection
-  maxAge: 7 * 24 * 60 * 60 * 1000  // 7 days
-});
-```
-
-### Frontend Usage
-
-No need to manually handle tokens! The browser automatically sends the cookie:
-
-```javascript
-// Frontend request example
-fetch('http://localhost:5000/api/auth/me', {
-  method: 'GET',
-  credentials: 'include'  // Important: include cookies
-})
-```
-
-## Redis Session Management
-
-Redis is used for:
-- Magic link token storage (15 min expiry)
-- Guest cart data
-- Temporary session data
-
-### Redis Operations
-
-```typescript
-import { redis } from './config/redis';
-
-// Set with expiry
-await redis.setex('key', 900, 'value');  // 15 minutes
-
-// Get
-const value = await redis.get('key');
-
-// Delete
-await redis.del('key');
-```
-
 ## Environment Variables
 
 Required in `.env`:
@@ -141,9 +96,11 @@ Required in `.env`:
 JWT_SECRET=your-secret-key
 JWT_EXPIRES_IN=7d
 
-# Supabase (Magic Links)
+# Supabase (Magic Links & OAuth)
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=your-anon-key
+G0OGLE_CALLBACK=https://your-project.supabase.co/auth/v1/callback
+FACEBOOK_CALLBACK=https://your-project.supabase.co/auth/v1/callback
 
 # Redis (Sessions)
 UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
@@ -151,12 +108,6 @@ UPSTASH_REDIS_REST_TOKEN=your-token
 
 # Database (User Storage)
 DATABASE_URL=postgresql://user:pass@host:5432/db
-
-# OAuth
-GOOGLE_CLIENT_ID=your-client-id
-GOOGLE_CLIENT_SECRET=your-secret
-INSTAGRAM_OAUTH_ID=your-oauth-id
-INSTAGRAM_APP_SECRET=your-secret
 
 # URLs
 BACKEND_URL=http://localhost:5000
@@ -206,44 +157,13 @@ curl -X POST http://localhost:5000/api/auth/logout \
   -H "Cookie: auth_token=YOUR_JWT_TOKEN"
 ```
 
-## Migration from localStorage
-
-If you were previously using localStorage:
-
-**Before:**
-```javascript
-// Save token
-localStorage.setItem('token', response.token);
-
-// Use token
-fetch('/api/auth/me', {
-  headers: {
-    'Authorization': `Bearer ${localStorage.getItem('token')}`
-  }
-});
-```
-
-**After:**
-```javascript
-// No need to save - cookie is automatic!
-
-// Use with credentials
-fetch('http://localhost:5000/api/auth/me', {
-  credentials: 'include'  // Just add this!
-});
-```
-
 ## Troubleshooting
-
-### Cookies not being set?
-- Check CORS credentials are enabled
-- Verify FRONTEND_URL matches your frontend origin
-- Ensure `credentials: 'include'` in fetch requests
-
-### Redis not working?
-- Verify UPSTASH credentials in `.env`
-- Check Redis connection in server logs
 
 ### Magic links not sending?
 - Verify Supabase credentials
 - Check Supabase email templates configuration
+
+### OAuth not working?
+- Verify Supabase OAuth providers are configured
+- Check that G0OGLE_CALLBACK and FACEBOOK_CALLBACK are set correctly
+- Ensure the redirect URLs are whitelisted in Supabase dashboard

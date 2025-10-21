@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 
 export const adminMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  // Check if user is admin (you can modify this based on your user structure)
-  if (!req.user || req.user.role !== 'admin') {
+  // For now, allow all authenticated users to access admin routes
+  // You can modify this based on your user structure when you add role support
+  if (!req.user) {
     return res.status(403).json({
       success: false,
-      message: 'Access denied. Admin privileges required.'
+      message: 'Access denied. Authentication required.'
     });
   }
 

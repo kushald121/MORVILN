@@ -12,6 +12,9 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
 
 const SUPABASE_DB_URL = process.env.SUPABASE_DB_URL;
 
+console.log('🔍 Debug - SUPABASE_DB_URL:', SUPABASE_DB_URL ? 'Found' : 'Not found');
+console.log('🔍 Debug - All env vars loaded:', Object.keys(process.env).filter(key => key.startsWith('SUPABASE')));
+
 if (!SUPABASE_DB_URL) {
   console.error('❌ ERROR: SUPABASE_DB_URL is not set in .env file');
   console.error('Get it from: Supabase Dashboard → Project Settings → Database → Connection String (Direct)');

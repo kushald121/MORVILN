@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { SparklesText } from './sparkels';
+import { useTheme } from 'next-themes';
 
 const SQRT_5000 = Math.sqrt(5000);
 
@@ -270,6 +271,7 @@ export const StaggerClothingShowcase: React.FC = () => {
   const [cardSize, setCardSize] = useState(340);
   const [clothingList, setClothingList] = useState(clothingItems);
   const [isPaused, setIsPaused] = useState(false);
+  const { theme } = useTheme();
 
   const handleMove = useCallback((steps: number) => {
     setClothingList(currentList => {
@@ -320,8 +322,14 @@ export const StaggerClothingShowcase: React.FC = () => {
       onMouseLeave={() => setIsPaused(false)}
     >
       <div className="absolute left-1/2 -translate-x-1/2 z-20 text-center">
-        <h2 className="text-3xl sm:text-4xl font-bold text-white mb-5">
-          <SparklesText className='text-5xl' text="Featured Collection" />
+        <h2 className={cn(
+          "text-3xl sm:text-4xl font-bold mb-5",
+          theme === 'dark' ? "text-white" : "text-gray-900"
+        )}>
+          <SparklesText className={cn(
+            'text-5xl',
+            theme === 'dark' ? "text-white" : "text-gray-900"
+          )} text="Featured Collection" />
         </h2>
       </div>
 
@@ -373,4 +381,3 @@ export const StaggerClothingShowcase: React.FC = () => {
     </div>
   );
 };
-

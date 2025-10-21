@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-// import SplashCursor from '@/app/components/ui/splash-cursor';
 
 export default function ManagerLogin() {
   const [credentials, setCredentials] = useState({
@@ -20,17 +19,14 @@ export default function ManagerLogin() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
     // Simulate manager login validation
     if (credentials.username === 'manager' && credentials.password === 'manager123') {
-      // Store manager session data
       localStorage.setItem('userRole', 'manager');
       localStorage.setItem('userPFP', 'manager');
-
-      // Redirect to manager dashboard
       router.push('/manager/dashboard');
     } else {
       alert('Invalid manager credentials');
@@ -41,10 +37,15 @@ export default function ManagerLogin() {
   };
 
   return (
-    <div className="min-h-screen  flex items-center justify-center p-4">
-      {/* <SplashCursor /> */}
-      <div className="max-w-md w-full bg-slate-800/90 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-slate-700">
-        {/* Manager PFP Display */}
+    // The main container uses the background color from our theme variables.
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      {/* 
+        The login card now uses theme variables for background, border, and text.
+        Light theme: white background, light gray border, black text.
+        Dark theme: dark gray background, darker gray border, white text.
+      */}
+      <div className="max-w-md w-full bg-card-bg/90 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-card-border">
+        {/* Manager PFP Display - Unchanged as it uses specific brand colors */}
         <div className="flex justify-center mb-6">
           <div className="relative">
             <div className="w-24 h-24 bg-gradient-to-br from-blue-600 to-slate-600 rounded-full flex items-center justify-center text-3xl font-bold text-white shadow-lg">
@@ -56,16 +57,17 @@ export default function ManagerLogin() {
           </div>
         </div>
 
-        <h1 className="text-3xl font-bold text-white text-center mb-2">
+        {/* Text now uses the foreground color from our theme variables */}
+        <h1 className="text-3xl font-bold text-foreground text-center mb-2">
           Manager Login
         </h1>
-        <p className="text-slate-300 text-center mb-8">
+        <p className="text-foreground/70 text-center mb-8">
           Access management controls
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label htmlFor="username" className="block text-slate-200 font-medium mb-2">
+            <label htmlFor="username" className="block text-foreground/90 font-medium mb-2">
               Username
             </label>
             <input
@@ -74,14 +76,15 @@ export default function ManagerLogin() {
               name="username"
               value={credentials.username}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 bg-slate-700/80 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              // Input fields also use theme variables for a consistent look
+              className="w-full px-4 py-3 bg-background border border-card-border rounded-lg text-foreground placeholder-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-accent focus:border-primary-accent"
               placeholder="Enter manager username"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-slate-200 font-medium mb-2">
+            <label htmlFor="password" className="block text-foreground/90 font-medium mb-2">
               Password
             </label>
             <input
@@ -90,12 +93,13 @@ export default function ManagerLogin() {
               name="password"
               value={credentials.password}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 bg-slate-700/80 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="w-full px-4 py-3 bg-background border border-card-border rounded-lg text-foreground placeholder-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary-accent focus:border-primary-accent"
               placeholder="Enter manager password"
               required
             />
           </div>
 
+          {/* Button styling remains the same as it uses specific brand colors (blue gradient) */}
           <button
             type="submit"
             disabled={isLoading}
@@ -108,7 +112,7 @@ export default function ManagerLogin() {
         <div className="mt-6 text-center">
           <button
             onClick={() => router.push('/subjective.login')}
-            className="text-slate-400 hover:text-slate-200 text-sm underline transition-colors"
+            className="text-foreground/60 hover:text-foreground/80 text-sm underline"
           >
             ← Back to Profile Selection
           </button>

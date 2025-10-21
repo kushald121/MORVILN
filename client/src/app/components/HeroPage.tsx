@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo, useState } from "react";
 import { motion, useMotionValue, useTransform, useSpring, useReducedMotion } from "framer-motion";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -16,6 +16,8 @@ import {
 import Image from "next/image";
 import { StaggerClothingShowcase } from "./ui/stagger-clothes-showcase";
 import { SparklesText } from "./ui/sparkels";
+import { useTheme } from "next-themes";
+
 // import SplashCursor from "./ui/splash-cursor";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -37,6 +39,8 @@ const throttleRAF = <T extends unknown[]>(func: (...args: T) => void) => {
 export default function HeroPage() {
   const heroRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
+  const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -65,6 +69,10 @@ export default function HeroPage() {
     mouseX.set(x);
     mouseY.set(y);
   }), [mouseX, mouseY]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (prefersReducedMotion) return;
@@ -173,6 +181,13 @@ export default function HeroPage() {
   const particleCount = prefersReducedMotion ? 0 : 15;
   const sparkleCount = prefersReducedMotion ? 0 : 8;
 
+  // Don't render until mounted to avoid hydration mismatch
+  if (!mounted) {
+    return null;
+  }
+
+  const currentTheme = theme || resolvedTheme || 'dark';
+
   return (
     <>
     {/* <SplashCursor /> */}
@@ -184,13 +199,13 @@ export default function HeroPage() {
 
       {/* Optimized gradient orbs - reduced to 2 for better performance */}
       <motion.div
-        className="absolute top-0 left-0 w-96 h-96 bg-blue-800/30 rounded-full blur-3xl"
+        className={`absolute top-0 left-0 w-96 h-96 ${currentTheme === 'light' ? 'bg-blue-600/20' : 'bg-blue-800/30'} rounded-full blur-3xl`}
         style={{ willChange: 'transform', transform: 'translate3d(0,0,0)' }}
         animate={{ x: [0, 100, 0], y: [0, 50, 0] }}
         transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
       />
       <motion.div
-        className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-900/30 rounded-full blur-3xl"
+        className={`absolute bottom-0 right-0 w-96 h-96 ${currentTheme === 'light' ? 'bg-indigo-700/20' : 'bg-indigo-900/30'} rounded-full blur-3xl`}
         style={{ willChange: 'transform', transform: 'translate3d(0,0,0)' }}
         animate={{ x: [0, -100, 0], y: [0, -50, 0] }}
         transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
@@ -217,9 +232,9 @@ export default function HeroPage() {
             }}
           >
             {i % 3 === 0 ? (
-              <Star className="w-2.5 h-2.5 text-cyan-400 fill-cyan-400/50" />
+              <Star className={`w-2.5 h-2.5 ${currentTheme === 'light' ? 'text-cyan-600 fill-cyan-600/50' : 'text-cyan-400 fill-cyan-400/50'}`} />
             ) : (
-              <div className="w-2 h-2 bg-blue-400/40 rounded-full" />
+              <div className={`w-2 h-2 ${currentTheme === 'light' ? 'bg-blue-600/40' : 'bg-blue-400/40'} rounded-full`} />
             )}
           </motion.div>
         ))}
@@ -244,7 +259,7 @@ export default function HeroPage() {
               ease: "easeInOut",
             }}
           >
-            <Sparkles className="w-3.5 h-3.5 text-cyan-300/70" />
+            <Sparkles className={`w-3.5 h-3.5 ${currentTheme === 'light' ? 'text-cyan-600/70' : 'text-cyan-300/70'}`} />
           </motion.div>
         ))}
       </div>
@@ -304,7 +319,7 @@ export default function HeroPage() {
                 </motion.div>
 
                 {/* Glow effect */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/15 to-cyan-500/15 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+                <div className={`absolute inset-0 bg-gradient-to-br ${currentTheme === 'light' ? 'from-blue-400/15 to-cyan-400/15' : 'from-blue-500/15 to-cyan-500/15'} rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300`}></div>
 
                 {/* Image container with optimizations */}
                 <div className="relative overflow-hidden rounded-2xl">
@@ -314,7 +329,7 @@ export default function HeroPage() {
                     height={600}
                     src={item.image}
                     alt={item.title}
-                    className="relative w-48 h-72 object-cover rounded-2xl shadow-2xl border border-white/10 group-hover:border-cyan-400/30 transition-colors duration-300"
+                    className={`relative w-48 h-72 object-cover rounded-2xl shadow-2xl border ${currentTheme === 'light' ? 'border-gray-200' : 'border-white/10'} group-hover:border-cyan-400/30 transition-colors duration-300`}
                     loading={index < 2 ? "eager" : "lazy"}
                   />
 
@@ -338,7 +353,7 @@ export default function HeroPage() {
 
                 {/* Hover overlay with product info */}
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/50 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-end pb-5 gap-2"
+                  className={`absolute inset-0 bg-gradient-to-t ${currentTheme === 'light' ? 'from-gray-900/85 via-gray-800/50' : 'from-black/85 via-black/50'} to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-end pb-5 gap-2`}
                   initial={false}
                 >
                   <motion.div
@@ -351,7 +366,7 @@ export default function HeroPage() {
                       {item.title}
                     </h3>
                     <div className="flex items-center justify-center gap-2 mb-2">
-                      <span className="text-cyan-300 font-bold text-lg">
+                      <span className={`font-bold text-lg ${currentTheme === 'light' ? 'text-cyan-600' : 'text-cyan-300'}`}>
                         {item.price}
                       </span>
                       <span className="text-gray-400 line-through text-xs">
@@ -361,7 +376,7 @@ export default function HeroPage() {
                   </motion.div>
 
                   <motion.button
-                    className="px-4 py-2 bg-white text-black rounded-full text-sm font-semibold hover:bg-cyan-400 hover:text-white transition-colors duration-200 flex items-center gap-2 shadow-lg"
+                    className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors duration-200 flex items-center gap-2 shadow-lg ${currentTheme === 'light' ? 'bg-white text-gray-900 hover:bg-cyan-500 hover:text-white' : 'bg-white text-black hover:bg-cyan-400 hover:text-white'}`}
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
                     transition={{ type: "spring", stiffness: 400, damping: 25 }}
@@ -382,18 +397,18 @@ export default function HeroPage() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-500/20 to-pink-500/20 backdrop-blur-md rounded-full border border-red-400/40 mb-8 shadow-lg"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-300 to-blue-400 backdrop-blur-md rounded-full border border-red-400/40 mb-8 shadow-lg"
           >
-            <Sparkles className="w-4 h-4 text-red-300 animate-pulse" />
-            <span className="text-red-100 text-sm font-bold uppercase tracking-wide">
+            <Sparkles className="w-4 h-4 text-black animate-pulse" />
+            <span className="text-black text-sm font-bold uppercase tracking-wide">
               Winter Sale - Up to 50% Off
             </span>
-            <Sparkles className="w-4 h-4 text-red-300 animate-pulse" />
+            <Sparkles className="w-4 h-4 text-black animate-pulse" />
           </motion.div>
 
           {/* Main Headline */}
           <motion.h1
-            className="text-5xl md:text-7xl lg:text-7xl font-bold text-white leading-tight mb-4"
+            className={`text-5xl md:text-7xl lg:text-7xl font-bold leading-tight mb-4 ${currentTheme === 'light' ? 'text-gray-900' : 'text-white'}`}
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.4 }}
@@ -401,10 +416,10 @@ export default function HeroPage() {
             <SparklesText
               text="New Season"
               className="text-5xl md:text-7xl lg:text-7xl font-bold"
-              colors={{ first: "#06b6d4", second: "#3b82f6" }}
+              colors={currentTheme === 'light' ? { first: "#0891b2", second: "#2563eb" } : { first: "#06b6d4", second: "#3b82f6" }}
               sparklesCount={4}
             />
-            <span className="text-4xl md:text-6xl lg:text-6xl mt-2 inline-block">
+            <span className={`text-4xl md:text-6xl lg:text-6xl mt-2 inline-block ${currentTheme === 'light' ? 'text-gray-800' : 'text-white'}`}>
               Arrivals 2025
             </span>
           </motion.h1>
@@ -417,7 +432,7 @@ export default function HeroPage() {
             className="mb-8"
           >
             <motion.span
-              className="text-2xl md:text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 inline-block"
+              className={`text-2xl md:text-4xl font-semibold text-transparent bg-clip-text inline-block ${currentTheme === 'light' ? 'bg-gradient-to-r from-cyan-600 via-blue-600 to-cyan-600' : 'bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400'}`}
               animate={{
                 backgroundPosition: ["0%", "100%", "0%"],
               }}
@@ -436,17 +451,17 @@ export default function HeroPage() {
 
           {/* Description */}
           <motion.p
-            className="text-lg md:text-xl text-cyan-100/90 mb-10 max-w-2xl mx-auto leading-relaxed"
+            className={`text-lg md:text-xl mb-10 max-w-2xl mx-auto leading-relaxed ${currentTheme === 'light' ? 'text-gray-700' : 'text-cyan-100/90'}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.7 }}
           >
             Discover premium fashion at unbeatable prices.
-            <span className="text-cyan-300 font-semibold">
+            <span className={`font-semibold ${currentTheme === 'light' ? 'text-cyan-600' : 'text-cyan-300'}`}>
               {" "}Free shipping on orders over $75
             </span>{" "}
             • Easy returns within{" "}
-            <span className="text-cyan-300 font-semibold">30 days</span>
+            <span className={`font-semibold ${currentTheme === 'light' ? 'text-cyan-600' : 'text-cyan-300'}`}>30 days</span>
             {" "}• Exclusive member discounts
           </motion.p>
 
@@ -485,7 +500,7 @@ export default function HeroPage() {
             </motion.button>
 
             <motion.button
-              className="group px-9 py-4 border-2 border-cyan-400/40 text-cyan-100 rounded-full font-bold text-lg backdrop-blur-sm hover:bg-cyan-500/10 hover:border-cyan-400/60 transition-all relative overflow-hidden"
+              className={`group px-9 py-4 border-2 rounded-full font-bold text-lg backdrop-blur-sm transition-all relative overflow-hidden ${currentTheme === 'light' ? 'border-cyan-500/40 text-gray-700 hover:bg-cyan-500/10 hover:border-cyan-500/60' : 'border-cyan-400/40 text-cyan-100 hover:bg-cyan-500/10 hover:border-cyan-400/60'}`}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
@@ -495,7 +510,7 @@ export default function HeroPage() {
                 <Star className="w-5 h-5 group-hover:rotate-12 transition-transform fill-current" />
               </span>
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10"
+                className={`absolute inset-0 ${currentTheme === 'light' ? 'bg-gradient-to-r from-cyan-500/10 to-blue-500/10' : 'bg-gradient-to-r from-cyan-500/10 to-blue-500/10'}`}
                 initial={{ opacity: 0 }}
                 whileHover={{ opacity: 1 }}
                 transition={{ duration: 0.25 }}
@@ -517,16 +532,16 @@ export default function HeroPage() {
             ].map((item) => (
               <motion.div
                 key={item.title}
-                className="flex items-center gap-2 text-cyan-100/80"
+                className={`flex items-center gap-2 ${currentTheme === 'light' ? 'text-gray-700' : 'text-cyan-100/80'}`}
                 whileHover={{ y: -2 }}
                 transition={{ type: "spring", stiffness: 400 }}
               >
-                <div className={`w-10 h-10 rounded-full bg-${item.color}-500/20 flex items-center justify-center`}>
-                  <item.icon className={`w-5 h-5 text-${item.color}-300`} />
+                <div className={`w-10 h-10 rounded-full ${currentTheme === 'light' ? `bg-${item.color}-500/20` : `bg-${item.color}-500/20`} flex items-center justify-center`}>
+                  <item.icon className={`w-5 h-5 ${currentTheme === 'light' ? `text-${item.color}-600` : `text-${item.color}-300`}`} />
                 </div>
                 <div className="text-left">
-                  <p className="text-sm font-semibold text-white">{item.title}</p>
-                  <p className="text-xs text-cyan-200/70">{item.subtitle}</p>
+                  <p className={`text-sm font-semibold ${currentTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>{item.title}</p>
+                  <p className={`text-xs ${currentTheme === 'light' ? 'text-gray-600' : 'text-cyan-200/70'}`}>{item.subtitle}</p>
                 </div>
               </motion.div>
             ))}

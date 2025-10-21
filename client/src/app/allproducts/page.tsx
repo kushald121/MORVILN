@@ -317,12 +317,12 @@ const AllProducts = () => {
   return (
     <>
       {/* <SplashCursor /> */}
-      <div className="min-h-screen  text-white">
+      <div className="min-h-screen bg-background text-foreground">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-4xl font-bold mb-2">Shop</h1>
-            <nav className="text-gray-400">
+            <nav className="text-muted-foreground">
               Home / Shop
             </nav>
           </div>
@@ -335,11 +335,11 @@ const AllProducts = () => {
                 <h3 className="text-lg font-semibold mb-4">Price</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Min. Price</span>
+                    <span className="text-sm text-muted-foreground">Min. Price</span>
                     <span className="font-semibold">${priceRange[0]}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Max. Price</span>
+                    <span className="text-sm text-muted-foreground">Max. Price</span>
                     <span className="font-semibold">${priceRange[1]}</span>
                   </div>
                   <div className="relative">
@@ -349,9 +349,9 @@ const AllProducts = () => {
                       max="200"
                       value={priceRange[1]}
                       onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer slider"
                     />
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
                       <span>$0</span>
                       <span>$200</span>
                     </div>
@@ -371,7 +371,7 @@ const AllProducts = () => {
                         onChange={() => handleColorChange(color)}
                         className="mr-3 w-4 h-4 text-green-500 bg-gray-700 border-gray-600 rounded focus:ring-green-500"
                       />
-                      <span className="text-gray-300">{color}</span>
+                      <span className="text-muted-foreground">{color}</span>
                     </label>
                   ))}
                 </div>
@@ -389,7 +389,7 @@ const AllProducts = () => {
                         onChange={() => handleSizeChange(size)}
                         className="mr-3 w-4 h-4 text-green-500 bg-gray-700 border-gray-600 rounded focus:ring-green-500"
                       />
-                      <span className="text-gray-300">{size}</span>
+                      <span className="text-muted-foreground">{size}</span>
                     </label>
                   ))}
                 </div>
@@ -407,7 +407,7 @@ const AllProducts = () => {
                         onChange={() => handleShoeSizeChange(size)}
                         className="mr-3 w-4 h-4 text-green-500 bg-gray-700 border-gray-600 rounded focus:ring-green-500"
                       />
-                      <span className="text-gray-300">{size}</span>
+                      <span className="text-muted-foreground">{size}</span>
                     </label>
                   ))}
                 </div>
@@ -418,7 +418,7 @@ const AllProducts = () => {
             <main className="flex-1">
               {/* Top Bar */}
               <div className="flex justify-between items-center mb-8">
-                <p className="text-gray-400">Showing {filteredAndSortedProducts.length} of {products.length} results</p>
+                <p className="text-muted-foreground">Showing {filteredAndSortedProducts.length} of {products.length} results</p>
                 <div className="relative">
                   <select
                     value={sortBy}
@@ -467,7 +467,7 @@ const AllProducts = () => {
                         whileHover={{ scale: 1.05 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <div className="aspect-[3/4] bg-gray-800 flex items-center justify-center">
+                        <div className="aspect-[3/4] bg-muted flex items-center justify-center">
                           <Image
                             width={100}
                             height={133}
@@ -481,7 +481,7 @@ const AllProducts = () => {
                         </div>
                         {product.isOnSale && (
                           <motion.div
-                            className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-semibold"
+                            className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-semibold"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
@@ -548,7 +548,7 @@ const AllProducts = () => {
                         <h3 className="font-semibold text-lg">{product.name}</h3>
                         <div className="flex items-center space-x-2">
                           <motion.span
-                            className="text-green-500 font-bold text-xl"
+                            className="text-blue-500 font-bold text-xl"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.15, type: "spring", stiffness: 200 }}
@@ -557,7 +557,7 @@ const AllProducts = () => {
                           </motion.span>
                           {product.originalPrice && (
                             <motion.span
-                              className="text-gray-500 line-through"
+                              className="text-muted-foreground line-through"
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: 0.2 }}
@@ -574,8 +574,8 @@ const AllProducts = () => {
                             disabled={isLoading[product.id]?.cart}
                             className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all duration-200 ${
                               cartItems.includes(product.id)
-                                ? 'bg-green-500 text-white'
-                                : 'bg-gray-800 text-white hover:bg-gray-700'
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-secondary text-secondary-foreground hover:bg-accent'
                             }`}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -598,7 +598,7 @@ const AllProducts = () => {
                             className={`p-2 rounded-lg font-semibold transition-all duration-200 ${
                               favoriteItems.includes(product.id)
                                 ? 'bg-red-500 text-white'
-                                : 'bg-gray-800 text-white hover:bg-gray-700'
+                                : 'bg-secondary text-secondary-foreground hover:bg-accent'
                             }`}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}

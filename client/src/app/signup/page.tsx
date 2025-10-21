@@ -325,7 +325,7 @@ const SignupPage = () => {
       <div className="min-h-screen flex items-center justify-center p-2 sm:p-4">
         <div
           ref={containerRef}
-          className="w-full max-w-lg sm:max-w-2xl lg:max-w-6xl bg-slate-800/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-slate-700/50"
+          className="w-full max-w-lg sm:max-w-2xl lg:max-w-6xl bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-gray-200"
           style={{ minHeight: '400px' }}
         >
           <div className="flex flex-col lg:flex-row h-full">
@@ -338,10 +338,10 @@ const SignupPage = () => {
                 <div>
                   {/* Welcome Message */}
                   <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-white mb-2">
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
                       {isLogin ? 'WELCOME BACK!' : 'JOIN MORVILN!'}
                     </h2>
-                    <p className="text-slate-300">
+                    <p className="text-gray-600">
                       {isLogin
                         ? 'Access your personal account by logging in.'
                         : 'Create your account and start your fashion journey.'
@@ -351,13 +351,13 @@ const SignupPage = () => {
 
                   {/* Toggle Login/Signup */}
                   <div className="flex justify-center mb-8">
-                    <div className="bg-slate-700/50 rounded-full p-1 flex border border-slate-600/30">
+                    <div className="bg-gray-100 rounded-full p-1 flex border border-gray-200">
                       <button
                         type="button"
                         onClick={() => setIsLogin(true)}
                         className={`px-8 py-3 rounded-full text-sm font-medium transition-all duration-300 ${isLogin
-                          ? 'bg-slate-900 text-white shadow-md border border-slate-600'
-                          : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+                          ? 'bg-white text-gray-900 shadow-md border border-gray-300'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                           }`}
                       >
                         Log In
@@ -366,8 +366,8 @@ const SignupPage = () => {
                         type="button"
                         onClick={() => setIsLogin(false)}
                         className={`px-8 py-3 rounded-full text-sm font-medium transition-all duration-300 ${!isLogin
-                          ? 'bg-slate-900 text-white shadow-md border border-slate-600'
-                          : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
+                          ? 'bg-white text-gray-900 shadow-md border border-gray-300'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                           }`}
                       >
                         Sign up
@@ -379,7 +379,7 @@ const SignupPage = () => {
                     {/* Name field - only for signup */}
                     {!isLogin && (
                       <div className="relative">
-                        <label className="block text-sm font-medium text-slate-200 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
                           Full Name
                         </label>
                         <input
@@ -389,7 +389,7 @@ const SignupPage = () => {
                           required={!isLogin}
                           value={formData.name}
                           onChange={handleInputChange}
-                          className="w-full py-4 px-4 border border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-slate-800/50 text-white placeholder-slate-400"
+                          className="w-full py-4 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-white text-gray-900 placeholder-gray-500"
                           placeholder="Enter your full name"
                         />
                       </div>
@@ -397,7 +397,7 @@ const SignupPage = () => {
 
                     {/* Email field */}
                     <div className="relative">
-                      <label className="block text-sm font-medium text-slate-200 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Email Address or Username
                       </label>
                       <input
@@ -407,7 +407,7 @@ const SignupPage = () => {
                         required
                         value={formData.email}
                         onChange={handleInputChange}
-                        className="w-full py-4 px-4 border border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-slate-800/50 text-white placeholder-slate-400"
+                        className="w-full py-4 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-white text-gray-900 placeholder-gray-500"
                         placeholder="Enter your email"
                       />
                     </div>
@@ -415,7 +415,7 @@ const SignupPage = () => {
                     {/* Phone field - only for signup */}
                     {!isLogin && (
                       <div className="relative">
-                        <label className="block text-sm font-medium text-slate-200 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
                           Phone Number
                         </label>
                         <input
@@ -425,16 +425,16 @@ const SignupPage = () => {
                           required={!isLogin}
                           value={formData.phone}
                           onChange={handleInputChange}
-                          className="w-full py-4 px-4 border border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-slate-800/50 text-white placeholder-slate-400"
+                          className="w-full py-4 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-white text-gray-900 placeholder-gray-500"
                           placeholder="Enter your phone number"
                         />
-                        <p className="text-xs text-slate-400 mt-2">Required for delivery updates</p>
+                        <p className="text-xs text-gray-500 mt-2">Required for delivery updates</p>
                       </div>
                     )}
 
                     {/* Password field - for both login and signup */}
                     <div className="relative">
-                      <label className="block text-sm font-medium text-slate-200 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Password
                       </label>
                       <div className="relative">
@@ -445,14 +445,14 @@ const SignupPage = () => {
                           required
                           value={formData.password}
                           onChange={handleInputChange}
-                          className="w-full py-4 px-4 pr-12 border border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-slate-800/50 text-white placeholder-slate-400"
+                          className="w-full py-4 px-4 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-white text-gray-900 placeholder-gray-500"
                           placeholder="Enter your password"
                         />
                         <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="text-slate-400 hover:text-slate-200 focus:outline-none"
+                            className="text-gray-500 hover:text-gray-700 focus:outline-none"
                           >
                             <span className="h-5 w-5">
                               {showPassword ? <FiEyeOff /> : <FiEye />}
@@ -464,7 +464,7 @@ const SignupPage = () => {
                         <div className="text-right mt-2">
                           <Link
                             href="/Rachna/forgot-password/"
-                            className="text-sm text-slate-400 hover:text-white transition duration-300"
+                            className="text-sm text-gray-500 hover:text-gray-700 transition duration-300"
                           >
                             Forgot Password?
                           </Link>
@@ -475,7 +475,7 @@ const SignupPage = () => {
                     {/* Confirm Password field - only for signup */}
                     {!isLogin && (
                       <div className="relative">
-                        <label className="block text-sm font-medium text-slate-200 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
                           Confirm Password
                         </label>
                         <input
@@ -485,7 +485,7 @@ const SignupPage = () => {
                           required={!isLogin}
                           value={formData.confirmPassword}
                           onChange={handleInputChange}
-                          className="w-full py-4 px-4 border border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-slate-800/50 text-white placeholder-slate-400"
+                          className="w-full py-4 px-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-white text-gray-900 placeholder-gray-500"
                           placeholder="Confirm your password"
                         />
                       </div>
@@ -498,9 +498,9 @@ const SignupPage = () => {
                           id="remember"
                           name="remember"
                           type="checkbox"
-                          className="h-4 w-4 text-blue-400 focus:ring-blue-400 border-slate-600 rounded"
+                          className="h-4 w-4 text-blue-400 focus:ring-blue-400 border-gray-300 rounded"
                         />
-                        <label htmlFor="remember" className="ml-2 block text-sm text-slate-200">
+                        <label htmlFor="remember" className="ml-2 block text-sm text-gray-700">
                           Remember me
                         </label>
                       </div>
@@ -508,7 +508,7 @@ const SignupPage = () => {
 
                     {/* Error message */}
                     {error && (
-                      <div className="bg-red-900/30 border border-red-500/50 text-red-300 px-4 py-3 rounded-xl text-sm text-center">
+                      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm text-center">
                         {error}
                       </div>
                     )}
@@ -526,21 +526,21 @@ const SignupPage = () => {
 
                     {/* Terms and conditions */}
                     {!isLogin && (
-                      <p className="text-xs text-slate-400 text-center">
+                      <p className="text-xs text-gray-500 text-center">
                         By continuing, you agree to our{' '}
-                        <span className="text-white cursor-pointer hover:underline">Terms of Use</span> and{' '}
-                        <span className="text-white cursor-pointer hover:underline">Privacy Policy</span>.
+                        <span className="text-gray-900 cursor-pointer hover:underline">Terms of Use</span> and{' '}
+                        <span className="text-gray-900 cursor-pointer hover:underline">Privacy Policy</span>.
                       </p>
                     )}
 
                     {/* Switch between login/signup */}
                     <div className="text-center">
-                      <p className="text-sm text-slate-300">
+                      <p className="text-sm text-gray-600">
                         {isLogin ? "Don't have an account? " : "Already have an account? "}
                         <button
                           type="button"
                           onClick={() => setIsLogin(!isLogin)}
-                          className="text-white font-semibold hover:underline"
+                          className="text-gray-900 font-semibold hover:underline"
                         >
                           {isLogin ? 'Sign up' : 'Log in'}
                         </button>
@@ -554,17 +554,17 @@ const SignupPage = () => {
                 /* OTP Verification Step */
                 <div>
                   <div className="text-center mb-8">
-                    <div className="mx-auto w-20 h-20 bg-slate-900 rounded-full flex items-center justify-center mb-6 border border-slate-600">
-                      <span className="w-10 h-10 text-white">
+                    <div className="mx-auto w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-6 border border-gray-200">
+                      <span className="w-10 h-10 text-gray-700">
                         <FiShield />
                       </span>
                     </div>
-                    <h3 className="text-xl font-semibold text-white mb-3">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-3">
                       Verify Your Account
                     </h3>
-                    <p className="text-sm text-slate-300">
+                    <p className="text-sm text-gray-600">
                       We have sent a verification code to<br />
-                      <span className="font-medium text-white">{formData.email}</span> and <span className="font-medium text-white">{formData.phone}</span>
+                      <span className="font-medium text-gray-900">{formData.email}</span> and <span className="font-medium text-gray-900">{formData.phone}</span>
                     </p>
                   </div>
 
@@ -574,7 +574,7 @@ const SignupPage = () => {
                         type="text"
                         value={otp}
                         onChange={(e) => setOtp(e.target.value)}
-                        className="w-full py-4 px-4 text-center text-2xl font-bold border border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-slate-800/50 text-white placeholder-slate-400"
+                        className="w-full py-4 px-4 text-center text-2xl font-bold border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-white text-gray-900 placeholder-gray-500"
                         placeholder="Enter OTP"
                         maxLength={6}
                       />
@@ -583,7 +583,7 @@ const SignupPage = () => {
                     {/* Timer */}
                     <div className="text-center">
                       {otpTimer > 0 ? (
-                        <p className="text-sm text-slate-400">
+                        <p className="text-sm text-gray-500">
                           Resend OTP in {Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}
                         </p>
                       ) : (
@@ -591,7 +591,7 @@ const SignupPage = () => {
                           type="button"
                           onClick={handleResendOtp}
                           disabled={loading}
-                          className="text-white hover:text-slate-300 font-medium text-sm transition duration-300"
+                          className="text-gray-900 hover:text-gray-700 font-medium text-sm transition duration-300"
                         >
                           Resend OTP
                         </button>
@@ -600,7 +600,7 @@ const SignupPage = () => {
 
                     {/* Error message */}
                     {error && (
-                      <div className="bg-red-900/30 border border-red-500/50 text-red-300 px-4 py-3 rounded-xl text-sm text-center">
+                      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm text-center">
                         {error}
                       </div>
                     )}
@@ -623,7 +623,7 @@ const SignupPage = () => {
                         setError('');
                         setOtpTimer(0);
                       }}
-                      className="w-full text-slate-400 hover:text-white font-medium transition duration-300"
+                      className="w-full text-gray-600 hover:text-gray-900 font-medium transition duration-300"
                     >
                       ← Back to form
                     </button>

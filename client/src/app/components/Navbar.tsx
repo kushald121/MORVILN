@@ -47,7 +47,7 @@ const NavBar = () => {
   const iconsRef = useRef<HTMLDivElement>(null);
 
   const { scrollY } = useScroll();
-  const navbarOpacity = useTransform(scrollY, [0, 100], [0.95, 0.98]);
+  const navbarOpacity = useTransform(scrollY, [0, 100], [1, 1]);
   const navbarBlur = useTransform(scrollY, [0, 100], [0, 8]);
 
   useEffect(() => {
@@ -236,8 +236,8 @@ const NavBar = () => {
     <>
     <motion.div
       ref={navbarRef}
-      className={` w-full sticky top-0 z-50 transition-all duration-250 ${
-        isScrolled ? 'shadow-lg bg-slate-900/98' : 'shadow-sm'
+      className={`w-full sticky top-0 z-50 transition-all duration-250  ${
+        isScrolled ? 'shadow-xl' : 'shadow-sm'
       }`}
       style={{
         opacity: navbarOpacity,
@@ -269,59 +269,60 @@ const NavBar = () => {
               leaveFrom="translate-x-0"
               leaveTo="-translate-x-full"
             >
-              <Dialog.Panel className="relative flex w-full max-w-sm flex-col overflow-y-auto bg-card shadow-2xl">
+              <Dialog.Panel className="relative flex w-full max-w-sm sm:max-w-md flex-col overflow-y-auto bg-card shadow-2xl">
                 {/* Mobile Menu Header */}
-                <div className="flex items-center justify-between px-4 py-4 border-b border-border">
+                <div className="flex items-center justify-between px-4 py-5 border-b border-border">
                   <Link href="/" onClick={() => setOpen(false)}>
                     <motion.h1
-                      className="font-bold text-primary text-2xl"
+                      className="font-bold text-primary text-3xl sm:text-4xl"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       MORVILN
                     </motion.h1>
                   </Link>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     {/* Mobile Theme Toggle */}
                     <button
                       onClick={toggleTheme}
-                      className="rounded-full p-2 text-foreground hover:bg-accent transition-colors"
+                      className="rounded-full p-3 text-foreground hover:bg-accent transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
                       aria-label="Toggle theme"
                     >
                       {theme === 'dark' ? (
-                        <SunIcon className="h-6 w-6" />
+                        <SunIcon className="h-7 w-7" />
                       ) : (
-                        <MoonIcon className="h-6 w-6" />
+                        <MoonIcon className="h-7 w-7" />
                       )}
                     </button>
                     <button
                       type="button"
-                      className="rounded-full p-2 text-foreground hover:bg-accent transition-colors"
+                      className="rounded-full p-3 text-foreground hover:bg-accent transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
                       onClick={() => setOpen(false)}
+                      aria-label="Close menu"
                     >
-                      <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                      <XMarkIcon className="h-7 w-7" aria-hidden="true" />
                     </button>
                   </div>
                 </div>
 
                 {/* Mobile Search */}
-                <div className="px-4 py-4 border-b border-border">
+                <div className="px-4 py-5 border-b border-border">
                   <form onSubmit={handleSearchSubmit}>
                     <div className="relative">
-                      <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-muted-foreground" />
                       <input
                         type="text"
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
                         placeholder="Search products..."
-                        className="w-full pl-10 pr-4 py-3 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm text-foreground placeholder:text-muted-foreground"
+                        className="w-full pl-12 pr-4 py-4 bg-input border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-base text-foreground placeholder:text-muted-foreground"
                       />
                     </div>
                   </form>
                 </div>
 
                 {/* Mobile Navigation Links */}
-                <div className="flex-1 px-4 py-6 space-y-2">
+                <div className="flex-1 px-4 py-6 space-y-3">
                   {navigation.pages.map((page, index) => (
                     <motion.div
                       key={page.name}
@@ -331,13 +332,13 @@ const NavBar = () => {
                     >
                       <Link
                         href={page.href}
-                        className="flex items-center justify-between p-4 font-semibold text-foreground hover:bg-accent rounded-lg transition-colors group"
+                        className="flex items-center justify-between p-5 font-semibold text-foreground hover:bg-accent rounded-xl transition-colors group min-h-[56px]"
                         onClick={() => setOpen(false)}
                       >
-                        <span className="text-base uppercase tracking-wide group-hover:text-primary transition-colors">
+                        <span className="text-lg uppercase tracking-wide group-hover:text-primary transition-colors">
                           {page.name}
                         </span>
-                        <ChevronRightIcon className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                        <ChevronRightIcon className="h-6 w-6 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                       </Link>
                     </motion.div>
                   ))}
@@ -396,31 +397,32 @@ const NavBar = () => {
             className="fixed inset-0 z-40 lg:hidden bg-background"
           >
             <div className="flex flex-col h-full">
-              <div className="flex items-center gap-3 px-4 py-4 border-b border-border">
+              <div className="flex items-center gap-4 px-4 py-5 border-b border-border">
                 <button
                   onClick={() => setMobileSearchOpen(false)}
-                  className="p-2 -ml-2 hover:bg-accent rounded-full transition-colors"
+                  className="p-3 -ml-1 hover:bg-accent rounded-full transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
+                  aria-label="Close search"
                 >
-                  <XMarkIcon className="h-6 w-6 text-foreground" />
+                  <XMarkIcon className="h-7 w-7 text-foreground" />
                 </button>
                 <form onSubmit={handleSearchSubmit} className="flex-1">
                   <div className="relative">
-                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <MagnifyingGlassIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-6 w-6 text-muted-foreground" />
                     <input
                       type="text"
                       value={searchInput}
                       onChange={(e) => setSearchInput(e.target.value)}
                       placeholder="Search for products..."
                       autoFocus
-                      className="w-full pl-10 pr-4 py-3 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm text-foreground placeholder:text-muted-foreground"
+                      className="w-full pl-12 pr-4 py-4 bg-input border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-base text-foreground placeholder:text-muted-foreground"
                     />
                   </div>
                 </form>
               </div>
 
               {/* Search Suggestions/Results would go here */}
-              <div className="flex-1 overflow-y-auto px-4 py-4">
-                <p className="text-sm text-muted-foreground text-center mt-8">
+              <div className="flex-1 overflow-y-auto px-4 py-6">
+                <p className="text-base text-muted-foreground text-center mt-12">
                   Start typing to search for products
                 </p>
               </div>
@@ -430,44 +432,48 @@ const NavBar = () => {
       </AnimatePresence>
 
       {/* DESKTOP & MOBILE NAVBAR */}
-      <header className="relative bg-background/50 backdrop-blur-md">
+      <header className="relative bg-background backdrop-blur-md">
         <nav className="mx-auto max-w-full px-3 sm:px-4 lg:px-8">
           {/* Mobile Navbar */}
-          <div className="flex lg:hidden h-14 items-center justify-between">
+          <div className="flex lg:hidden h-16 sm:h-18 items-center justify-between px-2">
             {/* Mobile Menu Button */}
             <button
               type="button"
-              className="rounded-md p-2 -ml-2 text-foreground hover:bg-accent transition-colors"
+              className="rounded-lg p-3 -ml-1 text-foreground hover:bg-accent transition-colors min-h-[48px] min-w-[48px] flex items-center justify-center"
               onClick={() => setOpen(true)}
+              aria-label="Open menu"
             >
-              <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+              <Bars3Icon className="h-7 w-7 sm:h-8 sm:w-8" aria-hidden="true" />
             </button>
 
             {/* Mobile Logo */}
             <Link href="/" className="flex-shrink-0">
-              <h1 className="font-bold text-primary text-xl sm:text-2xl">MORVILN</h1>
+              <h1 className="font-bold text-primary text-2xl sm:text-3xl md:text-4xl">MORVILN</h1>
             </Link>
 
             {/* Mobile Right Icons */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 sm:gap-2">
               <button
                 onClick={() => setMobileSearchOpen(true)}
-                className="p-2 text-foreground hover:bg-accent rounded-full transition-colors"
+                className="p-2.5 sm:p-3 text-foreground hover:bg-accent rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="Search"
               >
-                <MagnifyingGlassIcon className="h-5 w-5" />
+                <MagnifyingGlassIcon className="h-6 w-6 sm:h-7 sm:w-7" />
               </button>
 
               <Link
                 href="/favorites"
-                className="p-2 text-foreground hover:bg-accent rounded-full transition-colors relative"
+                className="p-2.5 sm:p-3 text-foreground hover:bg-accent rounded-full transition-colors relative min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="Favorites"
               >
-                <HeartIcon className="h-5 w-5" />
+                <HeartIcon className="h-6 w-6 sm:h-7 sm:w-7" />
               </Link>
 
-              <button className="p-2 text-foreground hover:bg-accent rounded-full transition-colors relative">
-                <ShoppingBagIcon className="h-5 w-5" />
+              <button className="p-2.5 sm:p-3 text-foreground hover:bg-accent rounded-full transition-colors relative min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      aria-label="Shopping bag">
+                <ShoppingBagIcon className="h-6 w-6 sm:h-7 sm:w-7" />
                 {cartCount > 0 && (
-                  <span className="absolute top-0.5 right-0.5 h-4 w-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 h-5 w-5 sm:h-6 sm:w-6 bg-primary text-primary-foreground text-xs sm:text-sm font-bold rounded-full flex items-center justify-center">
                     {cartCount}
                   </span>
                 )}

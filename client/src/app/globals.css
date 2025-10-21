@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* Dark theme (default) */
 :root {
   --background: #0f172a;
   --foreground: #f1f5f9;
@@ -21,6 +22,29 @@
   --input: #334155;
   --ring: #3b82f6;
   --radius: 0.5rem;
+}
+
+/* Light theme */
+.light {
+  --background: #ffffff;
+  --foreground: #1e293b;
+  --card: #ffffff;
+  --card-foreground: #1e293b;
+  --popover: #ffffff;
+  --popover-foreground: #1e293b;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #f8fafc;
+  --secondary-foreground: #1e293b;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #1e293b;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #f8fafc;
+  --ring: #2563eb;
 }
 
 @theme inline {
@@ -48,31 +72,6 @@
   --radius: var(--radius);
 }
 
-/* Light mode overrides (for users who prefer light theme) */
-@media (prefers-color-scheme: light) {
-  :root {
-    --background: #ffffff;
-    --foreground: #171717;
-    --card: #ffffff;
-    --card-foreground: #171717;
-    --popover: #ffffff;
-    --popover-foreground: #171717;
-    --primary: #0891b2;
-    --primary-foreground: #ffffff;
-    --secondary: #f8fafc;
-    --secondary-foreground: #1e293b;
-    --muted: #f8fafc;
-    --muted-foreground: #64748b;
-    --accent: #f8fafc;
-    --accent-foreground: #1e293b;
-    --destructive: #dc2626;
-    --destructive-foreground: #ffffff;
-    --border: #e2e8f0;
-    --input: #f8fafc;
-    --ring: #0891b2;
-  }
-}
-
 * {
   border-color: hsl(var(--border));
 }
@@ -89,10 +88,7 @@ body {
   color-scheme: dark;
 }
 
-/* Smooth transitions for theme switching */
-* {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-}
+/* Optimized transitions for theme switching - removed to improve performance */
 
 /* Custom scrollbar for dark theme */
 ::-webkit-scrollbar {
@@ -331,50 +327,29 @@ body {
   animation: gradient-shift 3s ease infinite;
 }
 
-/* Enhanced button styles for dark theme */
+/* Optimized button styles for better performance */
 .btn-primary {
   background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary)) / 0.8);
   color: hsl(var(--primary-foreground));
   border: none;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
-}
-
-.btn-primary::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.btn-primary:hover::before {
-  left: 100%;
+  background: hsl(var(--primary));
 }
 
 .btn-secondary {
   background: hsl(var(--secondary));
   color: hsl(var(--secondary-foreground));
   border: 1px solid hsl(var(--border));
-  transition: all 0.3s ease;
 }
 
 .btn-secondary:hover {
   background: hsl(var(--accent));
   border-color: hsl(var(--primary));
-  transform: translateY(-1px);
 }
 
-/* Card styles for dark theme */
+/* Card styles for better performance */
 .card-dark {
   background: hsl(var(--card));
   color: hsl(var(--card-foreground));
@@ -385,18 +360,15 @@ body {
 
 .card-dark:hover {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-  transition: all 0.3s ease;
 }
 
-/* Input styles for dark theme */
+/* Input styles for better performance */
 .input-dark {
   background: hsl(var(--input));
   color: hsl(var(--foreground));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   padding: 0.5rem 0.75rem;
-  transition: all 0.3s ease;
 }
 
 .input-dark:focus {
@@ -739,31 +711,12 @@ body {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
   width: 100%;
   margin-top: 1rem;
 }
 
 .auth-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-}
-
-.auth-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.auth-button:hover::before {
-  left: 100%;
+  background: linear-gradient(135deg, #5a67d8, #6b46c1);
 }
 
 .toggle-auth {
@@ -773,7 +726,6 @@ body {
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
-  transition: color 0.3s ease;
 }
 
 .toggle-auth:hover {

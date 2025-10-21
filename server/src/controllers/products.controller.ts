@@ -557,6 +557,158 @@ export class AdminProductController {
       });
     }
   }
+
+  /**
+   * Get all categories for SEO-friendly routes
+   */
+  async getCategories(req: Request, res: Response) {
+    try {
+      const query = `
+        SELECT id, name, slug, description, image_url
+        FROM categories
+        WHERE is_active = true
+        ORDER BY name
+      `;
+
+      const result = await this.pool.query(query);
+
+      res.json({
+        success: true,
+        data: result.rows
+      });
+    } catch (error) {
+      console.error('Get categories error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch categories'
+      });
+    }
+  }
+
+  /**
+   * Get products by category for SEO-friendly routes
+   */
+  async getProductsByCategory(req: Request, res: Response) {
+    try {
+      const categorySlug = req.params.category;
+      const { page = 1, limit = 12 } = req.query;
+      const offset = (Number(page) - 1) * Number(limit);
+
+      // First get category info
+      const categoryQuery = `
+        SELECT id, name, slug, description
+        FROM categories
+        WHERE slug = $1 AND is_active = true
+      `;
+
+      const categoryResult = await this.pool.query(categoryQuery, [categorySlug]);
+
+      if (categoryResult.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Category not found'
+        });
+      }
+
+      const category = categoryResult.rows[0];
+
+      // Then get products in that category
+      const productsQuery = `
+        SELECT 
+          p.id, p.name, p.slug, p.short_description, p.base_price,
+          p.compare_at_price, p.is_active,
+          pm.media_url as primary_image,
+          c.name as category_name, c.slug as category_slug
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        LEFT JOIN product_media pm ON p.id = pm.product_id AND pm.is_primary = true
+        WHERE c.slug = $1 AND p.is_active = true
+        ORDER BY p.created_at DESC
+        LIMIT $2 OFFSET $3
+      `;
+
+      const productsResult = await this.pool.query(productsQuery, [categorySlug, limit, offset]);
+
+      res.json({
+        success: true,
+        data: {
+          category,
+          products: productsResult.rows
+        }
+      });
+    } catch (error) {
+      console.error('Get products by category error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch products'
+      });
+    }
+  }
+
+  /**
+   * Get product by slug for SEO-friendly routes
+   */
+  async getProductBySlug(req: Request, res: Response) {
+    try {
+      const categorySlug = req.params.category;
+      const productSlug = req.params.slug;
+
+      const query = `
+        SELECT 
+          p.*,
+          c.name as category_name, c.slug as category_slug,
+          json_agg(
+            DISTINCT jsonb_build_object(
+              'id', pv.id,
+              'size', pv.size,
+              'color', pv.color,
+              'color_code', pv.color_code,
+              'material', pv.material,
+              'additional_price', pv.additional_price,
+              'stock_quantity', pv.stock_quantity,
+              'sku', pv.sku,
+              'is_active', pv.is_active
+            )
+          ) as variants,
+          json_agg(
+            DISTINCT jsonb_build_object(
+              'id', pm.id,
+              'media_url', pm.media_url,
+              'cloudinary_public_id', pm.cloudinary_public_id,
+              'media_type', pm.media_type,
+              'alt_text', pm.alt_text,
+              'is_primary', pm.is_primary
+            )
+          ) as media
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        LEFT JOIN product_variants pv ON p.id = pv.product_id
+        LEFT JOIN product_media pm ON p.id = pm.product_id
+        WHERE c.slug = $1 AND p.slug = $2 AND p.is_active = true
+        GROUP BY p.id, c.name, c.slug
+      `;
+
+      const result = await this.pool.query(query, [categorySlug, productSlug]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'Product not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        data: result.rows[0]
+      });
+    } catch (error) {
+      console.error('Get product by slug error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch product'
+      });
+    }
+  }
 }
 
 export default new AdminProductController();

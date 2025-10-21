@@ -15,7 +15,6 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.75.1",
     "@types/cookie-parser": "^1.4.9",
-    "@types/passport-facebook": "^3.0.3",
     "@types/web-push": "^3.6.4",
     "@upstash/redis": "^1.35.6",
     "bcryptjs": "^3.0.2",
@@ -31,9 +30,6 @@
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
     "passport": "^0.7.0",
-    "passport-facebook": "^3.0.0",
-    "passport-google-oauth20": "^2.0.0",
-    "passport-instagram": "^1.0.0",
     "pg": "^8.16.3",
     "web-push": "^3.6.7"
   },
@@ -44,8 +40,6 @@
     "@types/multer": "^2.0.0",
     "@types/node": "^24.8.1",
     "@types/passport": "^1.0.17",
-    "@types/passport-google-oauth20": "^2.0.16",
-    "@types/passport-instagram": "^1.0.5",
     "@types/pg": "^8.15.5",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",

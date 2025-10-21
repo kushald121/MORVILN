@@ -1,33 +1,17 @@
 import { Router } from 'express';
-import passport from 'passport';
 import authController from '../controllers/auth.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 
 const router = Router();
 
-// Google OAuth routes
-router.get(
-  '/google',
-  passport.authenticate('google', { scope: ['profile', 'email'] })
-);
+// Supabase OAuth routes for Google
+router.get('/google', authController.initiateGoogleOAuth);
 
-router.get(
-  '/google/callback',
-  passport.authenticate('google', { session: false }),
-  authController.oauthCallback
-);
+// Supabase OAuth routes for Facebook
+router.get('/facebook', authController.initiateFacebookOAuth);
 
-// Facebook OAuth routes
-router.get(
-  '/facebook',
-  passport.authenticate('facebook', { scope: ['email'] })
-);
-
-router.get(
-  '/facebook/callback',
-  passport.authenticate('facebook', { session: false }),
-  authController.oauthCallback
-);
+// Shared callback route for both Google and Facebook OAuth
+router.get('/oauth/callback', authController.supabaseOAuthCallback);
 
 // Get current user
 router.get('/me', authMiddleware, authController.getCurrentUser);

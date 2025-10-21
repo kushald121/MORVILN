@@ -1,17 +1,16 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { FiEye, FiEyeOff, FiShield } from 'react-icons/fi';
-import { gsap } from 'gsap';
-import axios from "axios";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Image from 'next/image';
-// import SplashCursor from '../components/ui/splash-cursor';
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiPhone, FiShoppingBag } from 'react-icons/fi';
+import { FcGoogle } from 'react-icons/fc';
+import { FaFacebook } from 'react-icons/fa';
+import { authService } from '@/lib/auth';
 
 const SignupPage = () => {
-  const [isLogin, setIsLogin] = useState(false); // Set to false for signup mode
-  const [step, setStep] = useState(1); // 1: form, 2: otp verification
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -19,129 +18,23 @@ const SignupPage = () => {
     confirmPassword: '',
     phone: ''
   });
-  const [otp, setOtp] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [otpTimer, setOtpTimer] = useState(0);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const router = useRouter();
-
-  // Refs for GSAP animations
-  const containerRef = useRef<HTMLDivElement>(null);
-  const formRef = useRef<HTMLDivElement>(null);
-  const imageRef = useRef<HTMLDivElement>(null);
-  const logoRef = useRef<HTMLDivElement>(null);
-
-  // High-quality fashion images array
-  const fashionImages = [
-    'https://voilastudio.in/old_website_assets/voilastudio_admin/images/model_images/indian_model/ANMOL_23_1_23%20(16).webp',
-    'https://img.freepik.com/free-photo/portrait-handsome-fashion-stylish-hipster-model-dressed-warm-overcoat-posing-studio_158538-11452.jpg',
-    'https://img.freepik.com/premium-photo/fashion-model-posing-with-hand-pocket-blue-sky-background_661495-125208.jpg?semt=ais_hybrid&w=740&q=80',
-    'https://img.freepik.com/free-photo/man-suit-studio_1303-5846.jpg?semt=ais_hybrid&w=740&q=80'
-  ];
-
-  // Timer effect for OTP
-  useEffect(() => {
-    if (otpTimer > 0) {
-      const timer = setTimeout(() => setOtpTimer(otpTimer - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [otpTimer]);
-
-  // Image rotation effect
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prev) => (prev + 1) % fashionImages.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [fashionImages.length]);
-
-  // GSAP animations on mount
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Initial setup
-      gsap.set([formRef.current, imageRef.current], { opacity: 0 });
-
-
-      // Logo animation
-      gsap.fromTo(logoRef.current,
-        { scale: 0, rotation: -180 },
-        { scale: 1, rotation: 0, duration: 1, ease: "back.out(1.7)" }
-      );
-
-      // Container entrance
-      gsap.fromTo(containerRef.current,
-        { scale: 0.8, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.8, ease: "power2.out", delay: 0.3 }
-      );
-
-      // Form slide in from left
-      gsap.fromTo(formRef.current,
-        { x: -100, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.8, ease: "power2.out", delay: 0.6 }
-      );
-
-      // Image slide in from right
-      gsap.fromTo(imageRef.current,
-        { x: 100, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.8, ease: "power2.out", delay: 0.8 }
-      );
-
-      // Floating animation for the container
-      gsap.to(containerRef.current, {
-        y: -10,
-        duration: 2,
-        ease: "power1.inOut",
-        yoyo: true,
-        repeat: -1
-      });
-
-      // Animate form inputs on focus
-      const inputs = formRef.current?.querySelectorAll('input');
-      inputs?.forEach((input) => {
-        input.addEventListener('focus', () => {
-          gsap.to(input, {
-            scale: 1.02,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        });
-
-        input.addEventListener('blur', () => {
-          gsap.to(input, {
-            scale: 1,
-            duration: 0.2,
-            ease: "power2.out"
-          });
-        });
-      });
-
-    }, containerRef);
-
-    return () => ctx.revert();
-  }, []);
-
-  // Image change animation
-  useEffect(() => {
-    if (imageRef.current) {
-      gsap.fromTo(imageRef.current,
-        { scale: 1.1, opacity: 0.7 },
-        { scale: 1, opacity: 1, duration: 0.5, ease: "power2.out" }
-      );
-    }
-  }, [currentImageIndex]);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-    setError(''); // Clear error when user types
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    setError('');
   };
 
   const validateForm = () => {
-    if (!isLogin && !formData.name.trim()) {
+    if (!formData.name.trim()) {
       setError('Name is required');
       return false;
     }
@@ -149,527 +42,338 @@ const SignupPage = () => {
       setError('Email is required');
       return false;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+/.test(formData.email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       setError('Please enter a valid email address');
       return false;
     }
-    if (!isLogin && !formData.phone.trim()) {
-      setError('Phone number is required');
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
       return false;
     }
-    if (!isLogin && !/^[6-9]\d{9}$/.test(formData.phone)) {
-      setError('Please enter a valid 10-digit Indian mobile number');
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
       return false;
     }
-    if (isLogin && !formData.password.trim()) {
-      setError('Password is required');
+    if (!agreedToTerms) {
+      setError('Please agree to the terms and conditions');
       return false;
     }
     return true;
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!validateForm()) return;
 
     setLoading(true);
     setError('');
 
     try {
-      if (isLogin) {
-        // Login flow
-        const sessionId = localStorage.getItem('guestSessionId');
-        const response = await axios.post('https://rachna-backend-1.onrender.com/api/user/login', {
-          email: formData.email,
-          password: formData.password,
-          sessionId
-        });
-
-        if (response.data.success) {
-          // Store auth data with 15-day expiry
-          const expiryDate = new Date();
-          expiryDate.setDate(expiryDate.getDate() + 15);
-
-          localStorage.setItem('userToken', response.data.token);
-          localStorage.setItem('userData', JSON.stringify(response.data.user));
-          localStorage.setItem('authExpiry', expiryDate.toISOString());
-
-          router.push('/');
-        }
-      } else {
-        // Signup flow - validate passwords first
-        if (formData.password !== formData.confirmPassword) {
-          setError('Passwords do not match');
-          return;
-        }
-
-        if (formData.password.length < 6) {
-          setError('Password must be at least 6 characters long');
-          return;
-        }
-
-        // Send OTP for signup
-        const response = await axios.post('https://rachna-backend-1.onrender.com/api/user/send-otp', {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          password: formData.password
-        });
-
-        if (response.data.success) {
-          setStep(2);
-          setOtpTimer(30); // 30 seconds
-        } else {
-          setError(response.data.message || 'Failed to send OTP');
-        }
-      }
-    } catch (error: unknown) {
-      console.error('Auth error:', error);
-
-      // Handle specific case where user doesn't exist during login
-      const axiosError = error as { response?: { data?: { action?: string; message?: string } } };
-      if (axiosError.response?.data?.action === 'signup') {
-        setError(axiosError.response.data.message || 'Please sign up instead');
-        // Auto-redirect to signup after 3 seconds
-        setTimeout(() => {
-          setIsLogin(false);
-          setError('');
-          setFormData({ name: '', email: formData.email, password: '', confirmPassword: '', phone: '' });
-        }, 3000);
-      } else {
-        setError(axiosError.response?.data?.message || 'An error occurred. Please try again.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOtpVerification = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!otp.trim()) {
-      setError('Please enter the OTP');
-      return;
-    }
-
-
-
-    setLoading(true);
-    setError('');
-
-    try {
-      const sessionId = localStorage.getItem('guestSessionId');
-      console.log('Verifying OTP:', { email: formData.email, phone: formData.phone, otp: otp.trim() });
-
-      const response = await axios.post('https://rachna-backend-1.onrender.com/api/user/verify-otp', {
-        email: formData.email,
-        phone: formData.phone,
-        otp: otp.trim(), // Ensure no whitespace
+      await authService.signup({
         name: formData.name,
+        email: formData.email,
         password: formData.password,
-        sessionId
+        phone: formData.phone
       });
-
-      if (response.data.success) {
-        // Store auth data with 15-day expiry
-        const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + 15);
-
-        localStorage.setItem('userToken', response.data.token);
-        localStorage.setItem('userData', JSON.stringify(response.data.user));
-        localStorage.setItem('authExpiry', expiryDate.toISOString());
-
-        router.push('/');
-      } else {
-        setError(response.data.message || 'Invalid OTP');
-      }
-    } catch (error: unknown) {
-      console.error('OTP verification error:', error);
-      const axiosError = error as { response?: { data?: { message?: string } } };
-      setError(axiosError.response?.data?.message || 'OTP verification failed');
+      router.push('/');
+    } catch (err: any) {
+      setError(err.message || 'Signup failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResendOtp = async () => {
-    setLoading(true);
-    setError('');
-
-
+  const handleGoogleLogin = async () => {
     try {
-      const response = await axios.post('https://rachna-backend-1.onrender.com/api/user/send-otp', {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        password: formData.password
-      });
+      await authService.loginWithGoogle();
+    } catch (err: any) {
+      setError(err.message || 'Google login failed');
+    }
+  };
 
-      if (response.data.success) {
-        setOtpTimer(30); // Reset timer to 30 seconds
-        setOtp('');
-      } else {
-        setError(response.data.message || 'Failed to resend OTP');
-      }
-    } catch (error: unknown) {
-      console.error('Resend OTP error:', error);
-      const axiosError = error as { response?: { data?: { message?: string } } };
-      setError(axiosError.response?.data?.message || 'Failed to resend OTP');
-    } finally {
-      setLoading(false);
+  const handleFacebookLogin = async () => {
+    try {
+      await authService.loginWithFacebook();
+    } catch (err: any) {
+      setError(err.message || 'Facebook login failed');
     }
   };
 
   return (
-    <>
-      {/* <SplashCursor /> */}
-      <div className="min-h-screen flex items-center justify-center p-2 sm:p-4">
-        <div
-          ref={containerRef}
-          className="w-full max-w-lg sm:max-w-2xl lg:max-w-6xl bg-slate-800/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-slate-700/50"
-          style={{ minHeight: '400px' }}
-        >
-          <div className="flex flex-col lg:flex-row h-full">
-            {/* Left Side - Form */}
-            <div ref={formRef} className="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col justify-center">
-
-    
-
-              {step === 1 ? (
-                <div>
-                  {/* Welcome Message */}
-                  <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-white mb-2">
-                      {isLogin ? 'WELCOME BACK!' : 'JOIN MORVILN!'}
-                    </h2>
-                    <p className="text-slate-300">
-                      {isLogin
-                        ? 'Access your personal account by logging in.'
-                        : 'Create your account and start your fashion journey.'
-                      }
-                    </p>
-                  </div>
-
-                  {/* Toggle Login/Signup */}
-                  <div className="flex justify-center mb-8">
-                    <div className="bg-slate-700/50 rounded-full p-1 flex border border-slate-600/30">
-                      <button
-                        type="button"
-                        onClick={() => setIsLogin(true)}
-                        className={`px-8 py-3 rounded-full text-sm font-medium transition-all duration-300 ${isLogin
-                          ? 'bg-slate-900 text-white shadow-md border border-slate-600'
-                          : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
-                          }`}
-                      >
-                        Log In
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsLogin(false)}
-                        className={`px-8 py-3 rounded-full text-sm font-medium transition-all duration-300 ${!isLogin
-                          ? 'bg-slate-900 text-white shadow-md border border-slate-600'
-                          : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
-                          }`}
-                      >
-                        Sign up
-                      </button>
-                    </div>
-                  </div>
-
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Name field - only for signup */}
-                    {!isLogin && (
-                      <div className="relative">
-                        <label className="block text-sm font-medium text-slate-200 mb-2">
-                          Full Name
-                        </label>
-                        <input
-                          id="name"
-                          name="name"
-                          type="text"
-                          required={!isLogin}
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          className="w-full py-4 px-4 border border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-slate-800/50 text-white placeholder-slate-400"
-                          placeholder="Enter your full name"
-                        />
-                      </div>
-                    )}
-
-                    {/* Email field */}
-                    <div className="relative">
-                      <label className="block text-sm font-medium text-slate-200 mb-2">
-                        Email Address or Username
-                      </label>
-                      <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        required
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className="w-full py-4 px-4 border border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-slate-800/50 text-white placeholder-slate-400"
-                        placeholder="Enter your email"
-                      />
-                    </div>
-
-                    {/* Phone field - only for signup */}
-                    {!isLogin && (
-                      <div className="relative">
-                        <label className="block text-sm font-medium text-slate-200 mb-2">
-                          Phone Number
-                        </label>
-                        <input
-                          id="phone"
-                          name="phone"
-                          type="tel"
-                          required={!isLogin}
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          className="w-full py-4 px-4 border border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-slate-800/50 text-white placeholder-slate-400"
-                          placeholder="Enter your phone number"
-                        />
-                        <p className="text-xs text-slate-400 mt-2">Required for delivery updates</p>
-                      </div>
-                    )}
-
-                    {/* Password field - for both login and signup */}
-                    <div className="relative">
-                      <label className="block text-sm font-medium text-slate-200 mb-2">
-                        Password
-                      </label>
-                      <div className="relative">
-                        <input
-                          id="password"
-                          name="password"
-                          type={showPassword ? 'text' : 'password'}
-                          required
-                          value={formData.password}
-                          onChange={handleInputChange}
-                          className="w-full py-4 px-4 pr-12 border border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-slate-800/50 text-white placeholder-slate-400"
-                          placeholder="Enter your password"
-                        />
-                        <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="text-slate-400 hover:text-slate-200 focus:outline-none"
-                          >
-                            <span className="h-5 w-5">
-                              {showPassword ? <FiEyeOff /> : <FiEye />}
-                            </span>
-                          </button>
-                        </div>
-                      </div>
-                      {isLogin && (
-                        <div className="text-right mt-2">
-                          <Link
-                            href="/Rachna/forgot-password/"
-                            className="text-sm text-slate-400 hover:text-white transition duration-300"
-                          >
-                            Forgot Password?
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Confirm Password field - only for signup */}
-                    {!isLogin && (
-                      <div className="relative">
-                        <label className="block text-sm font-medium text-slate-200 mb-2">
-                          Confirm Password
-                        </label>
-                        <input
-                          id="confirmPassword"
-                          name="confirmPassword"
-                          type={showPassword ? 'text' : 'password'}
-                          required={!isLogin}
-                          value={formData.confirmPassword}
-                          onChange={handleInputChange}
-                          className="w-full py-4 px-4 border border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-slate-800/50 text-white placeholder-slate-400"
-                          placeholder="Confirm your password"
-                        />
-                      </div>
-                    )}
-
-                    {/* Remember me checkbox for login */}
-                    {isLogin && (
-                      <div className="flex items-center">
-                        <input
-                          id="remember"
-                          name="remember"
-                          type="checkbox"
-                          className="h-4 w-4 text-blue-400 focus:ring-blue-400 border-slate-600 rounded"
-                        />
-                        <label htmlFor="remember" className="ml-2 block text-sm text-slate-200">
-                          Remember me
-                        </label>
-                      </div>
-                    )}
-
-                    {/* Error message */}
-                    {error && (
-                      <div className="bg-red-900/30 border border-red-500/50 text-red-300 px-4 py-3 rounded-xl text-sm text-center">
-                        {error}
-                      </div>
-                    )}
-
-                    {/* Submit button */}
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105"
-                    >
-                      {loading ? 'Please wait...' : (isLogin ? 'Log In' : 'Send OTP')}
-                    </button>
-
-
-
-                    {/* Terms and conditions */}
-                    {!isLogin && (
-                      <p className="text-xs text-slate-400 text-center">
-                        By continuing, you agree to our{' '}
-                        <span className="text-white cursor-pointer hover:underline">Terms of Use</span> and{' '}
-                        <span className="text-white cursor-pointer hover:underline">Privacy Policy</span>.
-                      </p>
-                    )}
-
-                    {/* Switch between login/signup */}
-                    <div className="text-center">
-                      <p className="text-sm text-slate-300">
-                        {isLogin ? "Don't have an account? " : "Already have an account? "}
-                        <button
-                          type="button"
-                          onClick={() => setIsLogin(!isLogin)}
-                          className="text-white font-semibold hover:underline"
-                        >
-                          {isLogin ? 'Sign up' : 'Log in'}
-                        </button>
-                      </p>
-                    </div>
-
-                  </form>
-                </div>
-
-              ) : (
-                /* OTP Verification Step */
-                <div>
-                  <div className="text-center mb-8">
-                    <div className="mx-auto w-20 h-20 bg-slate-900 rounded-full flex items-center justify-center mb-6 border border-slate-600">
-                      <span className="w-10 h-10 text-white">
-                        <FiShield />
-                      </span>
-                    </div>
-                    <h3 className="text-xl font-semibold text-white mb-3">
-                      Verify Your Account
-                    </h3>
-                    <p className="text-sm text-slate-300">
-                      We have sent a verification code to<br />
-                      <span className="font-medium text-white">{formData.email}</span> and <span className="font-medium text-white">{formData.phone}</span>
-                    </p>
-                  </div>
-
-                  <form onSubmit={handleOtpVerification} className="space-y-6">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        className="w-full py-4 px-4 text-center text-2xl font-bold border border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition duration-300 bg-slate-800/50 text-white placeholder-slate-400"
-                        placeholder="Enter OTP"
-                        maxLength={6}
-                      />
-                    </div>
-
-                    {/* Timer */}
-                    <div className="text-center">
-                      {otpTimer > 0 ? (
-                        <p className="text-sm text-slate-400">
-                          Resend OTP in {Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}
-                        </p>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={handleResendOtp}
-                          disabled={loading}
-                          className="text-white hover:text-slate-300 font-medium text-sm transition duration-300"
-                        >
-                          Resend OTP
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Error message */}
-                    {error && (
-                      <div className="bg-red-900/30 border border-red-500/50 text-red-300 px-4 py-3 rounded-xl text-sm text-center">
-                        {error}
-                      </div>
-                    )}
-
-                    {/* Verify button */}
-                    <button
-                      type="submit"
-                      disabled={loading || !otp.trim()}
-                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105"
-                    >
-                      {loading ? 'Verifying...' : 'VERIFY & LOGIN'}
-                    </button>
-
-                    {/* Back button */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setStep(1);
-                        setOtp('');
-                        setError('');
-                        setOtpTimer(0);
-                      }}
-                      className="w-full text-slate-400 hover:text-white font-medium transition duration-300"
-                    >
-                      ← Back to form
-                    </button>
-                  </form>
-                </div>
-              )}
-            </div>
-
-            {/* Right Side - Fashion Images */}
-            <div ref={imageRef} className="hidden lg:block lg:w-1/2 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent z-10"></div>
-              <Image
-                src={fashionImages[currentImageIndex]}
-                alt={`High-quality fashion showcase featuring elegant clothing and modern style - Image ${currentImageIndex + 1} of ${fashionImages.length}`}
-                fill
-                className="object-cover transition-all duration-1000 ease-in-out"
-                style={{ minHeight: '600px' }}
-                priority={currentImageIndex === 0}
-                sizes="(max-width: 768px) 0vw, (max-width: 1200px) 50vw, 33vw"
-              />
-
-              {/* Image indicators */}
-              <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
-                {fashionImages.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentImageIndex(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentImageIndex
-                      ? 'bg-white scale-125'
-                      : 'bg-white/50 hover:bg-white/75'
-                      }`}
-                  />
-                ))}
-              </div>
-
-              {/* Fashion text overlay */}
-              <div className="absolute top-8 right-8 text-white z-20">
-                <h3 className="text-2xl font-bold mb-2">MORVILN</h3>
-                <p className="text-sm opacity-90">Fashion Forward</p>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50 px-4 py-4 relative overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-orange-300 to-rose-300 rounded-full opacity-20 blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-300 to-purple-300 rounded-full opacity-20 blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-amber-200 to-orange-200 rounded-full opacity-10 blur-3xl"></div>
       </div>
-    </>
+
+      <div className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 items-center relative z-10">
+        {/* Left Side - Illustration/Branding */}
+        <motion.div 
+          initial={{ opacity: 0, x: -50 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+          className="hidden lg:flex flex-col justify-center items-center space-y-4 px-8"
+        >
+          <div className="text-center space-y-3">
+            <Link href="/">
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-500 via-rose-500 to-indigo-600 bg-clip-text text-transparent mb-2">
+                MORVILN
+              </h1>
+            </Link>
+            <h2 className="text-3xl font-bold text-gray-800 leading-tight">
+              Start your fashion<br />journey today
+            </h2>
+            <p className="text-base text-gray-600">
+              Join thousands of fashion enthusiasts
+            </p>
+          </div>
+          
+          {/* Illustration */}
+          <motion.div 
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="relative"
+          >
+            <div className="w-56 h-56 relative">
+              <FiShoppingBag className="w-full h-full text-rose-500 opacity-20" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-32 h-32 bg-gradient-to-br from-rose-400 to-orange-500 rounded-full opacity-30 blur-2xl"></div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Right Side - Signup Form */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="w-full max-w-md mx-auto"
+        >
+          <div className="bg-white rounded-2xl shadow-2xl p-5 sm:p-6 backdrop-blur-lg border border-gray-100 max-h-[95vh] overflow-y-auto">
+            {/* Mobile Logo */}
+            <div className="lg:hidden text-center mb-3">
+              <Link href="/">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-500 via-rose-500 to-indigo-600 bg-clip-text text-transparent">
+                  MORVILN
+                </h1>
+              </Link>
+            </div>
+
+            <div className="text-center mb-4">
+              <h2 className="text-2xl font-bold text-gray-800 mb-1">Create Account</h2>
+              <p className="text-sm text-gray-600">Join us and start shopping today!</p>
+            </div>
+
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm"
+              >
+                {error}
+              </motion.div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-3">
+              {/* Name */}
+              <div>
+                <label htmlFor="name" className="block text-xs font-semibold text-gray-700 mb-1">
+                  Full Name
+                </label>
+                <div className="relative">
+                  <FiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all outline-none bg-gray-50 hover:bg-white text-sm"
+                    placeholder="John Doe"
+                  />
+                </div>
+              </div>
+
+              {/* Email */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Email
+                </label>
+                <div className="relative">
+                  <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all outline-none bg-gray-50 hover:bg-white"
+                    placeholder="your@email.com"
+                  />
+                </div>
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Phone Number (Optional)
+                </label>
+                <div className="relative">
+                  <FiPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="w-full pl-12 pr-4 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all outline-none bg-gray-50 hover:bg-white"
+                    placeholder="+91 98765 43210"
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div>
+                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Password
+                </label>
+                <div className="relative">
+                  <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="w-full pl-12 pr-12 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all outline-none bg-gray-50 hover:bg-white"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <FiEyeOff className="w-5 h-5" /> : <FiEye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm Password */}
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    required
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className="w-full pl-12 pr-12 py-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all outline-none bg-gray-50 hover:bg-white"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showConfirmPassword ? <FiEyeOff className="w-5 h-5" /> : <FiEye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Terms Checkbox */}
+              <div className="flex items-start pt-2">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300 text-rose-500 focus:ring-rose-500"
+                />
+                <label htmlFor="terms" className="ml-2 text-xs text-gray-600">
+                  I agree to the{' '}
+                  <Link href="/terms" className="text-rose-600 hover:text-rose-700 font-semibold">
+                    Terms & Conditions
+                  </Link>
+                  {' '}and{' '}
+                  <Link href="/privacy" className="text-rose-600 hover:text-rose-700 font-semibold">
+                    Privacy Policy
+                  </Link>
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-rose-500 to-orange-500 text-white py-3.5 rounded-xl font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Creating account...
+                  </span>
+                ) : 'Create Account'}
+              </button>
+            </form>
+
+            {/* Divider */}
+            <div className="relative my-5">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white text-gray-500 font-medium">Or sign up with</span>
+              </div>
+            </div>
+
+            {/* OAuth Buttons */}
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="flex items-center justify-center gap-3 px-4 py-3 border-2 border-gray-200 rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FcGoogle className="w-5 h-5" />
+                <span className="font-semibold text-gray-700">Google</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleFacebookLogin}
+                disabled={loading}
+                className="flex items-center justify-center gap-3 px-4 py-3 border-2 border-gray-200 rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FaFacebook className="w-5 h-5 text-blue-600" />
+                <span className="font-semibold text-gray-700">Facebook</span>
+              </button>
+            </div>
+
+            {/* Sign In Link */}
+            <p className="mt-5 text-center text-sm text-gray-600">
+              Already have an account?{' '}
+              <Link href="/login" className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 transition-all">
+                Sign in
+              </Link>
+            </p>
+          </div>
+        </motion.div>
+      </div>
+    </div>
   );
 };
 
 export default SignupPage;
+

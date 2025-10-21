@@ -1,5 +1,4 @@
-import { Pool } from 'pg';
-import pool from '../config/database';
+import supabase from '../config/supabaseclient';
 
 export interface FCMToken {
   id: string;
@@ -20,65 +19,128 @@ export interface CreateFCMTokenInput {
 }
 
 class FCMTokenModel {
-  private pool: Pool;
-
-  constructor() {
-    this.pool = pool;
-  }
-
   async createOrUpdateToken(data: CreateFCMTokenInput): Promise<FCMToken> {
-    const query = `
-      INSERT INTO fcm_tokens (user_id, token, device_name, device_type)
-      VALUES ($1, $2, $3, $4)
-      ON CONFLICT (token) 
-      DO UPDATE SET 
-        user_id = EXCLUDED.user_id,
-        device_name = EXCLUDED.device_name,
-        device_type = EXCLUDED.device_type,
-        is_active = true,
-        updated_at = CURRENT_TIMESTAMP
-      RETURNING *
-    `;
+    // First try to update existing token
+    const { data: existingToken, error: findError } = await supabase
+      .from('fcm_tokens')
+      .select('*')
+      .eq('token', data.token)
+      .single();
 
-    const values = [
-      data.userId,
-      data.token,
-      data.deviceName || null,
-      data.deviceType || null,
-    ];
+    if (existingToken && !findError) {
+      // Update existing token
+      const { data: updatedToken, error: updateError } = await supabase
+        .from('fcm_tokens')
+        .update({
+          user_id: data.userId,
+          device_name: data.deviceName || null,
+          device_type: data.deviceType || null,
+          is_active: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('token', data.token)
+        .select()
+        .single();
 
-    const result = await this.pool.query(query, values);
-    return this.mapRowToToken(result.rows[0]);
+      if (updateError) {
+        console.error('Error updating FCM token:', updateError);
+        throw new Error(`Failed to update FCM token: ${updateError.message}`);
+      }
+
+      return this.mapRowToToken(updatedToken);
+    } else {
+      // Create new token
+      const { data: newToken, error: insertError } = await supabase
+        .from('fcm_tokens')
+        .insert({
+          user_id: data.userId,
+          token: data.token,
+          device_name: data.deviceName || null,
+          device_type: data.deviceType || null,
+          is_active: true
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error creating FCM token:', insertError);
+        throw new Error(`Failed to create FCM token: ${insertError.message}`);
+      }
+
+      return this.mapRowToToken(newToken);
+    }
   }
 
   async getTokensByUserId(userId: string): Promise<FCMToken[]> {
-    const query = 'SELECT * FROM fcm_tokens WHERE user_id = $1 AND is_active = true';
-    const result = await this.pool.query(query, [userId]);
-    return result.rows.map(row => this.mapRowToToken(row));
+    const { data, error } = await supabase
+      .from('fcm_tokens')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_active', true);
+
+    if (error) {
+      console.error('Error getting FCM tokens by user ID:', error);
+      throw new Error(`Failed to get FCM tokens: ${error.message}`);
+    }
+
+    return (data || []).map((row: any) => this.mapRowToToken(row));
   }
 
   async getAllActiveTokens(): Promise<FCMToken[]> {
-    const query = 'SELECT * FROM fcm_tokens WHERE is_active = true';
-    const result = await this.pool.query(query);
-    return result.rows.map(row => this.mapRowToToken(row));
+    const { data, error } = await supabase
+      .from('fcm_tokens')
+      .select('*')
+      .eq('is_active', true);
+
+    if (error) {
+      console.error('Error getting all active FCM tokens:', error);
+      throw new Error(`Failed to get active FCM tokens: ${error.message}`);
+    }
+
+    return (data || []).map((row: any) => this.mapRowToToken(row));
   }
 
   async deleteToken(token: string): Promise<boolean> {
-    const query = 'DELETE FROM fcm_tokens WHERE token = $1';
-    const result = await this.pool.query(query, [token]);
-    return result.rowCount! > 0;
+    const { error } = await supabase
+      .from('fcm_tokens')
+      .delete()
+      .eq('token', token);
+
+    if (error) {
+      console.error('Error deleting FCM token:', error);
+      throw new Error(`Failed to delete FCM token: ${error.message}`);
+    }
+
+    return true;
   }
 
   async deactivateToken(token: string): Promise<boolean> {
-    const query = 'UPDATE fcm_tokens SET is_active = false WHERE token = $1';
-    const result = await this.pool.query(query, [token]);
-    return result.rowCount! > 0;
+    const { error } = await supabase
+      .from('fcm_tokens')
+      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .eq('token', token);
+
+    if (error) {
+      console.error('Error deactivating FCM token:', error);
+      throw new Error(`Failed to deactivate FCM token: ${error.message}`);
+    }
+
+    return true;
   }
 
   async deactivateAllUserTokens(userId: string): Promise<number> {
-    const query = 'UPDATE fcm_tokens SET is_active = false WHERE user_id = $1';
-    const result = await this.pool.query(query, [userId]);
-    return result.rowCount || 0;
+    const { data, error } = await supabase
+      .from('fcm_tokens')
+      .update({ is_active: false, updated_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .select('id');
+
+    if (error) {
+      console.error('Error deactivating all user FCM tokens:', error);
+      throw new Error(`Failed to deactivate user FCM tokens: ${error.message}`);
+    }
+
+    return data?.length || 0;
   }
 
   private mapRowToToken(row: any): FCMToken {
@@ -89,8 +151,8 @@ class FCMTokenModel {
       deviceName: row.device_name,
       deviceType: row.device_type,
       isActive: row.is_active,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
     };
   }
 }

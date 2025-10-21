@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 // import SplashCursor from '../components/ui/splash-cursor';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Heart, ShoppingCart, } from 'lucide-react';
 
 interface Product {
   id: number;
@@ -20,6 +21,9 @@ const AllProducts = () => {
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedShoeSizes, setSelectedShoeSizes] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('default');
+  const [cartItems, setCartItems] = useState<number[]>([]);
+  const [favoriteItems, setFavoriteItems] = useState<number[]>([]);
+  const [isLoading, setIsLoading] = useState<{[key: number]: {cart: boolean, favorite: boolean}}>({});
 
   const products: Product[] = useMemo(() => [
     {
@@ -224,6 +228,45 @@ const AllProducts = () => {
         ? prev.filter(s => s !== size)
         : [...prev, size]
     );
+  };
+
+  // Cart and Favorite handlers
+  const handleAddToCart = async (productId: number) => {
+    setIsLoading(prev => ({ ...prev, [productId]: { ...prev[productId], cart: true } }));
+
+    try {
+      // Simulate API call - replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      setCartItems(prev =>
+        prev.includes(productId)
+          ? prev.filter(id => id !== productId)
+          : [...prev, productId]
+      );
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    } finally {
+      setIsLoading(prev => ({ ...prev, [productId]: { ...prev[productId], cart: false } }));
+    }
+  };
+
+  const handleToggleFavorite = async (productId: number) => {
+    setIsLoading(prev => ({ ...prev, [productId]: { ...prev[productId], favorite: true } }));
+
+    try {
+      // Simulate API call - replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      setFavoriteItems(prev =>
+        prev.includes(productId)
+          ? prev.filter(id => id !== productId)
+          : [...prev, productId]
+      );
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    } finally {
+      setIsLoading(prev => ({ ...prev, [productId]: { ...prev[productId], favorite: false } }));
+    }
   };
 
   // Filter and sort products
@@ -447,6 +490,53 @@ const AllProducts = () => {
                           </motion.div>
                         )}
                         <div className="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300" />
+
+                        {/* Action Buttons */}
+                        <div className="absolute top-2 left-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <motion.button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleFavorite(product.id);
+                            }}
+                            disabled={isLoading[product.id]?.favorite}
+                            className={`p-2 rounded-full backdrop-blur-sm transition-all duration-200 ${
+                              favoriteItems.includes(product.id)
+                                ? 'bg-red-500 text-white'
+                                : 'bg-black/80 text-white hover:bg-black/90'
+                            }`}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            {isLoading[product.id]?.favorite ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Heart
+                                className={`w-4 h-4 ${favoriteItems.includes(product.id) ? 'fill-current' : ''}`}
+                              />
+                            )}
+                          </motion.button>
+
+                          <motion.button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToCart(product.id);
+                            }}
+                            disabled={isLoading[product.id]?.cart}
+                            className={`p-2 rounded-full backdrop-blur-sm transition-all duration-200 ${
+                              cartItems.includes(product.id)
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-black/80 text-white hover:bg-black/90'
+                            }`}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            {isLoading[product.id]?.cart ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <ShoppingCart className="w-4 h-4" />
+                            )}
+                          </motion.button>
+                        </div>
                       </motion.div>
 
                       <motion.div
@@ -475,6 +565,50 @@ const AllProducts = () => {
                               ${product.originalPrice.toFixed(2)}
                             </motion.span>
                           )}
+                        </div>
+
+                        {/* Bottom Action Buttons */}
+                        <div className="flex gap-2 pt-2">
+                          <motion.button
+                            onClick={() => handleAddToCart(product.id)}
+                            disabled={isLoading[product.id]?.cart}
+                            className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all duration-200 ${
+                              cartItems.includes(product.id)
+                                ? 'bg-green-500 text-white'
+                                : 'bg-gray-800 text-white hover:bg-gray-700'
+                            }`}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            {isLoading[product.id]?.cart ? (
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                <span>Loading...</span>
+                              </div>
+                            ) : cartItems.includes(product.id) ? (
+                              'Remove from Cart'
+                            ) : (
+                              'Add to Cart'
+                            )}
+                          </motion.button>
+
+                          <motion.button
+                            onClick={() => handleToggleFavorite(product.id)}
+                            disabled={isLoading[product.id]?.favorite}
+                            className={`p-2 rounded-lg font-semibold transition-all duration-200 ${
+                              favoriteItems.includes(product.id)
+                                ? 'bg-red-500 text-white'
+                                : 'bg-gray-800 text-white hover:bg-gray-700'
+                            }`}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            {isLoading[product.id]?.favorite ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Heart className={`w-4 h-4 ${favoriteItems.includes(product.id) ? 'fill-current' : ''}`} />
+                            )}
+                          </motion.button>
                         </div>
                       </motion.div>
                     </motion.div>

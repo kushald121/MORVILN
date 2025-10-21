@@ -10,12 +10,15 @@ import {
   HeartIcon,
   ShoppingBagIcon,
   ChevronRightIcon,
+  SunIcon,
+  MoonIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { Fragment } from "react";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useTheme } from "next-themes";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -31,8 +34,11 @@ const NavBar = () => {
   const [open, setOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
-  const [cartCount] = useState(0); // You can connect this to your cart state
+  const [cartCount] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  
+  const { theme, setTheme } = useTheme();
 
   const navbarRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLHeadingElement>(null);
@@ -43,6 +49,10 @@ const NavBar = () => {
   const { scrollY } = useScroll();
   const navbarOpacity = useTransform(scrollY, [0, 100], [0.95, 0.98]);
   const navbarBlur = useTransform(scrollY, [0, 100], [0, 8]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -214,6 +224,13 @@ const NavBar = () => {
     }
   };
 
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <>
@@ -264,13 +281,27 @@ const NavBar = () => {
                       MORVILN
                     </motion.h1>
                   </Link>
-                  <button
-                    type="button"
-                    className="rounded-full p-2 text-foreground hover:bg-accent transition-colors"
-                    onClick={() => setOpen(false)}
-                  >
-                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {/* Mobile Theme Toggle */}
+                    <button
+                      onClick={toggleTheme}
+                      className="rounded-full p-2 text-foreground hover:bg-accent transition-colors"
+                      aria-label="Toggle theme"
+                    >
+                      {theme === 'dark' ? (
+                        <SunIcon className="h-6 w-6" />
+                      ) : (
+                        <MoonIcon className="h-6 w-6" />
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-full p-2 text-foreground hover:bg-accent transition-colors"
+                      onClick={() => setOpen(false)}
+                    >
+                      <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Mobile Search */}
@@ -530,6 +561,22 @@ const NavBar = () => {
                   Profile
                 </span>
               </Link>
+
+              {/* Theme Toggle Button */}
+              <button
+                onClick={toggleTheme}
+                className="flex flex-col items-center group cursor-pointer"
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? (
+                  <SunIcon className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
+                ) : (
+                  <MoonIcon className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
+                )}
+                <span className="text-[10px] font-semibold text-muted-foreground mt-1 group-hover:text-primary transition-colors uppercase tracking-wide">
+                  Theme
+                </span>
+              </button>
 
               {/* Wishlist */}
               <Link href="/favorites/" className="flex flex-col items-center group cursor-pointer relative">

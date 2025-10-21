@@ -1,10 +1,22 @@
 import * as jwt from 'jsonwebtoken';
+import * as bcrypt from 'bcryptjs';
 
 export interface TokenPayload {
   userId: string;
   email: string;
   name: string;
 }
+
+// Password hashing
+export const hashPassword = async (password: string): Promise<string> => {
+  const saltRounds = 10;
+  return await bcrypt.hash(password, saltRounds);
+};
+
+// Password verification
+export const verifyPassword = async (password: string, hashedPassword: string): Promise<boolean> => {
+  return await bcrypt.compare(password, hashedPassword);
+};
 
 export const generateToken = (payload: TokenPayload): string => {
   const secret = process.env.JWT_SECRET;
@@ -38,8 +50,9 @@ export const generateAuthResponse = (user: any) => {
       id: user.id,
       email: user.email,
       name: user.name,
-      avatar: user.avatar,
-      isVerified: user.isVerified
+      avatar: user.avatarUrl || user.avatar_url,
+      isVerified: user.isVerified || user.is_verified,
+      provider: user.provider
     }
   };
 };

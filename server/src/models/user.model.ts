@@ -1,14 +1,17 @@
-import { Pool } from 'pg';
-import pool from '../config/database';
+import supabase, { supabaseAdmin } from '../config/supabaseclient';
 
 export interface User {
   id: string;
   email: string;
   name: string;
-  avatar?: string;
-  provider: 'google' | 'facebook' | 'email';
+  passwordHash?: string;
+  phone?: string;
+  avatarUrl?: string;
+  provider: 'google' | 'facebook' | 'email' | 'instagram';
   providerId?: string;
   isVerified: boolean;
+  isActive: boolean;
+  lastLogin?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -16,96 +19,131 @@ export interface User {
 export interface CreateUserInput {
   email: string;
   name: string;
-  avatar?: string;
-  provider: 'google' | 'facebook' | 'email';
+  passwordHash?: string;
+  phone?: string;
+  avatarUrl?: string;
+  provider?: 'google' | 'facebook' | 'email' | 'instagram';
   providerId?: string;
   isVerified?: boolean;
 }
 
 class UserModel {
-  private pool: Pool;
-
-  constructor() {
-    this.pool = pool;
-  }
-
   async createUser(userData: CreateUserInput): Promise<User> {
-    const query = `
-      INSERT INTO users (email, name, avatar, provider, provider_id, is_verified)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *
-    `;
-    
-    const values = [
-      userData.email,
-      userData.name,
-      userData.avatar,
-      userData.provider,
-      userData.providerId,
-      userData.isVerified !== undefined ? userData.isVerified : true
-    ];
+    // Use supabaseAdmin to bypass Row Level Security
+    const { data, error } = await supabaseAdmin
+      .from('users')
+      .insert({
+        email: userData.email,
+        name: userData.name,
+        password_hash: userData.passwordHash,
+        phone: userData.phone,
+        avatar_url: userData.avatarUrl,
+        provider: userData.provider || 'email',
+        provider_id: userData.providerId,
+        is_verified: userData.isVerified !== undefined ? userData.isVerified : false,
+        is_active: true
+      })
+      .select()
+      .single();
 
-    const result = await this.pool.query(query, values);
-    return this.mapRowToUser(result.rows[0]);
+    if (error) {
+      console.error('Error creating user:', error);
+      throw new Error(`Failed to create user: ${error.message}`);
+    }
+
+    return this.mapRowToUser(data);
   }
 
   async findUserByEmail(email: string): Promise<User | null> {
-    const query = 'SELECT * FROM users WHERE email = $1';
-    const result = await this.pool.query(query, [email]);
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
     
-    if (result.rows.length === 0) return null;
-    return this.mapRowToUser(result.rows[0]);
+    if (error) {
+      if (error.code === 'PGRST116') return null; // No rows returned
+      console.error('Error finding user by email:', error);
+      throw new Error(`Failed to find user: ${error.message}`);
+    }
+
+    return data ? this.mapRowToUser(data) : null;
   }
 
   async findUserByProvider(provider: string, providerId: string): Promise<User | null> {
-    const query = 'SELECT * FROM users WHERE provider = $1 AND provider_id = $2';
-    const result = await this.pool.query(query, [provider, providerId]);
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('provider', provider)
+      .eq('provider_id', providerId)
+      .single();
     
-    if (result.rows.length === 0) return null;
-    return this.mapRowToUser(result.rows[0]);
+    if (error) {
+      if (error.code === 'PGRST116') return null; // No rows returned
+      console.error('Error finding user by provider:', error);
+      throw new Error(`Failed to find user: ${error.message}`);
+    }
+
+    return data ? this.mapRowToUser(data) : null;
   }
 
-  async updateUser(id: string, updates: Partial<User>): Promise<User> {
-    const fields = [];
-    const values = [];
-    let paramCount = 1;
+  async updateUser(id: string, updates: Partial<CreateUserInput>): Promise<User> {
+    const updateData: any = {
+      updated_at: new Date().toISOString()
+    };
 
-    if (updates.name) {
-      fields.push(`name = $${paramCount}`);
-      values.push(updates.name);
-      paramCount++;
+    if (updates.name) updateData.name = updates.name;
+    if (updates.avatarUrl) updateData.avatar_url = updates.avatarUrl;
+    if (updates.provider) updateData.provider = updates.provider;
+    if (updates.providerId) updateData.provider_id = updates.providerId;
+    if (updates.isVerified !== undefined) updateData.is_verified = updates.isVerified;
+    if (updates.phone) updateData.phone = updates.phone;
+
+    // Use supabaseAdmin to bypass RLS for updates
+    const { data, error } = await supabaseAdmin
+      .from('users')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating user:', error);
+      throw new Error(`Failed to update user: ${error.message}`);
     }
-    if (updates.avatar) {
-      fields.push(`avatar = $${paramCount}`);
-      values.push(updates.avatar);
-      paramCount++;
+
+    return this.mapRowToUser(data);
+  }
+
+  async getUserById(id: string): Promise<User | null> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') return null; // No rows returned
+      console.error('Error finding user by ID:', error);
+      throw new Error(`Failed to find user: ${error.message}`);
     }
-    if (updates.provider) {
-      fields.push(`provider = $${paramCount}`);
-      values.push(updates.provider);
-      paramCount++;
+
+    return data ? this.mapRowToUser(data) : null;
+  }
+
+  async deleteUser(id: string): Promise<boolean> {
+    // Use supabaseAdmin to bypass RLS for deletes
+    const { error } = await supabaseAdmin
+      .from('users')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting user:', error);
+      throw new Error(`Failed to delete user: ${error.message}`);
     }
-    if (updates.providerId) {
-      fields.push(`provider_id = $${paramCount}`);
-      values.push(updates.providerId);
-      paramCount++;
-    }
 
-    fields.push(`updated_at = $${paramCount}`);
-    values.push(new Date());
-    paramCount++;
-
-    values.push(id);
-
-    const query = `
-      UPDATE users 
-      SET ${fields.join(', ')}
-      WHERE id = $${paramCount}
-      RETURNING *
-    `;
-
-    const result = await this.pool.query(query, values);
-    return this.mapRowToUser(result.rows[0]);
+    return true;
   }
 
   private mapRowToUser(row: any): User {
@@ -113,12 +151,16 @@ class UserModel {
       id: row.id,
       email: row.email,
       name: row.name,
-      avatar: row.avatar,
+      passwordHash: row.password_hash,
+      phone: row.phone,
+      avatarUrl: row.avatar_url,
       provider: row.provider,
       providerId: row.provider_id,
       isVerified: row.is_verified,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
+      isActive: row.is_active,
+      lastLogin: row.last_login ? new Date(row.last_login) : undefined,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at)
     };
   }
 }

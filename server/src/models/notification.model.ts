@@ -1,5 +1,4 @@
-import { Pool } from 'pg';
-import pool from '../config/database';
+import supabase from '../config/supabaseclient';
 
 export interface Notification {
   id: string;
@@ -24,73 +23,110 @@ export interface CreateNotificationInput {
 }
 
 class NotificationModel {
-  private pool: Pool;
-
-  constructor() {
-    this.pool = pool;
-  }
 
   async createNotification(data: CreateNotificationInput): Promise<Notification> {
-    const query = `
-      INSERT INTO notifications (user_id, title, body, icon, url, data)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *
-    `;
+    const { data: notification, error } = await supabase
+      .from('notifications')
+      .insert({
+        user_id: data.userId,
+        title: data.title,
+        body: data.body,
+        icon: data.icon || null,
+        url: data.url || null,
+        data: data.data || null,
+      })
+      .select()
+      .single();
 
-    const values = [
-      data.userId,
-      data.title,
-      data.body,
-      data.icon || null,
-      data.url || null,
-      data.data ? JSON.stringify(data.data) : null,
-    ];
+    if (error) {
+      console.error('Error creating notification:', error);
+      throw new Error(`Failed to create notification: ${error.message}`);
+    }
 
-    const result = await this.pool.query(query, values);
-    return this.mapRowToNotification(result.rows[0]);
+    return this.mapRowToNotification(notification);
   }
 
   async getNotificationsByUserId(userId: string, limit: number = 50): Promise<Notification[]> {
-    const query = `
-      SELECT * FROM notifications 
-      WHERE user_id = $1 
-      ORDER BY sent_at DESC 
-      LIMIT $2
-    `;
-    const result = await this.pool.query(query, [userId, limit]);
-    return result.rows.map(row => this.mapRowToNotification(row));
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('sent_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error getting notifications by user ID:', error);
+      throw new Error(`Failed to get notifications: ${error.message}`);
+    }
+
+    return (data || []).map((row: any) => this.mapRowToNotification(row));
   }
 
   async getUnreadCount(userId: string): Promise<number> {
-    const query = 'SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false';
-    const result = await this.pool.query(query, [userId]);
-    return parseInt(result.rows[0].count);
+    const { count, error } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('is_read', false);
+
+    if (error) {
+      console.error('Error getting unread count:', error);
+      throw new Error(`Failed to get unread count: ${error.message}`);
+    }
+
+    return count || 0;
   }
 
   async markAsRead(notificationId: string, userId: string): Promise<boolean> {
-    const query = `
-      UPDATE notifications 
-      SET is_read = true, read_at = CURRENT_TIMESTAMP 
-      WHERE id = $1 AND user_id = $2
-    `;
-    const result = await this.pool.query(query, [notificationId, userId]);
-    return result.rowCount! > 0;
+    const { error } = await supabase
+      .from('notifications')
+      .update({
+        is_read: true,
+        read_at: new Date().toISOString()
+      })
+      .eq('id', notificationId)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error marking notification as read:', error);
+      throw new Error(`Failed to mark notification as read: ${error.message}`);
+    }
+
+    return true;
   }
 
   async markAllAsRead(userId: string): Promise<number> {
-    const query = `
-      UPDATE notifications 
-      SET is_read = true, read_at = CURRENT_TIMESTAMP 
-      WHERE user_id = $1 AND is_read = false
-    `;
-    const result = await this.pool.query(query, [userId]);
-    return result.rowCount || 0;
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({
+        is_read: true,
+        read_at: new Date().toISOString()
+      })
+      .eq('user_id', userId)
+      .eq('is_read', false)
+      .select('id');
+
+    if (error) {
+      console.error('Error marking all notifications as read:', error);
+      throw new Error(`Failed to mark all notifications as read: ${error.message}`);
+    }
+
+    return data?.length || 0;
   }
 
   async deleteNotification(notificationId: string, userId: string): Promise<boolean> {
-    const query = 'DELETE FROM notifications WHERE id = $1 AND user_id = $2';
-    const result = await this.pool.query(query, [notificationId, userId]);
-    return result.rowCount! > 0;
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('id', notificationId)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error deleting notification:', error);
+      throw new Error(`Failed to delete notification: ${error.message}`);
+    }
+
+    return true;
   }
 
   private mapRowToNotification(row: any): Notification {

@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UploadController = void 0;
-const image_service_1 = __importDefault(require("../services/image.service"));
+const cloudinary_1 = __importDefault(require("../config/cloudinary"));
 class UploadController {
     /**
      * Upload single image
@@ -14,32 +14,40 @@ class UploadController {
             if (!req.file) {
                 return res.status(400).json({
                     success: false,
-                    message: 'No file uploaded',
+                    message: 'No file uploaded'
                 });
             }
-            const result = await image_service_1.default.uploadFile(req.file.buffer, {
-                folder: 'products',
-                transformation: [{ quality: 'auto', fetch_format: 'auto' }],
+            // Upload to Cloudinary
+            const result = await new Promise((resolve, reject) => {
+                const uploadStream = cloudinary_1.default.uploader.upload_stream({
+                    resource_type: 'image',
+                    folder: 'fashion-store/products',
+                    quality: 'auto',
+                    fetch_format: 'auto'
+                }, (error, result) => {
+                    if (error)
+                        reject(error);
+                    else
+                        resolve(result);
+                });
+                uploadStream.end(req.file.buffer);
             });
-            if (!result.success) {
-                return res.status(400).json({
-                    success: false,
-                    message: result.message,
-                });
-            }
             res.json({
                 success: true,
                 message: 'Image uploaded successfully',
-                data: result.data,
-                responsiveUrls: image_service_1.default.generateResponsiveUrls(result.data.public_id),
-                productUrls: image_service_1.default.generateProductImageUrls(result.data.public_id),
+                data: {
+                    url: result.secure_url,
+                    publicId: result.public_id,
+                    width: result.width,
+                    height: result.height
+                }
             });
         }
         catch (error) {
             console.error('Upload image error:', error);
             res.status(500).json({
                 success: false,
-                message: 'Internal server error',
+                message: 'Failed to upload image'
             });
         }
     }
@@ -51,40 +59,44 @@ class UploadController {
             if (!req.files || req.files.length === 0) {
                 return res.status(400).json({
                     success: false,
-                    message: 'No files uploaded',
+                    message: 'No files uploaded'
                 });
             }
-            const files = req.files.map(file => ({
-                buffer: file.buffer,
-                originalname: file.originalname,
-            }));
-            const results = await image_service_1.default.uploadMultipleFiles(files, {
-                folder: 'products',
-            });
-            const successfulUploads = results.filter(result => result.success);
-            const failedUploads = results.filter(result => !result.success);
+            const files = req.files;
+            const uploadResults = [];
+            for (const file of files) {
+                const result = await new Promise((resolve, reject) => {
+                    const uploadStream = cloudinary_1.default.uploader.upload_stream({
+                        resource_type: 'image',
+                        folder: 'fashion-store/products',
+                        quality: 'auto',
+                        fetch_format: 'auto'
+                    }, (error, result) => {
+                        if (error)
+                            reject(error);
+                        else
+                            resolve(result);
+                    });
+                    uploadStream.end(file.buffer);
+                });
+                uploadResults.push({
+                    url: result.secure_url,
+                    publicId: result.public_id,
+                    width: result.width,
+                    height: result.height
+                });
+            }
             res.json({
                 success: true,
-                message: `Uploaded ${successfulUploads.length} files successfully`,
-                data: {
-                    successful: successfulUploads.map(result => ({
-                        filename: result.filename,
-                        data: result.data,
-                        responsiveUrls: result.data ? image_service_1.default.generateResponsiveUrls(result.data.public_id) : null,
-                        productUrls: result.data ? image_service_1.default.generateProductImageUrls(result.data.public_id) : null,
-                    })),
-                    failed: failedUploads.map(result => ({
-                        filename: result.filename,
-                        error: result.message,
-                    })),
-                },
+                message: 'Images uploaded successfully',
+                data: uploadResults
             });
         }
         catch (error) {
             console.error('Upload multiple images error:', error);
             res.status(500).json({
                 success: false,
-                message: 'Internal server error',
+                message: 'Failed to upload images'
             });
         }
     }
@@ -94,68 +106,57 @@ class UploadController {
     async deleteImage(req, res) {
         try {
             const { publicId } = req.params;
-            if (!publicId) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Public ID is required',
+            const result = await cloudinary_1.default.uploader.destroy(publicId);
+            if (result.result === 'ok') {
+                res.json({
+                    success: true,
+                    message: 'Image deleted successfully'
                 });
             }
-            const result = await image_service_1.default.deleteFile(publicId);
-            if (!result.success) {
-                return res.status(400).json({
+            else {
+                res.status(400).json({
                     success: false,
-                    message: result.message,
+                    message: 'Failed to delete image'
                 });
             }
-            res.json({
-                success: true,
-                message: 'Image deleted successfully',
-            });
         }
         catch (error) {
             console.error('Delete image error:', error);
             res.status(500).json({
                 success: false,
-                message: 'Internal server error',
+                message: 'Failed to delete image'
             });
         }
     }
     /**
-     * Generate optimized image URL
+     * Generate optimized URL for images
      */
     async generateOptimizedUrl(req, res) {
         try {
-            const { publicId, width, height, crop = 'limit' } = req.body;
+            const { publicId, width = 600, height = 600 } = req.body;
             if (!publicId) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Public ID is required',
+                    message: 'Public ID is required'
                 });
             }
-            const transformations = [];
-            if (width)
-                transformations.push({ width: parseInt(width), crop });
-            if (height)
-                transformations.push({ height: parseInt(height), crop });
-            const optimizedUrl = image_service_1.default.generateOptimizedUrl(publicId, transformations);
+            const url = cloudinary_1.default.url(publicId, {
+                width,
+                height,
+                crop: 'fill',
+                quality: 'auto',
+                fetch_format: 'auto'
+            });
             res.json({
                 success: true,
-                data: {
-                    optimizedUrl,
-                    publicId,
-                    transformations: {
-                        width: width || 'auto',
-                        height: height || 'auto',
-                        crop,
-                    },
-                },
+                data: { url }
             });
         }
         catch (error) {
             console.error('Generate optimized URL error:', error);
             res.status(500).json({
                 success: false,
-                message: 'Internal server error',
+                message: 'Failed to generate optimized URL'
             });
         }
     }

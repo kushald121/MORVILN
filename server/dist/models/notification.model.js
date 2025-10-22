@@ -3,65 +3,94 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const database_1 = __importDefault(require("../config/database"));
+const supabaseclient_1 = __importDefault(require("../config/supabaseclient"));
 class NotificationModel {
-    constructor() {
-        this.pool = database_1.default;
-    }
     async createNotification(data) {
-        const query = `
-      INSERT INTO notifications (user_id, title, body, icon, url, data)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *
-    `;
-        const values = [
-            data.userId,
-            data.title,
-            data.body,
-            data.icon || null,
-            data.url || null,
-            data.data ? JSON.stringify(data.data) : null,
-        ];
-        const result = await this.pool.query(query, values);
-        return this.mapRowToNotification(result.rows[0]);
+        const { data: notification, error } = await supabaseclient_1.default
+            .from('notifications')
+            .insert({
+            user_id: data.userId,
+            title: data.title,
+            body: data.body,
+            icon: data.icon || null,
+            url: data.url || null,
+            data: data.data || null,
+        })
+            .select()
+            .single();
+        if (error) {
+            console.error('Error creating notification:', error);
+            throw new Error(`Failed to create notification: ${error.message}`);
+        }
+        return this.mapRowToNotification(notification);
     }
     async getNotificationsByUserId(userId, limit = 50) {
-        const query = `
-      SELECT * FROM notifications 
-      WHERE user_id = $1 
-      ORDER BY sent_at DESC 
-      LIMIT $2
-    `;
-        const result = await this.pool.query(query, [userId, limit]);
-        return result.rows.map(row => this.mapRowToNotification(row));
+        const { data, error } = await supabaseclient_1.default
+            .from('notifications')
+            .select('*')
+            .eq('user_id', userId)
+            .order('sent_at', { ascending: false })
+            .limit(limit);
+        if (error) {
+            console.error('Error getting notifications by user ID:', error);
+            throw new Error(`Failed to get notifications: ${error.message}`);
+        }
+        return (data || []).map((row) => this.mapRowToNotification(row));
     }
     async getUnreadCount(userId) {
-        const query = 'SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND is_read = false';
-        const result = await this.pool.query(query, [userId]);
-        return parseInt(result.rows[0].count);
+        const { count, error } = await supabaseclient_1.default
+            .from('notifications')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', userId)
+            .eq('is_read', false);
+        if (error) {
+            console.error('Error getting unread count:', error);
+            throw new Error(`Failed to get unread count: ${error.message}`);
+        }
+        return count || 0;
     }
     async markAsRead(notificationId, userId) {
-        const query = `
-      UPDATE notifications 
-      SET is_read = true, read_at = CURRENT_TIMESTAMP 
-      WHERE id = $1 AND user_id = $2
-    `;
-        const result = await this.pool.query(query, [notificationId, userId]);
-        return result.rowCount > 0;
+        const { error } = await supabaseclient_1.default
+            .from('notifications')
+            .update({
+            is_read: true,
+            read_at: new Date().toISOString()
+        })
+            .eq('id', notificationId)
+            .eq('user_id', userId);
+        if (error) {
+            console.error('Error marking notification as read:', error);
+            throw new Error(`Failed to mark notification as read: ${error.message}`);
+        }
+        return true;
     }
     async markAllAsRead(userId) {
-        const query = `
-      UPDATE notifications 
-      SET is_read = true, read_at = CURRENT_TIMESTAMP 
-      WHERE user_id = $1 AND is_read = false
-    `;
-        const result = await this.pool.query(query, [userId]);
-        return result.rowCount || 0;
+        const { data, error } = await supabaseclient_1.default
+            .from('notifications')
+            .update({
+            is_read: true,
+            read_at: new Date().toISOString()
+        })
+            .eq('user_id', userId)
+            .eq('is_read', false)
+            .select('id');
+        if (error) {
+            console.error('Error marking all notifications as read:', error);
+            throw new Error(`Failed to mark all notifications as read: ${error.message}`);
+        }
+        return data?.length || 0;
     }
     async deleteNotification(notificationId, userId) {
-        const query = 'DELETE FROM notifications WHERE id = $1 AND user_id = $2';
-        const result = await this.pool.query(query, [notificationId, userId]);
-        return result.rowCount > 0;
+        const { error } = await supabaseclient_1.default
+            .from('notifications')
+            .delete()
+            .eq('id', notificationId)
+            .eq('user_id', userId);
+        if (error) {
+            console.error('Error deleting notification:', error);
+            throw new Error(`Failed to delete notification: ${error.message}`);
+        }
+        return true;
     }
     mapRowToNotification(row) {
         return {

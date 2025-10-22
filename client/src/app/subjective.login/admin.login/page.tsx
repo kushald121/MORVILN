@@ -30,7 +30,7 @@ export default function AdminLogin() {
       localStorage.setItem('userPFP', 'admin');
 
       // Redirect to admin dashboard
-      router.push('/admin/dashboard');
+      router.push('/subjective.login/admin.login/adminpanel');
     } else {
       alert('Invalid admin credentials');
       setCredentials(prev => ({ ...prev, password: '' }));

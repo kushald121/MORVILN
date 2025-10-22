@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { body, validationResult } = require('express-validator');
 
 // Validation middleware for creating orders
@@ -103,7 +104,7 @@ export const validateRefundCreation = [
 ];
 
 // Rate limiting middleware for payment operations
-export const paymentRateLimit = (req: Request, res: Response, next: NextFunction) => {
+export const paymentRateLimit = (_req: Request, _res: Response, next: NextFunction) => {
   // Implement rate limiting logic here
   // You can use libraries like express-rate-limit
   next();
@@ -125,7 +126,7 @@ export const webhookSecurity = (req: Request, res: Response, next: NextFunction)
 };
 
 // Middleware to log payment operations
-export const logPaymentOperation = (req: Request, res: Response, next: NextFunction) => {
+export const logPaymentOperation = (req: Request, _res: Response, next: NextFunction) => {
   const { method, url, body } = req;
   const timestamp = new Date().toISOString();
   

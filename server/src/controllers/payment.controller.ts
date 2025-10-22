@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import crypto from 'crypto';
 import { PaymentService } from '../services/payment.service';
 import { CreateOrderRequest, VerifyPaymentRequest, RefundRequest } from '../types/payment.types';
 
@@ -64,7 +65,7 @@ export class PaymentController {
       if (isValid) {
         // Get payment details
         const paymentDetails = await PaymentService.getPaymentDetails(razorpay_payment_id);
-        
+
         // Here you can save payment details to your database
         // await savePaymentToDatabase(paymentDetails);
 
@@ -354,5 +355,3 @@ export class PaymentController {
   }
 }
 
-// Import crypto for webhook verification
-import crypto from 'crypto';

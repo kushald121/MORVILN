@@ -8,8 +8,12 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useTheme } from "next-themes";
+import { useSearchParams } from "next/navigation";
 
 const ProductPage = () => {
+  const searchParams = useSearchParams();
+  const productId = searchParams.get('id');
+
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("Jet Black");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -78,6 +82,185 @@ const ProductPage = () => {
     },
   ];
 
+  // Product data - same as in allproducts page
+  const products = [
+    {
+      id: 1,
+      name: 'Classic Blue T-Shirt',
+      price: 25.99,
+      originalPrice: 35.99,
+      image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=250&fit=crop&crop=center',
+      isOnSale: true,
+    },
+    {
+      id: 2,
+      name: 'Red Hoodie',
+      price: 45.00,
+      image: 'https://images.unsplash.com/photo-1521334884684-d80222895322?w=200&h=250&fit=crop&crop=center',
+      isOnSale: false,
+    },
+    {
+      id: 3,
+      name: 'Green Sneakers',
+      price: 55.00,
+      originalPrice: 75.00,
+      image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=200&h=250&fit=crop&crop=center',
+      isOnSale: true,
+    },
+    {
+      id: 4,
+      name: 'Black Leather Jacket',
+      price: 120.00,
+      image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=200&h=250&fit=crop&crop=center',
+      isOnSale: false,
+    },
+    {
+      id: 5,
+      name: 'White Summer Dress',
+      price: 38.99,
+      originalPrice: 55.99,
+      image: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=200&h=250&fit=crop&crop=center',
+      isOnSale: true,
+    },
+    {
+      id: 6,
+      name: 'Denim Jeans',
+      price: 49.99,
+      image: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=200&h=250&fit=crop&crop=center',
+      isOnSale: false,
+    },
+    {
+      id: 7,
+      name: 'Striped Polo Shirt',
+      price: 32.50,
+      originalPrice: 45.00,
+      image: 'https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=200&h=250&fit=crop&crop=center',
+      isOnSale: true,
+    },
+    {
+      id: 8,
+      name: 'Brown Ankle Boots',
+      price: 85.00,
+      image: 'https://images.unsplash.com/photo-1605812860427-4024433a70fd?w=200&h=250&fit=crop&crop=center',
+      isOnSale: false,
+    },
+    {
+      id: 9,
+      name: 'Gray Sweatpants',
+      price: 28.99,
+      originalPrice: 39.99,
+      image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=200&h=250&fit=crop&crop=center',
+      isOnSale: true,
+    },
+    {
+      id: 10,
+      name: 'Floral Blouse',
+      price: 42.00,
+      image: 'https://images.unsplash.com/photo-1618932260643-eee4a2f652a6?w=200&h=250&fit=crop&crop=center',
+      isOnSale: false,
+    },
+    {
+      id: 11,
+      name: 'Running Shoes',
+      price: 65.99,
+      originalPrice: 89.99,
+      image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=250&fit=crop&crop=center',
+      isOnSale: true,
+    },
+    {
+      id: 12,
+      name: 'Wool Beanie',
+      price: 18.50,
+      image: 'https://images.unsplash.com/photo-1576871337622-98d48d1cf531?w=200&h=250&fit=crop&crop=center',
+      isOnSale: false,
+    },
+    {
+      id: 13,
+      name: 'Plaid Flannel Shirt',
+      price: 36.00,
+      originalPrice: 48.00,
+      image: 'https://images.unsplash.com/photo-1603252109303-2751441dd157?w=200&h=250&fit=crop&crop=center',
+      isOnSale: true,
+    },
+    {
+      id: 14,
+      name: 'Cargo Shorts',
+      price: 34.99,
+      image: 'https://images.unsplash.com/photo-1591195853828-11db59a44f6b?w=200&h=250&fit=crop&crop=center',
+      isOnSale: false,
+    },
+    {
+      id: 16,
+      name: 'Winter Parka',
+      price: 150.00,
+      image: 'https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=200&h=250&fit=crop&crop=center',
+      isOnSale: false,
+    },
+    {
+      id: 17,
+      name: 'Canvas Backpack',
+      price: 44.99,
+      originalPrice: 59.99,
+      image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=250&fit=crop&crop=center',
+      isOnSale: true,
+    },
+    {
+      id: 18,
+      name: 'Sunglasses',
+      price: 79.00,
+      image: 'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=200&h=250&fit=crop&crop=center',
+      isOnSale: false,
+    },
+    {
+      id: 19,
+      name: 'Knit Cardigan',
+      price: 52.50,
+      originalPrice: 70.00,
+      image: 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=200&h=250&fit=crop&crop=center',
+      isOnSale: true,
+    },
+    {
+      id: 20,
+      name: 'Athletic Shorts',
+      price: 26.99,
+      image: 'https://images.unsplash.com/photo-1519659528534-7fd733a832a0?w=200&h=250&fit=crop&crop=center',
+      isOnSale: false,
+    },
+    {
+      id: 21,
+      name: 'Leather Belt',
+      price: 29.99,
+      originalPrice: 42.99,
+      image: 'https://images.unsplash.com/photo-150708020285-8f7f6c9f3b1c?w=200&h=250&fit=crop&crop=center',
+      isOnSale: true,
+    },
+    {
+      id: 22,
+      name: 'Winter Jacket',
+      price: 130.00,
+      image: 'https://images.unsplash.com/photo-1542068829-1115f7259450?w=200&h=250&fit=crop&crop=center',
+      isOnSale: false,
+    },
+    {
+      id: 23,
+      name: 'Graphic T-Shirt',
+      price: 22.50,
+      originalPrice: 30.00,
+      image: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=200&h=250&fit=crop&crop=center',
+      isOnSale: true,
+    },
+    {
+      id: 24,
+      name: 'Chino Pants',
+      price: 48.00,
+      image: 'https://images.unsplash.com/photo-1521334884684-d80222895322?w=200&h=250&fit=crop&crop=center',
+      isOnSale: false,
+    },
+  ];
+
+  // Get current product based on ID
+  const currentProduct = products.find(p => p.id === parseInt(productId || '1'));
+
   const handlePrevImage = () => {
     setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
@@ -99,10 +282,9 @@ const ProductPage = () => {
         }`}
       >
         <div className="max-w-7xl mx-auto">
-          Home {">"} Buy Mens Fashion Clothing India {">"} Men&apos; Full Sleeve
-          T-Shirts {" "}
+          Home {">"} Shop {">"} Products {" "}
           <span className={theme === 'dark' ? "text-white" : "text-gray-900"}>
-            Men&apos;s Black Oversized T-shirt
+            {currentProduct?.name || 'Product Details'}
           </span>
         </div>
       </div>
@@ -320,14 +502,14 @@ const ProductPage = () => {
                   theme === 'dark' ? "text-white" : "text-black"
                 }`}
               >
-                Men&apos;s Black Oversized T-shirt
+                {currentProduct?.name || 'Product Name'}
               </h1>
             </div>
 
             {/* Price & Rating */}
             <div className="flex items-center gap-4">
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold">₹699</span>
+                <span className="text-3xl font-bold">₹{currentProduct?.price ? Math.round(currentProduct.price * 80) : '699'}</span>
                 <span
                   className={`text-lg line-through ${
                     theme === 'dark' ? "text-gray-500" : "text-gray-400"

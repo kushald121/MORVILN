@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { ThemeProvider } from "./providers/theme.provider";
+import { CartProvider } from "./contexts/CartContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -104,13 +105,15 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange={false}
         >
-          <div className="relative min-h-screen flex flex-col">
-            <Navbar />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </div>
+          <CartProvider>
+            <div className="relative min-h-screen flex flex-col">
+              <Navbar />
+              <main className="flex-1">
+                {children}
+              </main>
+              <Footer />
+            </div>
+          </CartProvider>
         </ThemeProvider>
 
         {/* Performance optimization: Preload critical resources */}

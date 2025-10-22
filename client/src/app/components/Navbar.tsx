@@ -19,6 +19,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useTheme } from "next-themes";
+import { useCart } from "../contexts/CartContext";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -34,11 +35,12 @@ const NavBar = () => {
   const [open, setOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
-  const [cartCount] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
-  
+
   const { theme, setTheme } = useTheme();
+  const { getCartItemCount, state } = useCart();
+  const cartCount = getCartItemCount();
 
   const navbarRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLHeadingElement>(null);

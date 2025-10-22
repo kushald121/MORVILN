@@ -6,6 +6,7 @@ import { HeartIcon, ShoppingBagIcon, XMarkIcon } from '@heroicons/react/24/outli
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useCart } from '../contexts/CartContext';
 
 interface FavoriteItem {
   productId: string;
@@ -23,9 +24,19 @@ interface AuthContext {
 }
 
 const FavoritesPage = () => {
-  const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
+  const { state, removeFromFavorites, addToCart } = useCart();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Convert context favorites to match the expected format
+  const favorites: FavoriteItem[] = state.favorites.map(item => ({
+    productId: item.productId,
+    name: item.name,
+    price: item.price,
+    originalPrice: item.originalPrice,
+    image: item.image,
+    stock: item.stock
+  }));
 
   // Mock auth context for now - in a real app this would come from a context provider
   const authContext: AuthContext = {
@@ -111,7 +122,7 @@ const FavoritesPage = () => {
       });
 
       if (response.ok) {
-        setFavorites(favorites.filter(item => item.productId !== productId));
+        removeFromFavorites(productId);
       }
     } catch (error) {
       console.error('Error removing from favorites:', error);
@@ -134,7 +145,18 @@ const FavoritesPage = () => {
 
       if (response.ok) {
         console.log('Added to cart successfully');
-        // You could show a toast notification here
+        // Find the favorite item and add it to cart
+        const favoriteItem = favorites.find(item => item.productId === productId);
+        if (favoriteItem) {
+          addToCart({
+            id: productId,
+            name: favoriteItem.name,
+            price: favoriteItem.price,
+            image: favoriteItem.image,
+            size: 'M', // Default size
+            color: 'Default' // Default color
+          });
+        }
       }
     } catch (error) {
       console.error('Error adding to cart:', error);

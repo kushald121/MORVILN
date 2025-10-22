@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, CreditCard } from 'lucide-react';
 import Image from 'next/image';
+import { useCart } from '../contexts/CartContext';
 
 // Types for cart items
 interface CartItem {
@@ -25,31 +26,20 @@ interface CartSummary {
 }
 
 const BagPage: React.FC = () => {
-  // Mock cart data - in real app, this would come from context/state management
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: '1',
-      name: 'Premium Cotton T-Shirt',
-      price: 29.99,
-      image: 'https://voilastudio.in/old_website_assets/voilastudio_admin/images/model_images/indian_model/ANMOL_23_1_23%20(16).webp',
-      size: 'M',
-      color: 'Black',
-      quantity: 2,
-      variantId: 'var1'
-    },
-    {
-      id: '2',
-      name: 'Designer Jeans',
-      price: 89.99,
-      image: 'https://img.freepik.com/free-photo/portrait-handsome-fashion-stylish-hipster-model-dressed-warm-overcoat-posing-studio_158538-11452.jpg',
-      size: '32',
-      color: 'Dark Blue',
-      quantity: 1,
-      variantId: 'var2'
-    }
-  ]);
-
+  const { state, removeFromCart, updateCartQuantity, clearCart, getCartTotal } = useCart();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Convert context cart items to match the expected format
+  const cartItems: CartItem[] = state.items.map(item => ({
+    id: item.id,
+    name: item.name,
+    price: item.price,
+    image: item.image,
+    size: item.size,
+    color: item.color,
+    quantity: item.quantity,
+    variantId: item.variantId
+  }));
 
   // Calculate cart summary
   const calculateSummary = (): CartSummary => {
@@ -115,25 +105,21 @@ const BagPage: React.FC = () => {
   // Update quantity
   const updateQuantity = (id: string, newQuantity: number) => {
     if (newQuantity <= 0) {
-      removeItem(id);
+      removeFromCart(id);
       return;
     }
 
-    setCartItems(prev =>
-      prev.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
+    updateCartQuantity(id, newQuantity);
   };
 
   // Remove item
   const removeItem = (id: string) => {
-    setCartItems(prev => prev.filter(item => item.id !== id));
+    removeFromCart(id);
   };
 
   // Clear cart
-  const clearCart = () => {
-    setCartItems([]);
+  const clearCartHandler = () => {
+    clearCart();
   };
 
   // Format currency
@@ -268,7 +254,7 @@ const BagPage: React.FC = () => {
                       backgroundColor: "rgba(239, 68, 68, 0.1)"
                     }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={clearCart}
+                    onClick={clearCartHandler}
                     className="flex items-center space-x-2 text-red-500 hover:text-red-600 transition-all duration-300 px-3 py-2 rounded-lg border border-red-200 hover:border-red-300 text-sm md:text-base dark:border-red-500/20 dark:hover:border-red-400/50"
                   >
                     <Trash2 className="w-4 h-4" />

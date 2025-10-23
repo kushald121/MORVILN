@@ -1,23 +1,24 @@
 import { Router } from 'express';
 import authRoutes from './auth.routes';
-import productRoutes from './products.route';
-import magicLinkRoutes from './magicLink.route';
-import pushNotificationRoutes from './pushNotification.routes';
-import adminRoutes from './admin.routes';
-import cloudinaryRoutes from './cloudinary.route';
-import uploadRoutes from './upload.route';
-import testRoutes from './test.routes';
 import paymentRoutes from './payment.routes';
+import emailRoutes from './email.routes';
+
 const router = Router();
 
+console.log('🔄 Loading routes...');
+
 router.use('/auth', authRoutes);
-router.use('/magic-link', magicLinkRoutes);
-router.use('/push', pushNotificationRoutes);
-router.use('/products', productRoutes);
-router.use('/admin', adminRoutes);
-router.use('/cloudinary', cloudinaryRoutes);
-router.use('/upload', uploadRoutes);
-router.use('/test', testRoutes);
-router.use('/payment', paymentRoutes);
+console.log('✅ Auth routes loaded');
+
+router.use('/payments', paymentRoutes);
+console.log('✅ Payment routes loaded');
+
+router.use('/email', emailRoutes);
+console.log('✅ Gmail Email routes loaded');
+
+// Test route to verify router is working
+router.get('/test', (_req, res) => {
+  res.json({ message: 'API routes are working!' });
+});
 
 export default router;

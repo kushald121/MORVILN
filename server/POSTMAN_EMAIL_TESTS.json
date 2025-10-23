@@ -1,0 +1,227 @@
+{
+  "info": {
+    "name": "Gmail SMTP Email API Tests",
+    "description": "Complete Postman collection for testing Gmail SMTP email functionality",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Test Gmail Connection",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/email/test-connection",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email", "test-connection"]
+        },
+        "description": "Test Gmail SMTP connection status"
+      }
+    },
+    {
+      "name": "2. Send Test Email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"to\": \"test@example.com\",\n  \"subject\": \"🎉 Test Email from Postman\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/email/test-send",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email", "test-send"]
+        },
+        "description": "Send a simple test email"
+      }
+    },
+    {
+      "name": "3. Order Confirmation Email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"ORD-2024-001\",\n  \"customerName\": \"John Doe\",\n  \"customerEmail\": \"customer@example.com\",\n  \"items\": [\n    {\n      \"name\": \"Premium Cotton T-Shirt\",\n      \"quantity\": 2,\n      \"price\": 1299,\n      \"image\": \"https://example.com/tshirt.jpg\"\n    },\n    {\n      \"name\": \"Designer Jeans\",\n      \"quantity\": 1,\n      \"price\": 2499\n    }\n  ],\n  \"totalAmount\": 5097,\n  \"shippingAddress\": \"John Doe\\n123 Main Street\\nApartment 4B\\nMumbai, Maharashtra 400001\\nIndia\",\n  \"orderDate\": \"2024-01-15\",\n  \"estimatedDelivery\": \"2024-01-22\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/email/order-confirmation",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email", "order-confirmation"]
+        },
+        "description": "Send order confirmation email with complete order details"
+      }
+    },
+    {
+      "name": "4. Admin Order Notification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderDetails\": {\n    \"orderId\": \"ORD-2024-001\",\n    \"customerName\": \"John Doe\",\n    \"customerEmail\": \"customer@example.com\",\n    \"items\": [\n      {\n        \"name\": \"Premium Cotton T-Shirt\",\n        \"quantity\": 2,\n        \"price\": 1299\n      }\n    ],\n    \"totalAmount\": 2598,\n    \"shippingAddress\": \"123 Main Street\\nMumbai, Maharashtra 400001\",\n    \"orderDate\": \"2024-01-15\"\n  },\n  \"adminEmails\": [\"admin@rachnacollection.com\", \"orders@rachnacollection.com\"]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/email/admin-order-notification",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email", "admin-order-notification"]
+        },
+        "description": "Send order notification to admin emails"
+      }
+    },
+    {
+      "name": "5. Welcome Email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userName\": \"Jane Smith\",\n  \"userEmail\": \"jane@example.com\",\n  \"verificationLink\": \"https://rachnacollection.com/verify?token=abc123xyz789\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/email/welcome",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email", "welcome"]
+        },
+        "description": "Send welcome email to new user"
+      }
+    },
+    {
+      "name": "6. Password Reset Email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"resetData\": {\n    \"userName\": \"John Doe\",\n    \"resetLink\": \"https://rachnacollection.com/reset-password?token=reset123xyz\",\n    \"expiryTime\": \"2024-01-15 18:30:00\"\n  },\n  \"userEmail\": \"john@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/email/password-reset",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email", "password-reset"]
+        },
+        "description": "Send password reset email"
+      }
+    },
+    {
+      "name": "7. Email Verification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userEmail\": \"newuser@example.com\",\n  \"userName\": \"New User\",\n  \"verificationLink\": \"https://rachnacollection.com/verify-email?token=verify123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/email/email-verification",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email", "email-verification"]
+        },
+        "description": "Send email verification"
+      }
+    },
+    {
+      "name": "8. Order Status Update",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerEmail\": \"customer@example.com\",\n  \"orderId\": \"ORD-2024-001\",\n  \"status\": \"shipped\",\n  \"trackingNumber\": \"TRK123456789\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/email/order-status-update",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email", "order-status-update"]
+        },
+        "description": "Send order status update"
+      }
+    },
+    {
+      "name": "9. Custom Email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"to\": \"recipient@example.com\",\n  \"subject\": \"Custom Email Subject\",\n  \"html\": \"<h1>Custom Email</h1><p>This is a custom HTML email sent via API.</p><p>Best regards,<br>Rachna Collection Team</p>\",\n  \"cc\": \"manager@rachnacollection.com\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/email/send-custom",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email", "send-custom"]
+        },
+        "description": "Send custom HTML email"
+      }
+    },
+    {
+      "name": "10. Bulk Email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"recipients\": [\n    \"customer1@example.com\",\n    \"customer2@example.com\",\n    \"customer3@example.com\"\n  ],\n  \"subject\": \"Newsletter - New Collection Launch\",\n  \"html\": \"<h1>🎉 New Collection Launch!</h1><p>Dear Valued Customer,</p><p>We're excited to announce our new collection is now available!</p><p>Visit our store to explore the latest fashion trends.</p><p>Best regards,<br>Rachna Collection Team</p>\",\n  \"batchSize\": 10\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/email/send-bulk",
+          "host": ["{{base_url}}"],
+          "path": ["api", "email", "send-bulk"]
+        },
+        "description": "Send bulk emails (newsletter/marketing)"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    }
+  ]
+}

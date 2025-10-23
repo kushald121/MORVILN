@@ -16,7 +16,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@supabase/supabase-js": "^2.75.1",
+    "@supabase/supabase-js": "^2.76.1",
     "@types/cookie-parser": "^1.4.9",
     "@types/web-push": "^3.6.4",
     "@upstash/redis": "^1.35.6",

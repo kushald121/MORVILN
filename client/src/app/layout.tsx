@@ -97,7 +97,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground overflow-x-hidden`}
       >
         <ThemeProvider
           attribute="class"
@@ -108,7 +108,7 @@ export default function RootLayout({
           <CartProvider>
             <div className="relative min-h-screen flex flex-col">
               <Navbar />
-              <main className="flex-1">
+              <main className="flex-1 max-w-full overflow-x-hidden pt-16 lg:pt-16 pb-14 lg:pb-0">
                 {children}
               </main>
               <Footer />

@@ -129,7 +129,7 @@ export default function HeroPage() {
   const clothingItems = useMemo(() => [
     {
       id: 1,
-      position: "top-25 left-[15%]",
+      position: "top-25 left-[5%]",
       rotation: -12,
       scale: 1.15,
       image: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=600&fit=crop",
@@ -141,7 +141,7 @@ export default function HeroPage() {
     },
     {
       id: 2,
-      position: "top-32 right-[20%]",
+      position: "top-32 right-[5%]",
       rotation: 10,
       scale: 0.95,
       image: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=400&h=600&fit=crop",
@@ -153,7 +153,7 @@ export default function HeroPage() {
     },
     {
       id: 3,
-      position: "top-[60%] left-[10%]",
+      position: "top-[60%] left-[0%]",
       rotation: -8,
       scale: 0.9,
       image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&h=600&fit=crop",
@@ -165,7 +165,7 @@ export default function HeroPage() {
     },
     {
       id: 4,
-      position: "top-[65%] right-[15%]",
+      position: "top-[65%] right-[0%]",
       rotation: -6,
       scale: 1.0,
       image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400&h=600&fit=crop",
@@ -193,7 +193,7 @@ export default function HeroPage() {
     {/* <SplashCursor /> */}
     <div
       ref={heroRef}
-      className="relative min-h-screen overflow-hidden "
+      className="relative min-h-screen overflow-hidden max-w-full"
     >
       <div className="absolute inset-0  opacity-30"></div>
 

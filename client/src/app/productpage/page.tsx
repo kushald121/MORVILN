@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Heart,
   ChevronLeft,
@@ -9,6 +9,7 @@ import {
 import Image from "next/image";
 import { useTheme } from "next-themes";
 import { useSearchParams } from "next/navigation";
+import { useCart } from "../contexts/CartContext";
 
 const ProductPage = () => {
   const searchParams = useSearchParams();
@@ -18,6 +19,7 @@ const ProductPage = () => {
   const [selectedColor, setSelectedColor] = useState("Jet Black");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { theme } = useTheme();
+  const { addToFavorites, removeFromFavorites, isInFavorites } = useCart();
 
   const images = [
     "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&h=900&fit=crop",
@@ -269,6 +271,20 @@ const ProductPage = () => {
     setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
+  // Keyboard navigation for image carousel
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        handlePrevImage();
+      } else if (e.key === 'ArrowRight') {
+        handleNextImage();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
   return (
     <div
       className={`min-h-screen ${
@@ -300,7 +316,6 @@ const ProductPage = () => {
                 className={`relative ${
                   theme === 'dark' ? "bg-gray-800" : "bg-gray-100"
                 } rounded-lg overflow-hidden`}
-                style={{ minHeight: "600px" }}
               >
                 <Image
                   width={100}
@@ -659,13 +674,31 @@ const ProductPage = () => {
                 ADD TO BAG
               </button>
               <button
-                className={`p-3 rounded border ${
-                  theme === 'dark'
+                onClick={() => {
+                  if (currentProduct) {
+                    if (isInFavorites(currentProduct.id.toString())) {
+                      removeFromFavorites(currentProduct.id.toString());
+                    } else {
+                      addToFavorites({
+                        productId: currentProduct.id.toString(),
+                        name: currentProduct.name,
+                        price: currentProduct.price,
+                        originalPrice: currentProduct.originalPrice,
+                        image: currentProduct.image,
+                        stock: 10 // Default stock
+                      });
+                    }
+                  }
+                }}
+                className={`p-3 rounded border transition-colors ${
+                  isInFavorites(currentProduct?.id.toString() || '')
+                    ? 'bg-red-500 text-white border-red-500'
+                    : theme === 'dark'
                     ? "border-gray-700 hover:bg-gray-800"
                     : "border-gray-300 hover:bg-gray-50"
-                } transition-colors`}
+                }`}
               >
-                <Heart size={24} />
+                <Heart size={24} className={isInFavorites(currentProduct?.id.toString() || '') ? 'fill-current' : ''} />
               </button>
             </div>
 

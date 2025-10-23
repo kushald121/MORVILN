@@ -25,6 +25,7 @@ const AllProducts = () => {
   const [selectedShoeSizes, setSelectedShoeSizes] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('default');
   const [isLoading, setIsLoading] = useState<{[key: number]: {cart: boolean, favorite: boolean}}>({});
+  const [isFilterOpen, setIsFilterOpen] = useState(false); // State for mobile filter toggle
 
   const { addToCart, removeFromCart, addToFavorites, removeFromFavorites, isInCart, isInFavorites } = useCart();
 
@@ -357,10 +358,19 @@ const AllProducts = () => {
             </nav>
           </div>
 
-          <div className="flex gap-8">
+          <div className="flex flex-col lg:flex-row lg:gap-8">
+            {/* Filter Toggle Button for Mobile */}
+            <button
+              className="lg:hidden bg-primary text-primary-foreground py-2 px-4 rounded-lg mb-4"
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+            >
+              {isFilterOpen ? 'Hide Filters' : 'Show Filters'}
+            </button>
+
             {/* Sidebar Filters */}
-            <aside className="w-64 flex-shrink-0">
-              {/* Price Filter */}
+            <aside className={`w-full lg:w-64 flex-shrink-0 mb-8 lg:mb-0 ${isFilterOpen ? 'block' : 'hidden'} lg:block`}>
+              <div className="lg:sticky lg:top-8">
+                {/* Price Filter */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold mb-4">Price</h3>
                 <div className="space-y-4">
@@ -442,6 +452,7 @@ const AllProducts = () => {
                   ))}
                 </div>
               </div>
+              </div> {/* Closing tag for lg:sticky div */}
             </aside>
 
             {/* Main Content */}
@@ -481,7 +492,7 @@ const AllProducts = () => {
                   {filteredAndSortedProducts.map((product, index) => (
                     <motion.div
                       key={`${product.id}-${sortBy}`}
-                      className="group cursor-pointer"
+                      className="group"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
@@ -491,14 +502,13 @@ const AllProducts = () => {
                         ease: "easeOut"
                       }}
                       layout
-                      onClick={() => handleProductClick(product.id)}
                     >
                       <motion.div
                         className="relative overflow-hidden rounded-lg mb-4"
                         whileHover={{ scale: 1.05 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <div className="aspect-[3/4] bg-muted flex items-center justify-center">
+                        <div className="aspect-[3/4] bg-muted flex items-center justify-center cursor-pointer" onClick={() => handleProductClick(product.id)}>
                           <Image
                             width={100}
                             height={133}
@@ -576,7 +586,7 @@ const AllProducts = () => {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.1 }}
                       >
-                        <h3 className="font-semibold text-lg">{product.name}</h3>
+                        <h3 className="font-semibold text-lg cursor-pointer" onClick={() => handleProductClick(product.id)}>{product.name}</h3>
                         <div className="flex items-center space-x-2">
                           <motion.span
                             className="text-blue-500 font-bold text-xl"

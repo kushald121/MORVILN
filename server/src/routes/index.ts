@@ -8,6 +8,9 @@ import cloudinaryRoutes from './cloudinary.route';
 import uploadRoutes from './upload.route';
 import testRoutes from './test.routes';
 import paymentRoutes from './payment.routes';
+import orderRoutes from './order.routes';
+import favoritesRoutes from './favorites.routes';
+import cartRoutes from './cart.routes';
 const router = Router();
 
 router.use('/auth', authRoutes);
@@ -19,5 +22,8 @@ router.use('/cloudinary', cloudinaryRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/test', testRoutes);
 router.use('/payment', paymentRoutes);
+router.use('/orders', orderRoutes);
+router.use('/favorites', favoritesRoutes);
+router.use('/cart', cartRoutes);
 
 export default router;

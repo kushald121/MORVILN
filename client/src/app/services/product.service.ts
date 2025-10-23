@@ -1,16 +1,12 @@
 import {
   Category,
-  // ProductFormData,
-  // ProductVariantFormData,
-  // ProductMediaFormData,
   CreateProductPayload,
   UploadResponse,
   Product
 } from '../types/product.types';
+import { productsAPI, uploadAPI } from '@/lib/api';
 
 class ProductService {
-  private static readonly API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
-
   // Generate slug from product name
   static generateSlug(name: string): string {
     return name
@@ -23,26 +19,15 @@ class ProductService {
   // Get all categories
   static async getCategories(): Promise<Category[]> {
     try {
-      const response = await fetch(`${this.API_BASE_URL}/categories`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
+      const response = await productsAPI.getCategories();
+      
       // Handle different response formats
-      if (Array.isArray(data)) {
-        return data;
-      } else if (data.categories) {
-        return data.categories;
-      } else if (data.data) {
-        return data.data;
+      if (Array.isArray(response.data)) {
+        return response.data;
+      } else if (response.data.categories) {
+        return response.data.categories;
+      } else if (response.data.data) {
+        return response.data.data;
       }
 
       return [];
@@ -84,38 +69,23 @@ class ProductService {
   // Upload images to Cloudinary or local storage
   static async uploadImages(files: File[]): Promise<UploadResponse[]> {
     try {
-      const uploadPromises = files.map(async (file) => {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', 'morviln_products'); // Cloudinary preset
-
-        const response = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-          {
-            method: 'POST',
-            body: formData,
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`Upload failed: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-
-        return {
+      const response = await uploadAPI.uploadImages(files, 'products');
+      
+      // Handle response format
+      if (response.data.uploads) {
+        return response.data.uploads.map((upload: any) => ({
           success: true,
           data: {
-            url: data.secure_url,
-            publicId: data.public_id,
-            format: data.format,
-            width: data.width,
-            height: data.height,
+            url: upload.url,
+            publicId: upload.publicId,
+            format: upload.format,
+            width: upload.width,
+            height: upload.height,
           },
-        };
-      });
-
-      return await Promise.all(uploadPromises);
+        }));
+      }
+      
+      return [];
     } catch (error) {
       console.error('Error uploading images:', error);
 
@@ -136,23 +106,7 @@ class ProductService {
   // Delete image from Cloudinary
   static async deleteImage(publicId: string): Promise<void> {
     try {
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/destroy`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            public_id: publicId,
-            api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Delete failed: ${response.statusText}`);
-      }
+      await uploadAPI.deleteImage(publicId);
     } catch (error) {
       console.error('Error deleting image:', error);
       // For development, just log the error but don't throw
@@ -163,26 +117,11 @@ class ProductService {
   // Create new product
   static async createProduct(payload: CreateProductPayload): Promise<void> {
     try {
-      const response = await fetch(`${this.API_BASE_URL}/products`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
-        );
-      }
-
-      const data = await response.json();
-      return data;
-    } catch (error) {
+      const response = await productsAPI.create(payload);
+      return response.data;
+    } catch (error: any) {
       console.error('Error creating product:', error);
-      throw error;
+      throw new Error(error.response?.data?.message || 'Failed to create product');
     }
   }
 
@@ -195,21 +134,8 @@ class ProductService {
     totalPages: number;
   }> {
     try {
-      const response = await fetch(
-        `${this.API_BASE_URL}/products?page=${page}&limit=${limit}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const response = await productsAPI.getAll({ page, limit });
+      return response.data;
     } catch (error) {
       console.error('Error fetching products:', error);
       throw error;
@@ -219,18 +145,8 @@ class ProductService {
   // Get single product by ID
   static async getProduct(id: string): Promise<Product> {
     try {
-      const response = await fetch(`${this.API_BASE_URL}/products/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return await response.json();
+      const response = await productsAPI.getById(id);
+      return response.data;
     } catch (error) {
       console.error('Error fetching product:', error);
       throw error;
@@ -240,39 +156,17 @@ class ProductService {
   // Update product
   static async updateProduct(id: string, payload: CreateProductPayload): Promise<void> {
     try {
-      const response = await fetch(`${this.API_BASE_URL}/products/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
-        );
-      }
-    } catch (error) {
+      await productsAPI.update(id, payload);
+    } catch (error: any) {
       console.error('Error updating product:', error);
-      throw error;
+      throw new Error(error.response?.data?.message || 'Failed to update product');
     }
   }
 
   // Delete product
   static async deleteProduct(id: string): Promise<void> {
     try {
-      const response = await fetch(`${this.API_BASE_URL}/products/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      await productsAPI.delete(id);
     } catch (error) {
       console.error('Error deleting product:', error);
       throw error;

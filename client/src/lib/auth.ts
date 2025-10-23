@@ -1,7 +1,5 @@
-import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+import { authAPI } from './api';
 
 // Initialize Supabase client for OAuth
 const supabase = createClient(
@@ -33,32 +31,12 @@ export interface AuthResponse {
   message?: string;
 }
 
-// Configure axios instance
-const authAPI = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Add token to requests if available
-authAPI.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('userToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
-  return config;
-});
-
 // Auth Service
 export const authService = {
   // Regular login
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      const response = await authAPI.post('/auth/login', credentials);
+      const response = await authAPI.login(credentials.email, credentials.password);
       if (response.data.token) {
         localStorage.setItem('userToken', response.data.token);
         localStorage.setItem('userData', JSON.stringify(response.data.user));
@@ -72,7 +50,7 @@ export const authService = {
   // Regular signup
   async signup(data: SignupData): Promise<AuthResponse> {
     try {
-      const response = await authAPI.post('/auth/register', data);
+      const response = await authAPI.register(data);
       if (response.data.token) {
         localStorage.setItem('userToken', response.data.token);
         localStorage.setItem('userData', JSON.stringify(response.data.user));
@@ -124,7 +102,7 @@ export const authService = {
       if (!session) throw new Error('No session found');
 
       // Send session to backend to create/sync user
-      const response = await authAPI.post('/auth/oauth/callback', {
+      const response = await authAPI.oauthCallback({
         email: session.user.email,
         name: session.user.user_metadata.full_name || session.user.user_metadata.name || 'User',
         provider: session.user.app_metadata.provider,
@@ -146,7 +124,7 @@ export const authService = {
   // Logout
   async logout(): Promise<void> {
     try {
-      await authAPI.post('/auth/logout');
+      await authAPI.logout();
       await supabase.auth.signOut();
     } catch (error) {
       console.error('Logout error:', error);

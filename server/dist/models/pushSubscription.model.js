@@ -3,54 +3,104 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const database_1 = __importDefault(require("../config/database"));
+const supabaseclient_1 = __importDefault(require("../config/supabaseclient"));
 class PushSubscriptionModel {
-    constructor() {
-        this.pool = database_1.default;
-    }
     async createSubscription(data) {
-        const query = `
-      INSERT INTO push_subscriptions (user_id, endpoint, p256dh, auth, user_agent)
-      VALUES ($1, $2, $3, $4, $5)
-      ON CONFLICT (endpoint) 
-      DO UPDATE SET 
-        user_id = EXCLUDED.user_id,
-        p256dh = EXCLUDED.p256dh,
-        auth = EXCLUDED.auth,
-        user_agent = EXCLUDED.user_agent,
-        is_active = true,
-        updated_at = CURRENT_TIMESTAMP
-      RETURNING *
-    `;
-        const values = [
-            data.userId || null,
-            data.endpoint,
-            data.keys.p256dh,
-            data.keys.auth,
-            data.userAgent || null,
-        ];
-        const result = await this.pool.query(query, values);
-        return this.mapRowToSubscription(result.rows[0]);
+        // First try to find existing subscription by endpoint
+        const { data: existing } = await supabaseclient_1.default
+            .from('push_subscriptions')
+            .select('*')
+            .eq('endpoint', data.endpoint)
+            .single();
+        if (existing) {
+            // Update existing subscription
+            const { data: updated, error } = await supabaseclient_1.default
+                .from('push_subscriptions')
+                .update({
+                user_id: data.userId || null,
+                p256dh: data.keys.p256dh,
+                auth: data.keys.auth,
+                user_agent: data.userAgent || null,
+                is_active: true,
+                updated_at: new Date().toISOString()
+            })
+                .eq('endpoint', data.endpoint)
+                .select()
+                .single();
+            if (error) {
+                console.error('Error updating push subscription:', error);
+                throw new Error(`Failed to update push subscription: ${error.message}`);
+            }
+            return this.mapRowToSubscription(updated);
+        }
+        else {
+            // Create new subscription
+            const { data: newSub, error } = await supabaseclient_1.default
+                .from('push_subscriptions')
+                .insert({
+                user_id: data.userId || null,
+                endpoint: data.endpoint,
+                p256dh: data.keys.p256dh,
+                auth: data.keys.auth,
+                user_agent: data.userAgent || null,
+                is_active: true
+            })
+                .select()
+                .single();
+            if (error) {
+                console.error('Error creating push subscription:', error);
+                throw new Error(`Failed to create push subscription: ${error.message}`);
+            }
+            return this.mapRowToSubscription(newSub);
+        }
     }
     async getSubscriptionsByUserId(userId) {
-        const query = 'SELECT * FROM push_subscriptions WHERE user_id = $1 AND is_active = true';
-        const result = await this.pool.query(query, [userId]);
-        return result.rows.map(row => this.mapRowToSubscription(row));
+        const { data, error } = await supabaseclient_1.default
+            .from('push_subscriptions')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('is_active', true);
+        if (error) {
+            console.error('Error getting subscriptions by user ID:', error);
+            throw new Error(`Failed to get subscriptions: ${error.message}`);
+        }
+        return (data || []).map((row) => this.mapRowToSubscription(row));
     }
     async getAllActiveSubscriptions() {
-        const query = 'SELECT * FROM push_subscriptions WHERE is_active = true';
-        const result = await this.pool.query(query);
-        return result.rows.map(row => this.mapRowToSubscription(row));
+        const { data, error } = await supabaseclient_1.default
+            .from('push_subscriptions')
+            .select('*')
+            .eq('is_active', true);
+        if (error) {
+            console.error('Error getting all active subscriptions:', error);
+            throw new Error(`Failed to get active subscriptions: ${error.message}`);
+        }
+        return (data || []).map((row) => this.mapRowToSubscription(row));
     }
     async deleteSubscription(endpoint) {
-        const query = 'DELETE FROM push_subscriptions WHERE endpoint = $1';
-        const result = await this.pool.query(query, [endpoint]);
-        return result.rowCount > 0;
+        const { error } = await supabaseclient_1.default
+            .from('push_subscriptions')
+            .delete()
+            .eq('endpoint', endpoint);
+        if (error) {
+            console.error('Error deleting push subscription:', error);
+            throw new Error(`Failed to delete push subscription: ${error.message}`);
+        }
+        return true;
     }
     async deactivateSubscription(endpoint) {
-        const query = 'UPDATE push_subscriptions SET is_active = false WHERE endpoint = $1';
-        const result = await this.pool.query(query, [endpoint]);
-        return result.rowCount > 0;
+        const { error } = await supabaseclient_1.default
+            .from('push_subscriptions')
+            .update({
+            is_active: false,
+            updated_at: new Date().toISOString()
+        })
+            .eq('endpoint', endpoint);
+        if (error) {
+            console.error('Error deactivating push subscription:', error);
+            throw new Error(`Failed to deactivate push subscription: ${error.message}`);
+        }
+        return true;
     }
     mapRowToSubscription(row) {
         return {

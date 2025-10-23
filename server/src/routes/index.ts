@@ -6,7 +6,8 @@ import pushNotificationRoutes from './pushNotification.routes';
 import adminRoutes from './admin.routes';
 import cloudinaryRoutes from './cloudinary.route';
 import uploadRoutes from './upload.route';
-
+import testRoutes from './test.routes';
+import paymentRoutes from './payment.routes';
 const router = Router();
 
 router.use('/auth', authRoutes);
@@ -16,5 +17,7 @@ router.use('/products', productRoutes);
 router.use('/admin', adminRoutes);
 router.use('/cloudinary', cloudinaryRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/test', testRoutes);
+router.use('/payment', paymentRoutes);
 
 export default router;

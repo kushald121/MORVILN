@@ -33,8 +33,20 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateAuthResponse = exports.verifyToken = exports.generateToken = void 0;
+exports.generateAuthResponse = exports.verifyToken = exports.generateToken = exports.verifyPassword = exports.hashPassword = void 0;
 const jwt = __importStar(require("jsonwebtoken"));
+const bcrypt = __importStar(require("bcryptjs"));
+// Password hashing
+const hashPassword = async (password) => {
+    const saltRounds = 10;
+    return await bcrypt.hash(password, saltRounds);
+};
+exports.hashPassword = hashPassword;
+// Password verification
+const verifyPassword = async (password, hashedPassword) => {
+    return await bcrypt.compare(password, hashedPassword);
+};
+exports.verifyPassword = verifyPassword;
 const generateToken = (payload) => {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
@@ -65,8 +77,9 @@ const generateAuthResponse = (user) => {
             id: user.id,
             email: user.email,
             name: user.name,
-            avatar: user.avatar,
-            isVerified: user.isVerified
+            avatar: user.avatarUrl || user.avatar_url,
+            isVerified: user.isVerified || user.is_verified,
+            provider: user.provider
         }
     };
 };

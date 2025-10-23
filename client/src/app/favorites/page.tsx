@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HeartIcon, ShoppingBagIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
@@ -17,16 +17,8 @@ interface FavoriteItem {
   stock: number;
 }
 
-interface AuthContext {
-  getCurrentSessionId: () => string | null;
-  getSessionType: () => string | null;
-  getAuthHeaders: () => Record<string, string | undefined>;
-}
-
 const FavoritesPage = () => {
   const { state, removeFromFavorites, addToCart } = useCart();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   // Convert context favorites to match the expected format
   const favorites: FavoriteItem[] = state.favorites.map(item => ({
@@ -35,131 +27,24 @@ const FavoritesPage = () => {
     price: item.price,
     originalPrice: item.originalPrice,
     image: item.image,
-    stock: item.stock
+    stock: item.stock || 10 // Default stock if not provided
   }));
 
-  // Mock auth context for now - in a real app this would come from a context provider
-  const authContext: AuthContext = {
-    getCurrentSessionId: () => localStorage.getItem('sessionId'),
-    getSessionType: () => localStorage.getItem('sessionType'),
-    getAuthHeaders: () => {
-      const token = localStorage.getItem('token');
-      return token ? { Authorization: `Bearer ${token}` } : {};
-    }
+  const handleRemoveFromFavorites = (productId: string) => {
+    removeFromFavorites(productId);
   };
 
-  const fetchFavorites = async () => {
-    try {
-      setLoading(true);
-      setError('');
-
-      // Mock API call - replace with actual API endpoint
-      const response = await fetch('/api/favorites', {
-        headers: {
-          'Content-Type': 'application/json',
-          ...authContext.getAuthHeaders(),
-        },
+  const handleAddToCart = (productId: string) => {
+    const favoriteItem = favorites.find(item => item.productId === productId);
+    if (favoriteItem) {
+      addToCart({
+        id: productId,
+        name: favoriteItem.name,
+        price: favoriteItem.price,
+        image: favoriteItem.image,
+        size: 'M', // Default size
+        color: 'Default' // Default color
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch favorites');
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        setFavorites(data.favorites || []);
-      } else {
-        setError('Failed to load favorites');
-      }
-    } catch (error) {
-      console.error('Error fetching favorites:', error);
-      setError('Failed to load favorites');
-
-      // Mock data for development
-      setFavorites([
-        {
-          productId: '1',
-          name: 'Classic Blue T-Shirt',
-          price: 25.99,
-          originalPrice: 35.99,
-          image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&h=400&fit=crop&crop=center',
-          stock: 10,
-        },
-        {
-          productId: '2',
-          name: 'Red Hoodie',
-          price: 45.00,
-          image: 'https://images.unsplash.com/photo-1521334884684-d80222895322?w=300&h=400&fit=crop&crop=center',
-          stock: 5,
-        },
-        {
-          productId: '3',
-          name: 'Green Sneakers',
-          price: 55.00,
-          originalPrice: 75.00,
-          image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=300&h=400&fit=crop&crop=center',
-          stock: 0,
-        },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchFavorites();
-  }, []);
-
-  const handleRemoveFromFavorites = async (productId: string) => {
-    try {
-      const response = await fetch(`/api/favorites/${productId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authContext.getAuthHeaders(),
-        },
-      });
-
-      if (response.ok) {
-        removeFromFavorites(productId);
-      }
-    } catch (error) {
-      console.error('Error removing from favorites:', error);
-    }
-  };
-
-  const handleAddToCart = async (productId: string) => {
-    try {
-      const response = await fetch('/api/cart', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authContext.getAuthHeaders(),
-        },
-        body: JSON.stringify({
-          productId,
-          quantity: 1,
-        }),
-      });
-
-      if (response.ok) {
-        console.log('Added to cart successfully');
-        // Find the favorite item and add it to cart
-        const favoriteItem = favorites.find(item => item.productId === productId);
-        if (favoriteItem) {
-          addToCart({
-            id: productId,
-            name: favoriteItem.name,
-            price: favoriteItem.price,
-            image: favoriteItem.image,
-            size: 'M', // Default size
-            color: 'Default' // Default color
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Error adding to cart:', error);
     }
   };
 
@@ -227,26 +112,7 @@ const FavoritesPage = () => {
           </motion.div>
 
           {/* Content */}
-          {loading ? (
-            <div className="flex justify-center items-center py-20">
-              <div className="flex items-center space-x-3">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <span className="text-muted-foreground font-light">Loading your wishlist...</span>
-              </div>
-            </div>
-          ) : error ? (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center py-20"
-            >
-              <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <XMarkIcon className="w-8 h-8 text-red-500" />
-              </div>
-              <p className="text-red-500 text-lg font-medium mb-2">Oops! Something went wrong</p>
-              <p className="text-muted-foreground">{error}</p>
-            </motion.div>
-          ) : favorites.length === 0 ? (
+          {favorites.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

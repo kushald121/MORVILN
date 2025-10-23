@@ -163,6 +163,7 @@ interface ClothingCardProps {
   item: typeof clothingItems[0];
   handleMove: (steps: number) => void;
   cardSize: number;
+  theme: string | undefined;
 }
 
 
@@ -170,7 +171,8 @@ const ClothingCard: React.FC<ClothingCardProps> = ({
   position,
   item,
   handleMove,
-  cardSize
+  cardSize,
+  theme
 }) => {
   const isCenter = position === 0;
 
@@ -230,19 +232,22 @@ const ClothingCard: React.FC<ClothingCardProps> = ({
         <div>
           <h3 className={cn(
             "text-lg sm:text-xl font-bold mb-2",
-            isCenter ? "text-white" : "text-gray-300"
+            isCenter ? (theme === 'dark' ? "text-white" : "text-gray-900") : (theme === 'dark' ? "text-gray-300" : "text-gray-700")
           )}>
             {item.name}
           </h3>
           <p className={cn(
             "text-sm mb-3",
-            isCenter ? "text-gray-300" : "text-gray-400"
+            isCenter ? (theme === 'dark' ? "text-gray-300" : "text-gray-600") : (theme === 'dark' ? "text-gray-400" : "text-gray-500")
           )}>
             {item.description}
           </p>
         </div>
         <div className="flex items-center justify-between">
-          <p className="text-xs text-gray-400 italic">
+          <p className={cn(
+            "text-xs italic",
+            theme === 'dark' ? "text-gray-400" : "text-gray-500"
+          )}>
             by {item.brand}
           </p>
           {isCenter && (
@@ -316,7 +321,10 @@ export const StaggerClothingShowcase: React.FC = () => {
 
   return (
     <div
-      className="relative w-full overflow-hidden from-slate-950 via-blue-950 to-slate-900 mt-20"
+      className={cn(
+        "relative w-full overflow-hidden mt-20",
+        theme === 'dark' ? "from-slate-950 via-blue-950 to-slate-900" : "from-gray-100 via-blue-100 to-gray-100"
+      )}
       style={{ height: 750 }}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -344,6 +352,7 @@ export const StaggerClothingShowcase: React.FC = () => {
             handleMove={handleMove}
             position={position}
             cardSize={cardSize}
+            theme={theme}
           />
         );
       })}
@@ -351,14 +360,24 @@ export const StaggerClothingShowcase: React.FC = () => {
       <div className="absolute bottom-8 left-1/2 flex -translate-x-1/2 gap-4">
         <button
           onClick={() => handleMove(-1)}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-800/80 backdrop-blur-sm border-2 border-slate-600 text-white hover:bg-indigo-600 hover:border-indigo-600 shadow-lg hover:shadow-xl transition-all"
+          className={cn(
+            "flex h-14 w-14 items-center justify-center rounded-full backdrop-blur-sm border-2 shadow-lg hover:shadow-xl transition-all",
+            theme === 'dark'
+              ? "bg-slate-800/80 border-slate-600 text-white hover:bg-indigo-600 hover:border-indigo-600"
+              : "bg-gray-200/80 border-gray-400 text-gray-900 hover:bg-indigo-600 hover:border-indigo-600"
+          )}
           aria-label="Previous item"
         >
           <ChevronLeft size={24} />
         </button>
         <button
           onClick={() => handleMove(1)}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-800/80 backdrop-blur-sm border-2 border-slate-600 text-white hover:bg-indigo-600 hover:border-indigo-600 shadow-lg hover:shadow-xl transition-all"
+          className={cn(
+            "flex h-14 w-14 items-center justify-center rounded-full backdrop-blur-sm border-2 shadow-lg hover:shadow-xl transition-all",
+            theme === 'dark'
+              ? "bg-slate-800/80 border-slate-600 text-white hover:bg-indigo-600 hover:border-indigo-600"
+              : "bg-gray-200/80 border-gray-400 text-gray-900 hover:bg-indigo-600 hover:border-indigo-600"
+          )}
           aria-label="Next item"
         >
           <ChevronRight size={24} />
@@ -373,7 +392,7 @@ export const StaggerClothingShowcase: React.FC = () => {
               "h-2 w-2 rounded-full transition-all",
               clothingList.findIndex((item, i) => i - (clothingList.length - 1) / 2 === 0) % 5 === idx
                 ? "bg-indigo-600 w-6"
-                : "bg-slate-600"
+                : theme === 'dark' ? "bg-slate-600" : "bg-gray-400"
             )}
           />
         ))}

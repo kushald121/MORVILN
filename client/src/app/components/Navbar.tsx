@@ -236,14 +236,14 @@ const NavBar = () => {
 
   return (
     <>
+    {/* Desktop Navbar - Hidden on mobile */}
     <motion.div
       ref={navbarRef}
-      className={`w-full sticky top-0 z-50 transition-all duration-250  ${
+      className={`w-full fixed top-0 z-50 transition-all duration-250 hidden lg:block ${
         isScrolled ? 'shadow-xl' : 'shadow-sm'
       }`}
       style={{
         opacity: navbarOpacity,
-        filter: `blur(${navbarBlur}px)`,
       }}
     >
       {/* MOBILE MENU */}
@@ -484,7 +484,7 @@ const NavBar = () => {
           </div>
 
           {/* Desktop Navbar */}
-          <div className="hidden lg:flex h-16 items-center justify-between">
+          <div className="flex h-16 items-center justify-between">
             {/* LEFT: Logo + Navigation */}
             <div className="flex items-center space-x-12">
               {/* Logo */}
@@ -606,6 +606,151 @@ const NavBar = () => {
         </nav>
       </header>
     </motion.div>
+
+    {/* Mobile Top Bar - Fixed on scroll */}
+    <motion.div
+      className="lg:hidden w-full fixed top-0 z-50 bg-background/95 backdrop-blur-md shadow-sm border-b border-border"
+      initial={{ y: -100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+    >
+      <div className="flex h-14 sm:h-16 items-center justify-between px-3 sm:px-4">
+        {/* Hamburger Menu */}
+        <button
+          type="button"
+          className="rounded-lg p-2 text-foreground hover:bg-accent transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+          onClick={() => setOpen(true)}
+          aria-label="Open menu"
+        >
+          <Bars3Icon className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden="true" />
+        </button>
+
+        {/* Mobile Logo */}
+        <Link href="/" className="flex-shrink-0">
+          <h1 className="font-bold text-primary text-xl sm:text-2xl">MORVILN</h1>
+        </Link>
+
+        {/* Search Icon */}
+        <button
+          onClick={() => setMobileSearchOpen(true)}
+          className="p-2 text-foreground hover:bg-accent rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+          aria-label="Search"
+        >
+          <MagnifyingGlassIcon className="h-6 w-6 sm:h-7 sm:w-7" />
+        </button>
+      </div>
+    </motion.div>
+
+    {/* Mobile Bottom Navigation Bar - Fixed */}
+    <motion.nav
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t border-border shadow-2xl pb-safe"
+      initial={{ y: 100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
+    >
+      <div className="flex items-center justify-around h-14 sm:h-16 px-2">
+        {/* Home */}
+        <Link
+          href="/"
+          className="flex flex-col items-center justify-center flex-1 py-2 group"
+        >
+          <motion.div
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative flex items-center justify-center"
+          >
+            <svg
+              className="h-5 w-5 sm:h-6 sm:w-6 text-foreground group-hover:text-primary transition-colors"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              />
+            </svg>
+          </motion.div>
+          <span className="text-[10px] sm:text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors mt-0.5 sm:mt-1">
+            Home
+          </span>
+        </Link>
+
+        {/* Shop */}
+        <Link
+          href="/allproducts"
+          className="flex flex-col items-center justify-center flex-1 py-2 group"
+        >
+          <motion.div
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative flex items-center justify-center"
+          >
+            <svg
+              className="h-5 w-5 sm:h-6 sm:w-6 text-foreground group-hover:text-primary transition-colors"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+              />
+            </svg>
+          </motion.div>
+          <span className="text-[10px] sm:text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors mt-0.5 sm:mt-1">
+            Shop
+          </span>
+        </Link>
+
+        {/* Bag */}
+        <Link
+          href="/bag"
+          className="flex flex-col items-center justify-center flex-1 py-2 group"
+        >
+          <motion.div
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative flex items-center justify-center"
+          >
+            <ShoppingBagIcon className="h-5 w-5 sm:h-6 sm:w-6 text-foreground group-hover:text-primary transition-colors" />
+            {cartCount > 0 && (
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-2 -right-2 h-5 w-5 bg-primary text-primary-foreground text-xs font-bold rounded-full flex items-center justify-center"
+              >
+                {cartCount}
+              </motion.span>
+            )}
+          </motion.div>
+          <span className="text-[10px] sm:text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors mt-0.5 sm:mt-1">
+            Bag
+          </span>
+        </Link>
+
+        {/* Account */}
+        <Link
+          href="/profile"
+          className="flex flex-col items-center justify-center flex-1 py-2 group"
+        >
+          <motion.div
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative flex items-center justify-center"
+          >
+            <UserIcon className="h-5 w-5 sm:h-6 sm:w-6 text-foreground group-hover:text-primary transition-colors" />
+          </motion.div>
+          <span className="text-[10px] sm:text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors mt-0.5 sm:mt-1">
+            Account
+          </span>
+        </Link>
+      </div>
+    </motion.nav>
     </>
   );
 };

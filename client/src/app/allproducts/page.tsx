@@ -4,6 +4,9 @@ import React, { useState, useMemo } from 'react';
 // import SplashCursor from '../components/ui/splash-cursor';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Heart, ShoppingCart, } from 'lucide-react';
+import { useCart } from '../contexts/CartContext';
+import { useRouter } from 'next/navigation';
 
 interface Product {
   id: number;
@@ -15,11 +18,16 @@ interface Product {
 }
 
 const AllProducts = () => {
+  const router = useRouter();
   const [priceRange, setPriceRange] = useState([35, 80]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedShoeSizes, setSelectedShoeSizes] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('default');
+  const [isLoading, setIsLoading] = useState<{[key: number]: {cart: boolean, favorite: boolean}}>({});
+  const [isFilterOpen, setIsFilterOpen] = useState(false); // State for mobile filter toggle
+
+  const { addToCart, removeFromCart, addToFavorites, removeFromFavorites, isInCart, isInFavorites } = useCart();
 
   const products: Product[] = useMemo(() => [
     {
@@ -226,6 +234,72 @@ const AllProducts = () => {
     );
   };
 
+  // Cart and Favorite handlers
+  const handleAddToCart = async (productId: number) => {
+    setIsLoading(prev => ({ ...prev, [productId]: { ...prev[productId], cart: true } }));
+
+    try {
+      // Simulate API call - replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Find the product to add to cart
+      const product = products.find(p => p.id === productId);
+      if (product) {
+        if (isInCart(productId.toString())) {
+          removeFromCart(productId.toString());
+        } else {
+          addToCart({
+            id: productId.toString(),
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            size: 'M', // Default size
+            color: 'Default' // Default color
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    } finally {
+      setIsLoading(prev => ({ ...prev, [productId]: { ...prev[productId], cart: false } }));
+    }
+  };
+
+  const handleToggleFavorite = async (productId: number) => {
+    setIsLoading(prev => ({ ...prev, [productId]: { ...prev[productId], favorite: true } }));
+
+    try {
+      // Simulate API call - replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Find the product to add to favorites
+      const product = products.find(p => p.id === productId);
+      if (product) {
+        if (isInFavorites(productId.toString())) {
+          removeFromFavorites(productId.toString());
+        } else {
+          addToFavorites({
+            productId: productId.toString(),
+            name: product.name,
+            price: product.price,
+            originalPrice: product.originalPrice,
+            image: product.image,
+            stock: 10 // Default stock
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    } finally {
+      setIsLoading(prev => ({ ...prev, [productId]: { ...prev[productId], favorite: false } }));
+    }
+  };
+
+  // Handle product click to navigate to product detail page
+  const handleProductClick = (productId: number) => {
+    router.push(`/productpage?id=${productId}`);
+  };
+
   // Filter and sort products
   const filteredAndSortedProducts = useMemo(() => {
     const filtered = products.filter(product => {
@@ -274,29 +348,38 @@ const AllProducts = () => {
   return (
     <>
       {/* <SplashCursor /> */}
-      <div className="min-h-screen  text-white">
+      <div className="min-h-screen bg-background text-foreground">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-4xl font-bold mb-2">Shop</h1>
-            <nav className="text-gray-400">
+            <nav className="text-muted-foreground">
               Home / Shop
             </nav>
           </div>
 
-          <div className="flex gap-8">
+          <div className="flex flex-col lg:flex-row lg:gap-8">
+            {/* Filter Toggle Button for Mobile */}
+            <button
+              className="lg:hidden bg-primary text-primary-foreground py-2 px-4 rounded-lg mb-4"
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+            >
+              {isFilterOpen ? 'Hide Filters' : 'Show Filters'}
+            </button>
+
             {/* Sidebar Filters */}
-            <aside className="w-64 flex-shrink-0">
-              {/* Price Filter */}
+            <aside className={`w-full lg:w-64 flex-shrink-0 mb-8 lg:mb-0 ${isFilterOpen ? 'block' : 'hidden'} lg:block`}>
+              <div className="lg:sticky lg:top-8">
+                {/* Price Filter */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold mb-4">Price</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Min. Price</span>
+                    <span className="text-sm text-muted-foreground">Min. Price</span>
                     <span className="font-semibold">${priceRange[0]}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Max. Price</span>
+                    <span className="text-sm text-muted-foreground">Max. Price</span>
                     <span className="font-semibold">${priceRange[1]}</span>
                   </div>
                   <div className="relative">
@@ -306,9 +389,9 @@ const AllProducts = () => {
                       max="200"
                       value={priceRange[1]}
                       onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                    className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer slider"
                     />
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
                       <span>$0</span>
                       <span>$200</span>
                     </div>
@@ -328,7 +411,7 @@ const AllProducts = () => {
                         onChange={() => handleColorChange(color)}
                         className="mr-3 w-4 h-4 text-green-500 bg-gray-700 border-gray-600 rounded focus:ring-green-500"
                       />
-                      <span className="text-gray-300">{color}</span>
+                      <span className="text-muted-foreground">{color}</span>
                     </label>
                   ))}
                 </div>
@@ -346,7 +429,7 @@ const AllProducts = () => {
                         onChange={() => handleSizeChange(size)}
                         className="mr-3 w-4 h-4 text-green-500 bg-gray-700 border-gray-600 rounded focus:ring-green-500"
                       />
-                      <span className="text-gray-300">{size}</span>
+                      <span className="text-muted-foreground">{size}</span>
                     </label>
                   ))}
                 </div>
@@ -364,18 +447,19 @@ const AllProducts = () => {
                         onChange={() => handleShoeSizeChange(size)}
                         className="mr-3 w-4 h-4 text-green-500 bg-gray-700 border-gray-600 rounded focus:ring-green-500"
                       />
-                      <span className="text-gray-300">{size}</span>
+                      <span className="text-muted-foreground">{size}</span>
                     </label>
                   ))}
                 </div>
               </div>
+              </div> {/* Closing tag for lg:sticky div */}
             </aside>
 
             {/* Main Content */}
             <main className="flex-1">
               {/* Top Bar */}
               <div className="flex justify-between items-center mb-8">
-                <p className="text-gray-400">Showing {filteredAndSortedProducts.length} of {products.length} results</p>
+                <p className="text-muted-foreground">Showing {filteredAndSortedProducts.length} of {products.length} results</p>
                 <div className="relative">
                   <select
                     value={sortBy}
@@ -408,7 +492,7 @@ const AllProducts = () => {
                   {filteredAndSortedProducts.map((product, index) => (
                     <motion.div
                       key={`${product.id}-${sortBy}`}
-                      className="group cursor-pointer"
+                      className="group"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
@@ -424,7 +508,7 @@ const AllProducts = () => {
                         whileHover={{ scale: 1.05 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <div className="aspect-[3/4] bg-gray-800 flex items-center justify-center">
+                        <div className="aspect-[3/4] bg-muted flex items-center justify-center cursor-pointer" onClick={() => handleProductClick(product.id)}>
                           <Image
                             width={100}
                             height={133}
@@ -438,7 +522,7 @@ const AllProducts = () => {
                         </div>
                         {product.isOnSale && (
                           <motion.div
-                            className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs font-semibold"
+                            className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded text-xs font-semibold"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
@@ -447,6 +531,53 @@ const AllProducts = () => {
                           </motion.div>
                         )}
                         <div className="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300" />
+
+                        {/* Action Buttons */}
+                        <div className="absolute top-2 left-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <motion.button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleFavorite(product.id);
+                            }}
+                            disabled={isLoading[product.id]?.favorite}
+                            className={`p-2 rounded-full backdrop-blur-sm transition-all duration-200 ${
+                              isInFavorites(product.id.toString())
+                                ? 'bg-red-500 text-white'
+                                : 'bg-black/80 text-white hover:bg-black/90'
+                            }`}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            {isLoading[product.id]?.favorite ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Heart
+                                className={`w-4 h-4 ${isInFavorites(product.id.toString()) ? 'fill-current' : ''}`}
+                              />
+                            )}
+                          </motion.button>
+
+                          <motion.button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToCart(product.id);
+                            }}
+                            disabled={isLoading[product.id]?.cart}
+                            className={`p-2 rounded-full backdrop-blur-sm transition-all duration-200 ${
+                              isInCart(product.id.toString())
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-black/80 text-white hover:bg-black/90'
+                            }`}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            {isLoading[product.id]?.cart ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <ShoppingCart className="w-4 h-4" />
+                            )}
+                          </motion.button>
+                        </div>
                       </motion.div>
 
                       <motion.div
@@ -455,10 +586,10 @@ const AllProducts = () => {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.1 }}
                       >
-                        <h3 className="font-semibold text-lg">{product.name}</h3>
+                        <h3 className="font-semibold text-lg cursor-pointer" onClick={() => handleProductClick(product.id)}>{product.name}</h3>
                         <div className="flex items-center space-x-2">
                           <motion.span
-                            className="text-green-500 font-bold text-xl"
+                            className="text-blue-500 font-bold text-xl"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.15, type: "spring", stiffness: 200 }}
@@ -467,7 +598,7 @@ const AllProducts = () => {
                           </motion.span>
                           {product.originalPrice && (
                             <motion.span
-                              className="text-gray-500 line-through"
+                              className="text-muted-foreground line-through"
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: 0.2 }}
@@ -475,6 +606,53 @@ const AllProducts = () => {
                               ${product.originalPrice.toFixed(2)}
                             </motion.span>
                           )}
+                        </div>
+
+                        {/* Bottom Action Buttons */}
+                        <div className="flex gap-2 pt-2">
+                          <motion.button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddToCart(product.id);
+                            }}
+                            disabled={isLoading[product.id]?.cart}
+                            className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all duration-200 ${
+                              isInCart(product.id.toString())
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                            }`}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            {isLoading[product.id]?.cart ? (
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                <span>Loading...</span>
+                              </div>
+                            ) : isInCart(product.id.toString()) ? (
+                              'Remove from Cart'
+                            ) : (
+                              'Add to Cart'
+                            )}
+                          </motion.button>
+
+                          <motion.button
+                            onClick={() => handleToggleFavorite(product.id)}
+                            disabled={isLoading[product.id]?.favorite}
+                            className={`p-2 rounded-lg font-semibold transition-all duration-200 ${
+                              isInFavorites(product.id.toString())
+                                ? 'bg-red-500 text-white'
+                                : 'bg-secondary text-secondary-foreground hover:bg-accent'
+                            }`}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            {isLoading[product.id]?.favorite ? (
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Heart className={`w-4 h-4 ${isInFavorites(product.id.toString()) ? 'fill-current' : ''}`} />
+                            )}
+                          </motion.button>
                         </div>
                       </motion.div>
                     </motion.div>

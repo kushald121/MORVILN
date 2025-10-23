@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-// import SplashCursor from '../components/ui/splash-cursor';
 
 export default function SubjectiveLogin() {
   const [selectedPFP, setSelectedPFP] = useState<string | null>(null);
@@ -45,15 +44,15 @@ export default function SubjectiveLogin() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden bg-background">
       {/* Animated Background */}
-      <div className="absolute inset-0 ">
+      <div className="absolute inset-0">
         {/* Animated particles */}
         <div className="absolute inset-0">
           {[...Array(20)].map((_, i) => (
             <div
               key={i}
-              className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
+              className="absolute w-1 h-1 bg-primary/20 rounded-full animate-pulse"
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
@@ -67,23 +66,22 @@ export default function SubjectiveLogin() {
 
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
-        {/* <SplashCursor /> */}
         <div className="max-w-lg w-full">
           {/* Header Section */}
           <div className="text-center mb-12 animate-fade-in-up">
-            <h1 className="text-5xl font-bold text-gradient mb-4 animate-slide-in-left">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent mb-4 animate-slide-in-left">
               Choose Your Profile
             </h1>
-            <p className="text-slate-300 text-lg animate-slide-in-right">
+            <p className="text-muted-foreground text-lg animate-slide-in-right">
               Select your role to continue to the dashboard
             </p>
           </div>
 
           {/* Profile Selection Card */}
-          <div className="glass rounded-3xl p-8 shadow-2xl animate-fade-in-up backdrop-blur-xl border border-white/10">
+          <div className="bg-card backdrop-blur-xl rounded-3xl p-8 shadow-2xl animate-fade-in-up border border-border">
             {/* PFP Selection */}
             <div className="mb-12">
-              <h2 className="text-2xl font-semibold text-white mb-8 text-center">
+              <h2 className="text-2xl font-semibold text-foreground mb-8 text-center">
                 Select Profile Picture
               </h2>
 
@@ -115,8 +113,8 @@ export default function SubjectiveLogin() {
                   </div>
 
                   <div className="mt-4 text-center">
-                    <h3 className="text-white font-semibold text-lg">Administrator</h3>
-                    <p className="text-slate-300 text-sm">Full system access</p>
+                    <h3 className="text-foreground font-semibold text-lg">Administrator</h3>
+                    <p className="text-muted-foreground text-sm">Full system access</p>
                   </div>
                 </div>
 
@@ -147,8 +145,8 @@ export default function SubjectiveLogin() {
                   </div>
 
                   <div className="mt-4 text-center">
-                    <h3 className="text-white font-semibold text-lg">Manager</h3>
-                    <p className="text-slate-300 text-sm">Team management</p>
+                    <h3 className="text-foreground font-semibold text-lg">Manager</h3>
+                    <p className="text-muted-foreground text-sm">Team management</p>
                   </div>
                 </div>
               </div>
@@ -162,7 +160,7 @@ export default function SubjectiveLogin() {
                 className={`w-full py-4 px-8 rounded-xl font-semibold text-lg transition-all duration-300 relative overflow-hidden ${
                   selectedPFP === 'admin' && !isLoading
                     ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white shadow-2xl hover:shadow-yellow-400/25 transform hover:-translate-y-2 animate-glow'
-                    : 'bg-slate-700/50 text-slate-400 cursor-not-allowed'
+                    : 'bg-secondary text-muted-foreground cursor-not-allowed'
                 }`}
               >
                 {isLoading && selectedPFP === 'admin' ? (
@@ -173,7 +171,9 @@ export default function SubjectiveLogin() {
                 ) : (
                   <>
                     <span className="relative z-10">Admin Login</span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                    {selectedPFP === 'admin' && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                    )}
                   </>
                 )}
               </button>
@@ -184,7 +184,7 @@ export default function SubjectiveLogin() {
                 className={`w-full py-4 px-8 rounded-xl font-semibold text-lg transition-all duration-300 relative overflow-hidden ${
                   selectedPFP === 'manager' && !isLoading
                     ? 'bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white shadow-2xl hover:shadow-blue-400/25 transform hover:-translate-y-2 animate-glow'
-                    : 'bg-slate-700/50 text-slate-400 cursor-not-allowed'
+                    : 'bg-secondary text-muted-foreground cursor-not-allowed'
                 }`}
               >
                 {isLoading && selectedPFP === 'manager' ? (
@@ -195,7 +195,9 @@ export default function SubjectiveLogin() {
                 ) : (
                   <>
                     <span className="relative z-10">Manager Login</span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                    {selectedPFP === 'manager' && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                    )}
                   </>
                 )}
               </button>
@@ -204,9 +206,9 @@ export default function SubjectiveLogin() {
             {/* Selection Status */}
             {selectedPFP && !isLoading && (
               <div className="mt-8 text-center animate-fade-in-up">
-                <div className="inline-flex items-center space-x-2 bg-white/10 rounded-full px-6 py-3 backdrop-blur-sm">
+                <div className="inline-flex items-center space-x-2 bg-secondary rounded-full px-6 py-3 backdrop-blur-sm border border-border">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <p className="text-white/90 text-sm font-medium">
+                  <p className="text-foreground text-sm font-medium">
                     Selected: {selectedPFP === 'admin' ? '👑 Administrator' : '⚡ Manager'}
                   </p>
                 </div>
@@ -216,7 +218,7 @@ export default function SubjectiveLogin() {
 
           {/* Footer */}
           <div className="text-center mt-8 animate-fade-in-up">
-            <p className="text-slate-400 text-sm">
+            <p className="text-muted-foreground text-sm">
               Choose your role to access the appropriate dashboard
             </p>
           </div>

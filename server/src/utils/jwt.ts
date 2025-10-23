@@ -2,6 +2,7 @@ import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcryptjs';
 
 export interface TokenPayload {
+  id: string;
   userId: string;
   email: string;
   name: string;
@@ -37,6 +38,7 @@ export const verifyToken = (token: string): TokenPayload => {
 
 export const generateAuthResponse = (user: any) => {
   const tokenPayload: TokenPayload = {
+    id: user.id,
     userId: user.id,
     email: user.email,
     name: user.name

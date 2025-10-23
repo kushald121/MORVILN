@@ -1,19 +1,17 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AdminProductController = void 0;
-const pg_1 = require("pg");
+const supabaseclient_1 = __importDefault(require("../config/supabaseclient"));
 class AdminProductController {
-    constructor() {
-        this.pool = new pg_1.Pool({
-            connectionString: process.env.DATABASE_URL,
-            ssl: { rejectUnauthorized: false }
-        });
-    }
+    // No constructor needed as we're using the imported supabase client
+    constructor() { }
     /**
      * Create a new product with variants and media
      */
     async createProduct(req, res) {
-        const client = await this.pool.connect();
         try {
             const { product, variants, media } = req.body;
             // Validate required fields
@@ -23,234 +21,261 @@ class AdminProductController {
                     message: 'Product name, slug, and category are required'
                 });
             }
-            await client.query('BEGIN');
             // 1. Insert the main product
-            const productQuery = `
-        INSERT INTO products (
-          name, slug, description, short_description, base_price, 
-          compare_at_price, cost_price, category_id, gender, tags,
-          is_featured, is_active, seo_title, seo_description
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-        RETURNING *
-      `;
-            const productValues = [
-                product.name,
-                product.slug,
-                product.description,
-                product.shortDescription,
-                product.basePrice,
-                product.compareAtPrice || null,
-                product.costPrice || null,
-                product.categoryId,
-                product.gender,
-                product.tags,
-                product.isFeatured,
-                product.isActive,
-                product.seoTitle || null,
-                product.seoDescription || null
-            ];
-            const productResult = await client.query(productQuery, productValues);
-            const newProduct = productResult.rows[0];
+            const { data: newProduct, error: productError } = await supabaseclient_1.default
+                .from('products')
+                .insert({
+                name: product.name,
+                slug: product.slug,
+                description: product.description,
+                short_description: product.shortDescription,
+                base_price: product.basePrice,
+                compare_at_price: product.compareAtPrice || null,
+                cost_price: product.costPrice || null,
+                category_id: product.categoryId,
+                gender: product.gender,
+                tags: product.tags,
+                is_featured: product.isFeatured,
+                is_active: product.isActive,
+                seo_title: product.seoTitle || null,
+                seo_description: product.seoDescription || null
+            })
+                .select()
+                .single();
+            if (productError) {
+                console.error('Create product error:', productError);
+                // Handle unique constraint violations
+                if (productError.code === '23505') {
+                    if (productError.message.includes('products_slug_key')) {
+                        return res.status(400).json({
+                            success: false,
+                            message: 'Product slug already exists'
+                        });
+                    }
+                }
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to create product'
+                });
+            }
             // 2. Insert product variants
-            for (const variant of variants) {
-                const variantQuery = `
-          INSERT INTO product_variants (
-            product_id, size, color, color_code, material,
-            additional_price, stock_quantity, sku, is_active
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-          RETURNING *
-        `;
-                const variantValues = [
-                    newProduct.id,
-                    variant.size,
-                    variant.color,
-                    variant.colorCode || null,
-                    variant.material || null,
-                    variant.additionalPrice,
-                    variant.stockQuantity,
-                    variant.sku,
-                    variant.isActive
-                ];
-                await client.query(variantQuery, variantValues);
+            if (variants && variants.length > 0) {
+                const variantData = variants.map(variant => ({
+                    product_id: newProduct.id,
+                    size: variant.size,
+                    color: variant.color,
+                    color_code: variant.colorCode || null,
+                    material: variant.material || null,
+                    additional_price: variant.additionalPrice,
+                    stock_quantity: variant.stockQuantity,
+                    sku: variant.sku,
+                    is_active: variant.isActive
+                }));
+                const { error: variantsError } = await supabaseclient_1.default
+                    .from('product_variants')
+                    .insert(variantData);
+                if (variantsError) {
+                    console.error('Create variants error:', variantsError);
+                    // Handle unique constraint violations
+                    if (variantsError.code === '23505' && variantsError.message.includes('product_variants_sku_key')) {
+                        return res.status(400).json({
+                            success: false,
+                            message: 'SKU already exists'
+                        });
+                    }
+                    // Rollback product creation
+                    await supabaseclient_1.default
+                        .from('products')
+                        .delete()
+                        .eq('id', newProduct.id);
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Failed to create product variants'
+                    });
+                }
             }
             // 3. Insert product media if provided
             if (media && media.length > 0) {
-                for (const mediaItem of media) {
-                    const mediaQuery = `
-            INSERT INTO product_media (
-              product_id, media_url, cloudinary_public_id, 
-              media_type, alt_text, is_primary
-            ) VALUES ($1, $2, $3, $4, $5, $6)
-          `;
-                    const mediaValues = [
-                        newProduct.id,
-                        mediaItem.mediaUrl,
-                        mediaItem.cloudinaryPublicId,
-                        mediaItem.mediaType,
-                        mediaItem.altText || product.name,
-                        mediaItem.isPrimary
-                    ];
-                    await client.query(mediaQuery, mediaValues);
+                const mediaData = media.map(mediaItem => ({
+                    product_id: newProduct.id,
+                    media_url: mediaItem.mediaUrl,
+                    cloudinary_public_id: mediaItem.cloudinaryPublicId,
+                    media_type: mediaItem.mediaType,
+                    alt_text: mediaItem.altText || product.name,
+                    is_primary: mediaItem.isPrimary
+                }));
+                const { error: mediaError } = await supabaseclient_1.default
+                    .from('product_media')
+                    .insert(mediaData);
+                if (mediaError) {
+                    console.error('Create media error:', mediaError);
+                    // Rollback product and variants creation
+                    await supabaseclient_1.default
+                        .from('product_variants')
+                        .delete()
+                        .eq('product_id', newProduct.id);
+                    await supabaseclient_1.default
+                        .from('products')
+                        .delete()
+                        .eq('id', newProduct.id);
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Failed to create product media'
+                    });
                 }
             }
-            await client.query('COMMIT');
             res.status(201).json({
                 success: true,
                 message: 'Product created successfully',
                 data: {
                     product: newProduct,
-                    variantsCount: variants.length,
+                    variantsCount: variants?.length || 0,
                     mediaCount: media?.length || 0
                 }
             });
         }
         catch (error) {
-            await client.query('ROLLBACK');
             console.error('Create product error:', error);
-            // Handle unique constraint violations
-            if (error.code === '23505') {
-                if (error.constraint === 'products_slug_key') {
-                    return res.status(400).json({
-                        success: false,
-                        message: 'Product slug already exists'
-                    });
-                }
-                if (error.constraint === 'product_variants_sku_key') {
-                    return res.status(400).json({
-                        success: false,
-                        message: 'SKU already exists'
-                    });
-                }
-            }
             res.status(500).json({
                 success: false,
                 message: 'Failed to create product'
             });
-        }
-        finally {
-            client.release();
         }
     }
     /**
      * Update an existing product
      */
     async updateProduct(req, res) {
-        const client = await this.pool.connect();
         try {
             const productId = req.params.id;
             const { product, variants, media } = req.body;
-            await client.query('BEGIN');
             // 1. Update the main product
-            const productQuery = `
-        UPDATE products 
-        SET 
-          name = $1, slug = $2, description = $3, short_description = $4,
-          base_price = $5, compare_at_price = $6, cost_price = $7,
-          category_id = $8, gender = $9, tags = $10, is_featured = $11,
-          is_active = $12, seo_title = $13, seo_description = $14,
-          updated_at = CURRENT_TIMESTAMP
-        WHERE id = $15
-        RETURNING *
-      `;
-            const productValues = [
-                product.name,
-                product.slug,
-                product.description,
-                product.shortDescription,
-                product.basePrice,
-                product.compareAtPrice || null,
-                product.costPrice || null,
-                product.categoryId,
-                product.gender,
-                product.tags,
-                product.isFeatured,
-                product.isActive,
-                product.seoTitle || null,
-                product.seoDescription || null,
-                productId
-            ];
-            const productResult = await client.query(productQuery, productValues);
-            if (productResult.rows.length === 0) {
-                await client.query('ROLLBACK');
-                return res.status(404).json({
-                    success: false,
-                    message: 'Product not found'
-                });
-            }
-            const updatedProduct = productResult.rows[0];
-            // 2. Delete existing variants and insert new ones
-            await client.query('DELETE FROM product_variants WHERE product_id = $1', [productId]);
-            for (const variant of variants) {
-                const variantQuery = `
-          INSERT INTO product_variants (
-            product_id, size, color, color_code, material,
-            additional_price, stock_quantity, sku, is_active
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        `;
-                const variantValues = [
-                    productId,
-                    variant.size,
-                    variant.color,
-                    variant.colorCode || null,
-                    variant.material || null,
-                    variant.additionalPrice,
-                    variant.stockQuantity,
-                    variant.sku,
-                    variant.isActive
-                ];
-                await client.query(variantQuery, variantValues);
-            }
-            // 3. Update media if provided
-            if (media && media.length > 0) {
-                // Delete existing media and insert new ones
-                await client.query('DELETE FROM product_media WHERE product_id = $1', [productId]);
-                for (const mediaItem of media) {
-                    const mediaQuery = `
-            INSERT INTO product_media (
-              product_id, media_url, cloudinary_public_id, 
-              media_type, alt_text, is_primary
-            ) VALUES ($1, $2, $3, $4, $5, $6)
-          `;
-                    const mediaValues = [
-                        productId,
-                        mediaItem.mediaUrl,
-                        mediaItem.cloudinaryPublicId,
-                        mediaItem.mediaType,
-                        mediaItem.altText || product.name,
-                        mediaItem.isPrimary
-                    ];
-                    await client.query(mediaQuery, mediaValues);
+            const { data: updatedProduct, error: productError } = await supabaseclient_1.default
+                .from('products')
+                .update({
+                name: product.name,
+                slug: product.slug,
+                description: product.description,
+                short_description: product.shortDescription,
+                base_price: product.basePrice,
+                compare_at_price: product.compareAtPrice || null,
+                cost_price: product.costPrice || null,
+                category_id: product.categoryId,
+                gender: product.gender,
+                tags: product.tags,
+                is_featured: product.isFeatured,
+                is_active: product.isActive,
+                seo_title: product.seoTitle || null,
+                seo_description: product.seoDescription || null,
+                updated_at: new Date().toISOString()
+            })
+                .eq('id', productId)
+                .select()
+                .single();
+            if (productError) {
+                console.error('Update product error:', productError);
+                if (productError.code === 'PGRST116') { // No rows returned
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Product not found'
+                    });
                 }
-            }
-            await client.query('COMMIT');
-            res.json({
-                success: true,
-                message: 'Product updated successfully',
-                data: {
-                    product: updatedProduct,
-                    variantsCount: variants.length,
-                    mediaCount: media?.length || 0
-                }
-            });
-        }
-        catch (error) {
-            await client.query('ROLLBACK');
-            console.error('Update product error:', error);
-            if (error.code === '23505') {
-                if (error.constraint === 'products_slug_key') {
+                if (productError.code === '23505' && productError.message.includes('products_slug_key')) {
                     return res.status(400).json({
                         success: false,
                         message: 'Product slug already exists'
                     });
                 }
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to update product'
+                });
             }
+            // 2. Delete existing variants and insert new ones
+            const { error: deleteVariantsError } = await supabaseclient_1.default
+                .from('product_variants')
+                .delete()
+                .eq('product_id', productId);
+            if (deleteVariantsError) {
+                console.error('Delete variants error:', deleteVariantsError);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to update product variants'
+                });
+            }
+            if (variants && variants.length > 0) {
+                const variantData = variants.map(variant => ({
+                    product_id: productId,
+                    size: variant.size,
+                    color: variant.color,
+                    color_code: variant.colorCode || null,
+                    material: variant.material || null,
+                    additional_price: variant.additionalPrice,
+                    stock_quantity: variant.stockQuantity,
+                    sku: variant.sku,
+                    is_active: variant.isActive
+                }));
+                const { error: variantsError } = await supabaseclient_1.default
+                    .from('product_variants')
+                    .insert(variantData);
+                if (variantsError) {
+                    console.error('Insert variants error:', variantsError);
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Failed to update product variants'
+                    });
+                }
+            }
+            // 3. Update media if provided
+            if (media && media.length > 0) {
+                // Delete existing media
+                const { error: deleteMediaError } = await supabaseclient_1.default
+                    .from('product_media')
+                    .delete()
+                    .eq('product_id', productId);
+                if (deleteMediaError) {
+                    console.error('Delete media error:', deleteMediaError);
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Failed to update product media'
+                    });
+                }
+                // Insert new media
+                const mediaData = media.map(mediaItem => ({
+                    product_id: productId,
+                    media_url: mediaItem.mediaUrl,
+                    cloudinary_public_id: mediaItem.cloudinaryPublicId,
+                    media_type: mediaItem.mediaType,
+                    alt_text: mediaItem.altText || product.name,
+                    is_primary: mediaItem.isPrimary
+                }));
+                const { error: mediaError } = await supabaseclient_1.default
+                    .from('product_media')
+                    .insert(mediaData);
+                if (mediaError) {
+                    console.error('Insert media error:', mediaError);
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Failed to update product media'
+                    });
+                }
+            }
+            res.json({
+                success: true,
+                message: 'Product updated successfully',
+                data: {
+                    product: updatedProduct,
+                    variantsCount: variants?.length || 0,
+                    mediaCount: media?.length || 0
+                }
+            });
+        }
+        catch (error) {
+            console.error('Update product error:', error);
             res.status(500).json({
                 success: false,
                 message: 'Failed to update product'
             });
-        }
-        finally {
-            client.release();
         }
     }
     /**
@@ -260,62 +285,50 @@ class AdminProductController {
         try {
             const { page = 1, limit = 10, search, category, status } = req.query;
             const offset = (Number(page) - 1) * Number(limit);
-            let whereClause = 'WHERE 1=1';
-            const queryParams = [];
-            let paramCount = 1;
+            // Build query
+            let query = supabaseclient_1.default
+                .from('products')
+                .select(`
+          *,
+          categories(name),
+          product_variants(count),
+          product_media!inner(media_url)
+        `, { count: 'exact' })
+                .order('created_at', { ascending: false });
             // Search filter
-            if (search) {
-                whereClause += ` AND (p.name ILIKE $${paramCount} OR p.slug ILIKE $${paramCount})`;
-                queryParams.push(`%${search}%`);
-                paramCount++;
+            if (search && typeof search === 'string') {
+                query = query.or(`name.ilike.%${search}%,slug.ilike.%${search}%`);
             }
             // Category filter
             if (category) {
-                whereClause += ` AND p.category_id = $${paramCount}`;
-                queryParams.push(category);
-                paramCount++;
+                query = query.eq('category_id', category);
             }
             // Status filter
             if (status === 'active') {
-                whereClause += ` AND p.is_active = true`;
+                query = query.eq('is_active', true);
             }
             else if (status === 'inactive') {
-                whereClause += ` AND p.is_active = false`;
+                query = query.eq('is_active', false);
             }
-            const query = `
-        SELECT 
-          p.*,
-          c.name as category_name,
-          (
-            SELECT COUNT(*) 
-            FROM product_variants pv 
-            WHERE pv.product_id = p.id
-          ) as variants_count,
-          (
-            SELECT pm.media_url 
-            FROM product_media pm 
-            WHERE pm.product_id = p.id AND pm.is_primary = true 
-            LIMIT 1
-          ) as primary_image,
-          COUNT(*) OVER() as total_count
-        FROM products p
-        LEFT JOIN categories c ON p.category_id = c.id
-        ${whereClause}
-        ORDER BY p.created_at DESC
-        LIMIT $${paramCount} OFFSET $${paramCount + 1}
-      `;
-            queryParams.push(Number(limit), offset);
-            const result = await this.pool.query(query, queryParams);
-            const totalCount = result.rows.length > 0 ? Number(result.rows[0].total_count) : 0;
-            const totalPages = Math.ceil(totalCount / Number(limit));
+            // Pagination
+            query = query.range(offset, offset + Number(limit) - 1);
+            const { data: products, count: totalCount, error } = await query;
+            if (error) {
+                console.error('Get products error:', error);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to fetch products',
+                });
+            }
+            const totalPages = Math.ceil((totalCount || 0) / Number(limit));
             res.json({
                 success: true,
                 data: {
-                    products: result.rows,
+                    products: products || [],
                     pagination: {
                         current_page: Number(page),
                         total_pages: totalPages,
-                        total_products: totalCount,
+                        total_products: totalCount || 0,
                         has_next: Number(page) < totalPages,
                         has_prev: Number(page) > 1,
                     },
@@ -336,50 +349,33 @@ class AdminProductController {
     async getProduct(req, res) {
         try {
             const productId = req.params.id;
-            const query = `
-        SELECT 
-          p.*,
-          c.name as category_name,
-          json_agg(
-            DISTINCT jsonb_build_object(
-              'id', pv.id,
-              'size', pv.size,
-              'color', pv.color,
-              'color_code', pv.color_code,
-              'material', pv.material,
-              'additional_price', pv.additional_price,
-              'stock_quantity', pv.stock_quantity,
-              'sku', pv.sku,
-              'is_active', pv.is_active
-            )
-          ) as variants,
-          json_agg(
-            DISTINCT jsonb_build_object(
-              'id', pm.id,
-              'media_url', pm.media_url,
-              'cloudinary_public_id', pm.cloudinary_public_id,
-              'media_type', pm.media_type,
-              'alt_text', pm.alt_text,
-              'is_primary', pm.is_primary
-            )
-          ) as media
-        FROM products p
-        LEFT JOIN categories c ON p.category_id = c.id
-        LEFT JOIN product_variants pv ON p.id = pv.product_id
-        LEFT JOIN product_media pm ON p.id = pm.product_id
-        WHERE p.id = $1
-        GROUP BY p.id, c.name
-      `;
-            const result = await this.pool.query(query, [productId]);
-            if (result.rows.length === 0) {
-                return res.status(404).json({
+            // Get product with related data
+            const { data: product, error } = await supabaseclient_1.default
+                .from('products')
+                .select(`
+          *,
+          categories(name),
+          product_variants(*),
+          product_media(*)
+        `)
+                .eq('id', productId)
+                .single();
+            if (error) {
+                if (error.code === 'PGRST116') { // No rows returned
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Product not found',
+                    });
+                }
+                console.error('Get product error:', error);
+                return res.status(500).json({
                     success: false,
-                    message: 'Product not found',
+                    message: 'Failed to fetch product',
                 });
             }
             res.json({
                 success: true,
-                data: result.rows[0],
+                data: product,
             });
         }
         catch (error) {
@@ -394,37 +390,43 @@ class AdminProductController {
      * Delete a product
      */
     async deleteProduct(req, res) {
-        const client = await this.pool.connect();
         try {
             const productId = req.params.id;
-            await client.query('BEGIN');
             // Check if product exists
-            const productCheck = await client.query('SELECT id FROM products WHERE id = $1', [productId]);
-            if (productCheck.rows.length === 0) {
-                await client.query('ROLLBACK');
+            const { data: productExists, error: checkError } = await supabaseclient_1.default
+                .from('products')
+                .select('id')
+                .eq('id', productId)
+                .single();
+            if (checkError || !productExists) {
                 return res.status(404).json({
                     success: false,
                     message: 'Product not found'
                 });
             }
-            // Delete product (cascade will handle variants and media)
-            await client.query('DELETE FROM products WHERE id = $1', [productId]);
-            await client.query('COMMIT');
+            // Delete product (Supabase will handle cascade deletion of variants and media)
+            const { error: deleteError } = await supabaseclient_1.default
+                .from('products')
+                .delete()
+                .eq('id', productId);
+            if (deleteError) {
+                console.error('Delete product error:', deleteError);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to delete product'
+                });
+            }
             res.json({
                 success: true,
                 message: 'Product deleted successfully'
             });
         }
         catch (error) {
-            await client.query('ROLLBACK');
             console.error('Delete product error:', error);
             res.status(500).json({
                 success: false,
                 message: 'Failed to delete product'
             });
-        }
-        finally {
-            client.release();
         }
     }
     /**
@@ -434,23 +436,32 @@ class AdminProductController {
         try {
             const productId = req.params.id;
             const { isActive } = req.body;
-            const query = `
-        UPDATE products 
-        SET is_active = $1, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $2
-        RETURNING *
-      `;
-            const result = await this.pool.query(query, [isActive, productId]);
-            if (result.rows.length === 0) {
-                return res.status(404).json({
+            const { data: updatedProduct, error } = await supabaseclient_1.default
+                .from('products')
+                .update({
+                is_active: isActive,
+                updated_at: new Date().toISOString()
+            })
+                .eq('id', productId)
+                .select()
+                .single();
+            if (error) {
+                if (error.code === 'PGRST116') { // No rows returned
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Product not found'
+                    });
+                }
+                console.error('Toggle product status error:', error);
+                return res.status(500).json({
                     success: false,
-                    message: 'Product not found'
+                    message: 'Failed to update product status'
                 });
             }
             res.json({
                 success: true,
                 message: `Product ${isActive ? 'activated' : 'deactivated'} successfully`,
-                data: result.rows[0]
+                data: updatedProduct
             });
         }
         catch (error) {
@@ -466,16 +477,21 @@ class AdminProductController {
      */
     async getCategories(req, res) {
         try {
-            const query = `
-        SELECT id, name, slug, description, image_url
-        FROM categories
-        WHERE is_active = true
-        ORDER BY name
-      `;
-            const result = await this.pool.query(query);
+            const { data: categories, error } = await supabaseclient_1.default
+                .from('categories')
+                .select('id, name, slug, description, image_url')
+                .eq('is_active', true)
+                .order('name');
+            if (error) {
+                console.error('Get categories error:', error);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to fetch categories'
+                });
+            }
             res.json({
                 success: true,
-                data: result.rows
+                data: categories || []
             });
         }
         catch (error) {
@@ -495,39 +511,50 @@ class AdminProductController {
             const { page = 1, limit = 12 } = req.query;
             const offset = (Number(page) - 1) * Number(limit);
             // First get category info
-            const categoryQuery = `
-        SELECT id, name, slug, description
-        FROM categories
-        WHERE slug = $1 AND is_active = true
-      `;
-            const categoryResult = await this.pool.query(categoryQuery, [categorySlug]);
-            if (categoryResult.rows.length === 0) {
-                return res.status(404).json({
+            const { data: categoryData, error: categoryError } = await supabaseclient_1.default
+                .from('categories')
+                .select('id, name, slug, description')
+                .eq('slug', categorySlug)
+                .eq('is_active', true)
+                .single();
+            if (categoryError) {
+                if (categoryError.code === 'PGRST116') { // No rows returned
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Category not found'
+                    });
+                }
+                console.error('Get category error:', categoryError);
+                return res.status(500).json({
                     success: false,
-                    message: 'Category not found'
+                    message: 'Failed to fetch category'
                 });
             }
-            const category = categoryResult.rows[0];
             // Then get products in that category
-            const productsQuery = `
-        SELECT 
-          p.id, p.name, p.slug, p.short_description, p.base_price,
-          p.compare_at_price, p.is_active,
-          pm.media_url as primary_image,
-          c.name as category_name, c.slug as category_slug
-        FROM products p
-        LEFT JOIN categories c ON p.category_id = c.id
-        LEFT JOIN product_media pm ON p.id = pm.product_id AND pm.is_primary = true
-        WHERE c.slug = $1 AND p.is_active = true
-        ORDER BY p.created_at DESC
-        LIMIT $2 OFFSET $3
-      `;
-            const productsResult = await this.pool.query(productsQuery, [categorySlug, limit, offset]);
+            const { data: products, error: productsError } = await supabaseclient_1.default
+                .from('products')
+                .select(`
+          id, name, slug, short_description, base_price,
+          compare_at_price, is_active,
+          product_media!inner(media_url),
+          categories(name, slug)
+        `)
+                .eq('categories.slug', categorySlug)
+                .eq('is_active', true)
+                .order('created_at', { ascending: false })
+                .range(offset, offset + Number(limit) - 1);
+            if (productsError) {
+                console.error('Get products by category error:', productsError);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to fetch products'
+                });
+            }
             res.json({
                 success: true,
                 data: {
-                    category,
-                    products: productsResult.rows
+                    category: categoryData,
+                    products: products || []
                 }
             });
         }
@@ -546,50 +573,35 @@ class AdminProductController {
         try {
             const categorySlug = req.params.category;
             const productSlug = req.params.slug;
-            const query = `
-        SELECT 
-          p.*,
-          c.name as category_name, c.slug as category_slug,
-          json_agg(
-            DISTINCT jsonb_build_object(
-              'id', pv.id,
-              'size', pv.size,
-              'color', pv.color,
-              'color_code', pv.color_code,
-              'material', pv.material,
-              'additional_price', pv.additional_price,
-              'stock_quantity', pv.stock_quantity,
-              'sku', pv.sku,
-              'is_active', pv.is_active
-            )
-          ) as variants,
-          json_agg(
-            DISTINCT jsonb_build_object(
-              'id', pm.id,
-              'media_url', pm.media_url,
-              'cloudinary_public_id', pm.cloudinary_public_id,
-              'media_type', pm.media_type,
-              'alt_text', pm.alt_text,
-              'is_primary', pm.is_primary
-            )
-          ) as media
-        FROM products p
-        LEFT JOIN categories c ON p.category_id = c.id
-        LEFT JOIN product_variants pv ON p.id = pv.product_id
-        LEFT JOIN product_media pm ON p.id = pm.product_id
-        WHERE c.slug = $1 AND p.slug = $2 AND p.is_active = true
-        GROUP BY p.id, c.name, c.slug
-      `;
-            const result = await this.pool.query(query, [categorySlug, productSlug]);
-            if (result.rows.length === 0) {
-                return res.status(404).json({
+            // Get product with related data
+            const { data: product, error } = await supabaseclient_1.default
+                .from('products')
+                .select(`
+          *,
+          categories(name, slug),
+          product_variants(*),
+          product_media(*)
+        `)
+                .eq('categories.slug', categorySlug)
+                .eq('slug', productSlug)
+                .eq('is_active', true)
+                .single();
+            if (error) {
+                if (error.code === 'PGRST116') { // No rows returned
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Product not found'
+                    });
+                }
+                console.error('Get product by slug error:', error);
+                return res.status(500).json({
                     success: false,
-                    message: 'Product not found'
+                    message: 'Failed to fetch product'
                 });
             }
             res.json({
                 success: true,
-                data: result.rows[0]
+                data: product
             });
         }
         catch (error) {

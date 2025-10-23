@@ -1,61 +1,69 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
-import { FiUser, FiMail, FiLock, FiEye, FiEyeOff, FiPhone, FiShoppingBag } from 'react-icons/fi';
-import { FcGoogle } from 'react-icons/fc';
-import { FaFacebook } from 'react-icons/fa';
-import { authService } from '@/lib/auth';
+import React, { useState } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import {
+  FiUser,
+  FiMail,
+  FiLock,
+  FiEye,
+  FiEyeOff,
+  FiPhone,
+  FiShoppingBag,
+} from "react-icons/fi";
+import { FcGoogle } from "react-icons/fc";
+import { FaFacebook } from "react-icons/fa";
+import { authService } from "@/lib/auth";
 
 const SignupPage = () => {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    phone: ''
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phone: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    setError('');
+    setError("");
   };
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      setError('Name is required');
+      setError("Name is required");
       return false;
     }
     if (!formData.email.trim()) {
-      setError('Email is required');
+      setError("Email is required");
       return false;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setError('Please enter a valid email address');
+      setError("Please enter a valid email address");
       return false;
     }
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
+      setError("Password must be at least 6 characters long");
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return false;
     }
     if (!agreedToTerms) {
-      setError('Please agree to the terms and conditions');
+      setError("Please agree to the terms and conditions");
       return false;
     }
     return true;
@@ -66,18 +74,18 @@ const SignupPage = () => {
     if (!validateForm()) return;
 
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       await authService.signup({
         name: formData.name,
         email: formData.email,
         password: formData.password,
-        phone: formData.phone
+        phone: formData.phone,
       });
-      router.push('/');
+      router.push("/");
     } catch (err: any) {
-      setError(err.message || 'Signup failed. Please try again.');
+      setError(err.message || "Signup failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -87,7 +95,7 @@ const SignupPage = () => {
     try {
       await authService.loginWithGoogle();
     } catch (err: any) {
-      setError(err.message || 'Google login failed');
+      setError(err.message || "Google login failed");
     }
   };
 
@@ -95,7 +103,7 @@ const SignupPage = () => {
     try {
       await authService.loginWithFacebook();
     } catch (err: any) {
-      setError(err.message || 'Facebook login failed');
+      setError(err.message || "Facebook login failed");
     }
   };
 
@@ -110,7 +118,7 @@ const SignupPage = () => {
 
       <div className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 items-center relative z-10">
         {/* Left Side - Illustration/Branding */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
@@ -123,15 +131,17 @@ const SignupPage = () => {
               </h1>
             </Link>
             <h2 className="text-3xl font-bold text-gray-800 leading-tight">
-              Start your fashion<br />journey today
+              Start your fashion
+              <br />
+              journey today
             </h2>
             <p className="text-base text-gray-600">
               Join thousands of fashion enthusiasts
             </p>
           </div>
-          
+
           {/* Illustration */}
-          <motion.div 
+          <motion.div
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 3, repeat: Infinity }}
             className="relative"
@@ -163,12 +173,16 @@ const SignupPage = () => {
             </div>
 
             <div className="text-center mb-4">
-              <h2 className="text-2xl font-bold text-gray-800 mb-1">Create Account</h2>
-              <p className="text-sm text-gray-600">Join us and start shopping today!</p>
+              <h2 className="text-2xl font-bold text-gray-800 mb-1">
+                Create Account
+              </h2>
+              <p className="text-sm text-gray-600">
+                Join us and start shopping today!
+              </p>
             </div>
 
             {error && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm"
@@ -180,7 +194,10 @@ const SignupPage = () => {
             <form onSubmit={handleSubmit} className="space-y-3.5">
               {/* Name */}
               <div>
-                <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label
+                  htmlFor="name"
+                  className="block text-xs font-semibold text-gray-700 mb-1"
+                >
                   Full Name
                 </label>
                 <div className="relative">
@@ -200,7 +217,10 @@ const SignupPage = () => {
 
               {/* Email */}
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-semibold text-gray-700 mb-1.5"
+                >
                   Email
                 </label>
                 <div className="relative">
@@ -220,8 +240,11 @@ const SignupPage = () => {
 
               {/* Phone */}
               <div>
-                <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Phone (Optional)
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-semibold text-gray-700 mb-1.5"
+                >
+                  Phone Number (Optional)
                 </label>
                 <div className="relative">
                   <FiPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -239,7 +262,10 @@ const SignupPage = () => {
 
               {/* Password */}
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-semibold text-gray-700 mb-1.5"
+                >
                   Password
                 </label>
                 <div className="relative">
@@ -247,7 +273,7 @@ const SignupPage = () => {
                   <input
                     id="password"
                     name="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     required
                     value={formData.password}
                     onChange={handleInputChange}
@@ -259,14 +285,21 @@ const SignupPage = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                    {showPassword ? (
+                      <FiEyeOff className="w-5 h-5" />
+                    ) : (
+                      <FiEye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
 
               {/* Confirm Password */}
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-semibold text-gray-700 mb-1.5"
+                >
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -274,7 +307,7 @@ const SignupPage = () => {
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
+                    type={showConfirmPassword ? "text" : "password"}
                     required
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
@@ -286,7 +319,11 @@ const SignupPage = () => {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showConfirmPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                    {showConfirmPassword ? (
+                      <FiEyeOff className="w-5 h-5" />
+                    ) : (
+                      <FiEye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -300,13 +337,19 @@ const SignupPage = () => {
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
                   className="mt-0.5 w-3.5 h-3.5 rounded border-gray-300 text-rose-500 focus:ring-rose-500"
                 />
-                <label htmlFor="terms" className="ml-2 text-xs text-gray-600 leading-tight">
-                  I agree to the{' '}
-                  <Link href="/terms" className="text-rose-600 hover:text-rose-700 font-semibold">
-                    Terms
-                  </Link>
-                  {' '}and{' '}
-                  <Link href="/privacy" className="text-rose-600 hover:text-rose-700 font-semibold">
+                <label htmlFor="terms" className="ml-2 text-xs text-gray-600">
+                  I agree to the{" "}
+                  <Link
+                    href="/terms"
+                    className="text-rose-600 hover:text-rose-700 font-semibold"
+                  >
+                    Terms & Conditions
+                  </Link>{" "}
+                  and{" "}
+                  <Link
+                    href="/privacy"
+                    className="text-rose-600 hover:text-rose-700 font-semibold"
+                  >
                     Privacy Policy
                   </Link>
                 </label>
@@ -319,13 +362,30 @@ const SignupPage = () => {
               >
                 {loading ? (
                   <span className="flex items-center justify-center">
-                    <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    <svg
+                      className="animate-spin h-5 w-5 mr-3"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
                     </svg>
                     Creating account...
                   </span>
-                ) : 'Create Account'}
+                ) : (
+                  "Create Account"
+                )}
               </button>
             </form>
 
@@ -334,8 +394,10 @@ const SignupPage = () => {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
               </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="px-3 bg-white text-gray-500 font-medium">Or sign up with</span>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-white text-gray-500 font-medium">
+                  Or sign up with
+                </span>
               </div>
             </div>
 
@@ -362,9 +424,12 @@ const SignupPage = () => {
             </div>
 
             {/* Sign In Link */}
-            <p className="mt-3 text-center text-xs text-gray-600">
-              Already have an account?{' '}
-              <Link href="/login" className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 transition-all">
+            <p className="mt-5 text-center text-sm text-gray-600">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 transition-all"
+              >
                 Sign in
               </Link>
             </p>
@@ -376,4 +441,3 @@ const SignupPage = () => {
 };
 
 export default SignupPage;
-

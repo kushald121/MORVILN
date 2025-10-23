@@ -21,13 +21,17 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/admin/admin-login`, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/login`, {
         email,
         password
       });
 
-      if (response.data.token) {
-        localStorage.setItem('adminToken', response.data.token);
+      if (response.data.success && response.data.data?.token) {
+        const { token, admin } = response.data.data;
+        
+        // Store token and admin info
+        localStorage.setItem('adminToken', token);
+        localStorage.setItem('adminData', JSON.stringify(admin));
         
         // Check if there's a redirect path stored
         const redirectPath = localStorage.getItem('adminRedirectPath');

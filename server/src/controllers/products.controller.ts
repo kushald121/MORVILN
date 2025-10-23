@@ -198,7 +198,99 @@ export class AdminProductController {
   /**
    * Update an existing product
    */
+  /**
+   * Update product (simple version for admin updates)
+   */
   async updateProduct(req: Request, res: Response) {
+    try {
+      const productId = req.params.id;
+      const updateData = req.body;
+
+      console.log('Updating product:', productId, updateData);
+
+      // Build update object with only provided fields
+      const productUpdate: any = {
+        updated_at: new Date().toISOString()
+      };
+
+      // Map fields from request to database columns
+      if (updateData.name !== undefined) productUpdate.name = updateData.name;
+      if (updateData.description !== undefined) productUpdate.description = updateData.description;
+      if (updateData.short_description !== undefined) productUpdate.short_description = updateData.short_description;
+      if (updateData.base_price !== undefined) productUpdate.base_price = updateData.base_price;
+      if (updateData.compare_at_price !== undefined) productUpdate.compare_at_price = updateData.compare_at_price;
+      if (updateData.cost_price !== undefined) productUpdate.cost_price = updateData.cost_price;
+      if (updateData.category_id !== undefined) productUpdate.category_id = updateData.category_id;
+      if (updateData.gender !== undefined) productUpdate.gender = updateData.gender;
+      if (updateData.tags !== undefined) productUpdate.tags = updateData.tags;
+      if (updateData.is_featured !== undefined) productUpdate.is_featured = updateData.is_featured;
+      if (updateData.is_active !== undefined) productUpdate.is_active = updateData.is_active;
+      if (updateData.seo_title !== undefined) productUpdate.seo_title = updateData.seo_title;
+      if (updateData.seo_description !== undefined) productUpdate.seo_description = updateData.seo_description;
+
+      // If slug is provided, ensure it's unique
+      if (updateData.slug !== undefined) {
+        const { data: existingProduct } = await supabase
+          .from('products')
+          .select('id')
+          .eq('slug', updateData.slug)
+          .neq('id', productId)
+          .single();
+
+        if (existingProduct) {
+          return res.status(400).json({
+            success: false,
+            message: 'Product slug already exists'
+          });
+        }
+        productUpdate.slug = updateData.slug;
+      }
+
+      // Update the product
+      const { data: updatedProduct, error: productError } = await supabase
+        .from('products')
+        .update(productUpdate)
+        .eq('id', productId)
+        .select()
+        .single();
+
+      if (productError) {
+        console.error('Update product error:', productError);
+        
+        if (productError.code === 'PGRST116') {
+          return res.status(404).json({
+            success: false,
+            message: 'Product not found'
+          });
+        }
+
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to update product',
+          error: productError.message
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Product updated successfully',
+        data: updatedProduct
+      });
+
+    } catch (error: any) {
+      console.error('Update product error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update product',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Update product with variants (complex version - legacy)
+   */
+  async updateProductWithVariants(req: Request, res: Response) {
     try {
       const productId = req.params.id;
       const { product, variants, media }: CreateProductRequest = req.body;
@@ -356,14 +448,14 @@ export class AdminProductController {
       const { page = 1, limit = 10, search, category, status } = req.query;
       const offset = (Number(page) - 1) * Number(limit);
 
-      // Build query
+      // Build query - use LEFT JOIN to get all products even without media
       let query = supabase
         .from('products')
         .select(`
           *,
-          categories(name),
-          product_variants(count),
-          product_media!inner(media_url)
+          categories(id, name),
+          product_variants(id, sku, size, color, stock_quantity, reserved_quantity),
+          product_media(id, media_url, media_type, is_primary, sort_order)
         `, { count: 'exact' })
         .order('created_at', { ascending: false });
 

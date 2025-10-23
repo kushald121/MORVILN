@@ -11,6 +11,13 @@ class UploadController {
      */
     async uploadImage(req, res) {
         try {
+            console.log('Upload request received');
+            console.log('File:', req.file);
+            console.log('Cloudinary config:', {
+                cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+                api_key: process.env.CLOUDINARY_API_KEY ? 'SET' : 'MISSING',
+                api_secret: process.env.CLOUDINARY_API_SECRET ? 'SET' : 'MISSING'
+            });
             if (!req.file) {
                 return res.status(400).json({
                     success: false,
@@ -25,10 +32,14 @@ class UploadController {
                     quality: 'auto',
                     fetch_format: 'auto'
                 }, (error, result) => {
-                    if (error)
+                    if (error) {
+                        console.error('Cloudinary upload error:', error);
                         reject(error);
-                    else
+                    }
+                    else {
+                        console.log('Cloudinary upload result:', result);
                         resolve(result);
+                    }
                 });
                 uploadStream.end(req.file.buffer);
             });
@@ -45,9 +56,15 @@ class UploadController {
         }
         catch (error) {
             console.error('Upload image error:', error);
+            console.error('Error details:', {
+                message: error.message,
+                name: error.name,
+                stack: error.stack
+            });
             res.status(500).json({
                 success: false,
-                message: 'Failed to upload image'
+                message: 'Failed to upload image',
+                error: process.env.NODE_ENV === 'development' ? error.message : undefined
             });
         }
     }

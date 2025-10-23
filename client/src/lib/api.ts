@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
 // API Base URL - can be configured via environment variable
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({
@@ -261,9 +261,9 @@ export const adminAPI = {
   updateOrderStatus: (id: string, status: string, notes?: string) => 
     apiClient.put(`/admin/orders/${id}/status`, { status, notes }),
   
-  // Admin Auth
+  // Admin Auth - Single login endpoint that auto-recognizes role from database
   login: (email: string, password: string) => 
-    apiClient.post('/admin/admin-login', { email, password }),
+    apiClient.post('/admin/login', { email, password }),
 };
 
 // ==================== UPLOAD API ====================

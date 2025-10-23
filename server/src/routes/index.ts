@@ -3,6 +3,7 @@ import authRoutes from './auth.routes';
 import productRoutes from './products.route';
 import magicLinkRoutes from './magicLink.route';
 import pushNotificationRoutes from './pushNotification.routes';
+import adminAuthRoutes from './adminAuth.routes';
 import adminRoutes from './admin.routes';
 import cloudinaryRoutes from './cloudinary.route';
 import uploadRoutes from './upload.route';
@@ -17,7 +18,8 @@ router.use('/auth', authRoutes);
 router.use('/magic-link', magicLinkRoutes);
 router.use('/push', pushNotificationRoutes);
 router.use('/products', productRoutes);
-router.use('/admin', adminRoutes);
+router.use('/admin', adminAuthRoutes); // Admin auth (login) - no middleware
+router.use('/admin', adminRoutes); // Admin protected routes
 router.use('/cloudinary', cloudinaryRoutes);
 router.use('/upload', uploadRoutes);
 router.use('/test', testRoutes);

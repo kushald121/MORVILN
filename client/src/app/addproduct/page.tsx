@@ -194,10 +194,10 @@ const AddProduct: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen  py-8">
+    <div className="min-h-screen py-8 bg-background">
       {/* <SplashCursor /> */}
       <div className="max-w-7xl mx-auto p-6">
-        <div className="glass-dark rounded-2xl p-10 animate-fade-in-up shadow-2xl border border-slate-700/50">
+        <div className="bg-card rounded-2xl p-10 animate-fade-in-up shadow-2xl border border-border">
           <div className="mb-10">
             <div className="flex items-center space-x-4 mb-4">
               <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -207,7 +207,7 @@ const AddProduct: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">Add New Product</h1>
-                <p className="text-slate-300 text-lg">Create a new product for your store with detailed information</p>
+                <p className="text-muted-foreground text-lg">Create a new product for your store with detailed information</p>
               </div>
             </div>
             <div className="w-full h-1 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-600/20 rounded-full"></div>
@@ -215,20 +215,20 @@ const AddProduct: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-10">
             {/* Basic Product Information */}
-            <div className="bg-slate-800/30 rounded-xl p-8 border border-slate-700/50">
+            <div className="bg-card rounded-xl p-8 border border-border shadow-sm">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-semibold text-slate-100">Basic Information</h2>
+                <h2 className="text-2xl font-semibold text-card-foreground">Basic Information</h2>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-200 mb-3">
-                    Product Name <span className="text-red-400">*</span>
+                  <label className="block text-sm font-semibold text-foreground mb-3">
+                    Product Name <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="text"
@@ -236,14 +236,14 @@ const AddProduct: React.FC = () => {
                     value={productData.name}
                     onChange={handleProductChange}
                     required
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200"
+                    className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                     placeholder="Enter product name"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-200 mb-3">
-                    Slug <span className="text-red-400">*</span>
+                  <label className="block text-sm font-semibold text-foreground mb-3">
+                    Slug <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="text"
@@ -251,21 +251,21 @@ const AddProduct: React.FC = () => {
                     value={productData.slug}
                     onChange={handleProductChange}
                     required
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200"
+                    className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                     placeholder="product-slug"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-200 mb-3">
-                    Category <span className="text-red-400">*</span>
+                  <label className="block text-sm font-semibold text-foreground mb-3">
+                    Category <span className="text-destructive">*</span>
                   </label>
                   <select
                     name="categoryId"
                     value={productData.categoryId}
                     onChange={handleProductChange}
                     required
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-slate-100 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200"
+                    className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                   >
                     <option value="">Select Category</option>
                     {categories.map((category: Category) => (
@@ -277,15 +277,15 @@ const AddProduct: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-200 mb-3">
-                    Gender <span className="text-red-400">*</span>
+                  <label className="block text-sm font-semibold text-foreground mb-3">
+                    Gender <span className="text-destructive">*</span>
                   </label>
                   <select
                     name="gender"
                     value={productData.gender}
                     onChange={handleProductChange}
                     required
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-slate-100 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200"
+                    className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                   >
                     <option value="unisex">Unisex</option>
                     <option value="men">Men</option>
@@ -295,8 +295,8 @@ const AddProduct: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-200 mb-3">
-                    Base Price (₹) <span className="text-red-400">*</span>
+                  <label className="block text-sm font-semibold text-foreground mb-3">
+                    Base Price (₹) <span className="text-destructive">*</span>
                   </label>
                   <input
                     type="number"
@@ -306,12 +306,12 @@ const AddProduct: React.FC = () => {
                     required
                     min="0"
                     step="0.01"
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200"
+                    className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-200 mb-3">
+                  <label className="block text-sm font-semibold text-foreground mb-3">
                     Compare at Price (₹)
                   </label>
                   <input
@@ -321,27 +321,27 @@ const AddProduct: React.FC = () => {
                     onChange={handleProductChange}
                     min="0"
                     step="0.01"
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200"
+                    className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                   />
                 </div>
               </div>
             </div>
 
             {/* Description Section */}
-            <div className="bg-slate-800/30 rounded-xl p-8 border border-slate-700/50">
+            <div className="bg-card rounded-xl p-8 border border-border shadow-sm">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-8 h-8 bg-gradient-to-r from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-semibold text-slate-100">Product Descriptions</h2>
+                <h2 className="text-2xl font-semibold text-card-foreground">Product Descriptions</h2>
               </div>
 
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-200 mb-3">
-                    Short Description <span className="text-red-400">*</span>
+                  <label className="block text-sm font-semibold text-foreground mb-3">
+                    Short Description <span className="text-destructive">*</span>
                   </label>
                   <textarea
                     name="shortDescription"
@@ -349,14 +349,14 @@ const AddProduct: React.FC = () => {
                     onChange={handleProductChange}
                     required
                     rows={3}
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200 resize-none"
+                    className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 resize-none"
                     placeholder="Brief description for product listings (appears in search results and category pages)"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-200 mb-3">
-                    Full Description <span className="text-red-400">*</span>
+                  <label className="block text-sm font-semibold text-foreground mb-3">
+                    Full Description <span className="text-destructive">*</span>
                   </label>
                   <textarea
                     name="description"
@@ -364,7 +364,7 @@ const AddProduct: React.FC = () => {
                     onChange={handleProductChange}
                     required
                     rows={6}
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200 resize-none"
+                    className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 resize-none"
                     placeholder="Detailed product description with features, benefits, and specifications"
                   />
                 </div>
@@ -372,19 +372,19 @@ const AddProduct: React.FC = () => {
             </div>
 
             {/* Tags Section */}
-            <div className="bg-slate-800/30 rounded-xl p-8 border border-slate-700/50">
+            <div className="bg-card rounded-xl p-8 border border-border shadow-sm">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-semibold text-slate-100">Product Tags</h2>
+                <h2 className="text-2xl font-semibold text-card-foreground">Product Tags</h2>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-200 mb-3">
+                  <label className="block text-sm font-semibold text-foreground mb-3">
                     Tags
                   </label>
                   <input
@@ -392,17 +392,17 @@ const AddProduct: React.FC = () => {
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={handleTagInput}
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200"
+                    className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                     placeholder="Type a tag and press Enter to add it"
                   />
-                  <p className="text-sm text-slate-400">Press Enter to add a tag. Tags help with product discovery and filtering.</p>
+                  <p className="text-sm text-muted-foreground">Press Enter to add a tag. Tags help with product discovery and filtering.</p>
                 </div>
 
                 <div className="flex flex-wrap gap-3">
                   {productData.tags.map((tag: string) => (
                     <span
                       key={tag}
-                      className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 text-sm rounded-full border border-cyan-400/30 hover:border-cyan-400/50 transition-all duration-200"
+                      className="inline-flex items-center px-4 py-2 bg-primary/10 text-primary text-sm rounded-full border border-primary/30 hover:border-primary/50 transition-all duration-200"
                     >
                       <svg className="w-3 h-3 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
@@ -411,7 +411,7 @@ const AddProduct: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => removeTag(tag)}
-                        className="ml-3 text-slate-400 hover:text-red-400 transition-colors font-semibold text-lg p-1 rounded-full hover:bg-red-400/20"
+                        className="ml-3 text-muted-foreground hover:text-destructive transition-colors font-semibold text-lg p-1 rounded-full hover:bg-destructive/10"
                       >
                         ×
                       </button>
@@ -422,7 +422,7 @@ const AddProduct: React.FC = () => {
             </div>
 
             {/* Variants Section */}
-            <div className="bg-slate-800/30 rounded-xl p-8 border border-slate-700/50">
+            <div className="bg-card rounded-xl p-8 border border-border shadow-sm">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-rose-600 rounded-lg flex items-center justify-center">
@@ -430,12 +430,12 @@ const AddProduct: React.FC = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
-                  <h2 className="text-2xl font-semibold text-slate-100">Product Variants</h2>
+                  <h2 className="text-2xl font-semibold text-card-foreground">Product Variants</h2>
                 </div>
                 <button
                   type="button"
                   onClick={addVariant}
-                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -446,19 +446,19 @@ const AddProduct: React.FC = () => {
 
               <div className="space-y-6">
                 {variants.map((variant, index) => (
-                  <div key={index} className="bg-slate-900/50 rounded-xl p-6 border border-slate-600/50 animate-fade-in-up">
+                  <div key={index} className="bg-background/50 rounded-xl p-6 border border-border animate-fade-in-up">
                     <div className="flex justify-between items-center mb-6">
                       <div className="flex items-center space-x-3">
                         <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
                           {index + 1}
                         </div>
-                        <h4 className="text-xl font-semibold text-slate-100">Variant {index + 1}</h4>
+                        <h4 className="text-xl font-semibold text-foreground">Variant {index + 1}</h4>
                       </div>
                       {variants.length > 1 && (
                         <button
                           type="button"
                           onClick={() => removeVariant(index)}
-                          className="inline-flex items-center px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-400/20 rounded-lg transition-all duration-200 font-medium"
+                          className="inline-flex items-center px-3 py-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10 rounded-lg transition-all duration-200 font-medium"
                         >
                           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -470,35 +470,35 @@ const AddProduct: React.FC = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-200 mb-2">
-                          Size <span className="text-red-400">*</span>
+                        <label className="block text-sm font-semibold text-foreground mb-2">
+                          Size <span className="text-destructive">*</span>
                         </label>
                         <input
                           type="text"
                           value={variant.size}
                           onChange={(e) => handleVariantChange(index, 'size', e.target.value)}
                           required
-                          className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200"
+                          className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                           placeholder="S, M, L, XL"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-200 mb-2">
-                          Color <span className="text-red-400">*</span>
+                        <label className="block text-sm font-semibold text-foreground mb-2">
+                          Color <span className="text-destructive">*</span>
                         </label>
                         <input
                           type="text"
                           value={variant.color}
                           onChange={(e) => handleVariantChange(index, 'color', e.target.value)}
                           required
-                          className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200"
+                          className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                           placeholder="Red, Blue, Black"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-200 mb-2">
+                        <label className="block text-sm font-semibold text-foreground mb-2">
                           Color Code
                         </label>
                         <div className="relative">
@@ -506,28 +506,28 @@ const AddProduct: React.FC = () => {
                             type="color"
                             value={variant.colorCode}
                             onChange={(e) => handleVariantChange(index, 'colorCode', e.target.value)}
-                            className="w-full h-12 bg-slate-800/50 border border-slate-600 rounded-lg cursor-pointer focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200"
+                            className="w-full h-12 bg-background border border-border rounded-lg cursor-pointer focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                           />
                           <div className="absolute inset-0 rounded-lg pointer-events-none" style={{ backgroundColor: variant.colorCode, opacity: 0.1 }}></div>
                         </div>
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-200 mb-2">
-                          SKU <span className="text-red-400">*</span>
+                        <label className="block text-sm font-semibold text-foreground mb-2">
+                          SKU <span className="text-destructive">*</span>
                         </label>
                         <input
                           type="text"
                           value={variant.sku}
                           onChange={(e) => handleVariantChange(index, 'sku', e.target.value)}
                           required
-                          className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200"
+                          className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                           placeholder="Unique SKU"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-200 mb-2">
+                        <label className="block text-sm font-semibold text-foreground mb-2">
                           Additional Price (₹)
                         </label>
                         <input
@@ -536,13 +536,13 @@ const AddProduct: React.FC = () => {
                           onChange={(e) => handleVariantChange(index, 'additionalPrice', parseFloat(e.target.value) || 0)}
                           min="0"
                           step="0.01"
-                          className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200"
+                          className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-sm font-semibold text-slate-200 mb-2">
-                          Stock Quantity <span className="text-red-400">*</span>
+                        <label className="block text-sm font-semibold text-foreground mb-2">
+                          Stock Quantity <span className="text-destructive">*</span>
                         </label>
                         <input
                           type="number"
@@ -550,19 +550,19 @@ const AddProduct: React.FC = () => {
                           onChange={(e) => handleVariantChange(index, 'stockQuantity', parseInt(e.target.value) || 0)}
                           required
                           min="0"
-                          className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200"
+                          className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                         />
                       </div>
 
                       <div className="space-y-2 md:col-span-2 lg:col-span-3">
-                        <label className="block text-sm font-semibold text-slate-200 mb-2">
+                        <label className="block text-sm font-semibold text-foreground mb-2">
                           Material
                         </label>
                         <input
                           type="text"
                           value={variant.material}
                           onChange={(e) => handleVariantChange(index, 'material', e.target.value)}
-                          className="w-full px-4 py-3 bg-slate-800/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200"
+                          className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                           placeholder="Cotton, Polyester, etc."
                         />
                       </div>
@@ -572,9 +572,9 @@ const AddProduct: React.FC = () => {
                           type="checkbox"
                           checked={variant.isActive}
                           onChange={(e) => handleVariantChange(index, 'isActive', e.target.checked)}
-                          className="h-5 w-5 text-cyan-400 focus:ring-cyan-400/20 border-slate-600 rounded"
+                          className="h-5 w-5 text-primary focus:ring-primary/20 border-border rounded"
                         />
-                        <label className="block text-sm font-semibold text-slate-200">
+                        <label className="block text-sm font-semibold text-foreground">
                           Variant Active
                         </label>
                       </div>
@@ -585,17 +585,17 @@ const AddProduct: React.FC = () => {
             </div>
 
             {/* Image Upload Section */}
-            <div className="bg-slate-800/30 rounded-xl p-8 border border-slate-700/50">
+            <div className="bg-card rounded-xl p-8 border border-border shadow-sm">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-semibold text-slate-100">Product Images</h2>
+                <h2 className="text-2xl font-semibold text-card-foreground">Product Images</h2>
               </div>
 
-              <div className="border-2 border-dashed border-slate-600 rounded-xl p-8 text-center hover:border-cyan-400/50 transition-all duration-200 bg-slate-900/30">
+              <div className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary/50 transition-all duration-200 bg-background/50">
                 <input
                   type="file"
                   multiple
@@ -609,18 +609,18 @@ const AddProduct: React.FC = () => {
                   className="cursor-pointer block group"
                 >
                   <div className="flex flex-col items-center justify-center">
-                    <div className="w-20 h-20 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
-                      <svg className="w-10 h-10 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200">
+                      <svg className="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                     </div>
-                    <p className="text-xl text-slate-200 mb-2 font-semibold">
+                    <p className="text-xl text-foreground mb-2 font-semibold">
                       Click to upload product images
                     </p>
-                    <p className="text-sm text-slate-400 mb-4">
+                    <p className="text-sm text-muted-foreground mb-4">
                       PNG, JPG, WEBP up to 10MB each
                     </p>
-                    <div className="inline-flex items-center px-4 py-2 bg-cyan-500/10 text-cyan-400 rounded-lg border border-cyan-400/30">
+                    <div className="inline-flex items-center px-4 py-2 bg-primary/10 text-primary rounded-lg border border-primary/30">
                       <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
                       </svg>
@@ -633,8 +633,8 @@ const AddProduct: React.FC = () => {
               {/* Uploaded Images Preview */}
               {uploadingImages && (
                 <div className="mt-6 text-center">
-                  <div className="inline-flex items-center space-x-3 text-slate-200 bg-slate-900/50 px-6 py-3 rounded-lg">
-                    <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="inline-flex items-center space-x-3 text-foreground bg-background/80 px-6 py-3 rounded-lg border border-border">
+                    <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                     <p className="font-medium">Uploading images...</p>
                   </div>
                 </div>
@@ -642,7 +642,7 @@ const AddProduct: React.FC = () => {
 
               {uploadedImages.length > 0 && (
                 <div className="mt-8">
-                  <h4 className="text-xl font-semibold text-slate-100 mb-4">Uploaded Images</h4>
+                  <h4 className="text-xl font-semibold text-foreground mb-4">Uploaded Images</h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {uploadedImages.map((upload, index) => (
                       <div key={index} className="relative group">
@@ -653,7 +653,7 @@ const AddProduct: React.FC = () => {
                               height={150}
                               src={upload.data.url}
                               alt={`Product image ${index + 1}`}
-                              className="w-full h-32 object-cover rounded-lg border-2 border-slate-600 shadow-lg"
+                              className="w-full h-32 object-cover rounded-lg border-2 border-border shadow-lg"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg"></div>
                           </div>
@@ -661,7 +661,7 @@ const AddProduct: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => removeImage(upload.data!.publicId, index)}
-                          className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg transform hover:scale-110"
+                          className="absolute -top-2 -right-2 bg-destructive hover:bg-destructive/80 text-destructive-foreground rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg transform hover:scale-110"
                         >
                           ×
                         </button>
@@ -678,19 +678,19 @@ const AddProduct: React.FC = () => {
             </div>
 
             {/* SEO Section */}
-            <div className="bg-slate-800/30 rounded-xl p-8 border border-slate-700/50">
+            <div className="bg-card rounded-xl p-8 border border-border shadow-sm">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
-                <h2 className="text-2xl font-semibold text-slate-100">SEO Settings</h2>
+                <h2 className="text-2xl font-semibold text-card-foreground">SEO Settings</h2>
               </div>
 
               <div className="grid grid-cols-1 gap-6">
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-200 mb-3">
+                  <label className="block text-sm font-semibold text-foreground mb-3">
                     SEO Title
                   </label>
                   <input
@@ -698,12 +698,12 @@ const AddProduct: React.FC = () => {
                     name="seoTitle"
                     value={productData.seoTitle}
                     onChange={handleProductChange}
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200"
+                    className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200"
                     placeholder="SEO title for search engines (50-60 characters recommended)"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-slate-200 mb-3">
+                  <label className="block text-sm font-semibold text-foreground mb-3">
                     SEO Description
                   </label>
                   <textarea
@@ -711,7 +711,7 @@ const AddProduct: React.FC = () => {
                     value={productData.seoDescription}
                     onChange={handleProductChange}
                     rows={3}
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-slate-100 placeholder-slate-400 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-200 resize-none"
+                    className="w-full px-4 py-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-200 resize-none"
                     placeholder="SEO description for search engines (150-160 characters recommended)"
                   />
                 </div>
@@ -719,7 +719,7 @@ const AddProduct: React.FC = () => {
             </div>
 
             {/* Status and Actions */}
-            <div className="bg-slate-800/30 rounded-xl p-8 border border-slate-700/50">
+            <div className="bg-card rounded-xl p-8 border border-border shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-8">
                   <div className="flex items-center space-x-3">
@@ -728,13 +728,13 @@ const AddProduct: React.FC = () => {
                       name="isFeatured"
                       checked={productData.isFeatured}
                       onChange={handleProductChange}
-                      className="h-5 w-5 text-cyan-400 focus:ring-cyan-400/20 border-slate-600 rounded"
+                      className="h-5 w-5 text-primary focus:ring-primary/20 border-border rounded"
                     />
                     <div>
-                      <label className="block text-sm font-semibold text-slate-200">
+                      <label className="block text-sm font-semibold text-foreground">
                         Featured Product
                       </label>
-                      <p className="text-xs text-slate-400">Show this product in featured sections</p>
+                      <p className="text-xs text-muted-foreground">Show this product in featured sections</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -743,13 +743,13 @@ const AddProduct: React.FC = () => {
                       name="isActive"
                       checked={productData.isActive}
                       onChange={handleProductChange}
-                      className="h-5 w-5 text-cyan-400 focus:ring-cyan-400/20 border-slate-600 rounded"
+                      className="h-5 w-5 text-primary focus:ring-primary/20 border-border rounded"
                     />
                     <div>
-                      <label className="block text-sm font-semibold text-slate-200">
+                      <label className="block text-sm font-semibold text-foreground">
                         Active
                       </label>
-                      <p className="text-xs text-slate-400">Make this product visible to customers</p>
+                      <p className="text-xs text-muted-foreground">Make this product visible to customers</p>
                     </div>
                   </div>
                 </div>
@@ -758,18 +758,18 @@ const AddProduct: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => router.push('/admin/products')}
-                    className="px-8 py-3 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold rounded-lg transition-all duration-200 hover:shadow-lg"
+                    className="px-8 py-3 bg-secondary hover:bg-secondary/80 text-secondary-foreground font-semibold rounded-lg transition-all duration-200 hover:shadow-lg border border-border"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    className="px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                   >
                     {loading ? (
                       <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
                         <span>Creating...</span>
                       </div>
                     ) : (

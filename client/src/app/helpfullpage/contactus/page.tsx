@@ -1,7 +1,7 @@
 "use client"
 import React from "react";
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
-
+ 
 const ContactUs = () => {
   return (
     <div className="flex flex-col min-h-screen bg-background">

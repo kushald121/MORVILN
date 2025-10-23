@@ -8,12 +8,20 @@ import Link from 'next/link';
 interface FormData {
   name: string;
   description: string;
+  shortDescription: string;
   price: string;
+  compareAtPrice: string;
+  costPrice: string;
   stock: string;
   gender: string;
   sizes: string[];
+  colors: string[];
   discount: string;
   category: string;
+  tags: string;
+  isFeatured: boolean;
+  seoTitle: string;
+  seoDescription: string;
 }
 
 interface MediaPreview {
@@ -26,12 +34,20 @@ const AddProduct = () => {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
+    shortDescription: '',
     price: '',
+    compareAtPrice: '',
+    costPrice: '',
     stock: '',
     gender: '',
     sizes: [],
+    colors: [],
     discount: '',
-    category: ''
+    category: '',
+    tags: '',
+    isFeatured: false,
+    seoTitle: '',
+    seoDescription: ''
   });
 
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
@@ -42,13 +58,23 @@ const AddProduct = () => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sizeOptions = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+  const colorOptions = ['Black', 'White', 'Red', 'Blue', 'Green', 'Yellow', 'Pink', 'Gray'];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    const { name, value, type } = e.target;
+    
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({
+        ...prev,
+        [name]: checked
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
   };
 
   const handleSizeToggle = (size: string) => {
@@ -60,6 +86,19 @@ const AddProduct = () => {
       return {
         ...prev,
         sizes: newSizes
+      };
+    });
+  };
+
+  const handleColorToggle = (color: string) => {
+    setFormData(prev => {
+      const newColors = prev.colors.includes(color)
+        ? prev.colors.filter(c => c !== color)
+        : [...prev.colors, color];
+      
+      return {
+        ...prev,
+        colors: newColors
       };
     });
   };
@@ -122,7 +161,7 @@ const AddProduct = () => {
       // Get admin token
       const adminToken = localStorage.getItem('adminToken');
 
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/admin/products`, formDataToSend, {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/products`, formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${adminToken}`
@@ -135,12 +174,20 @@ const AddProduct = () => {
       setFormData({
         name: '',
         description: '',
+        shortDescription: '',
         price: '',
+        compareAtPrice: '',
+        costPrice: '',
         stock: '',
         gender: '',
         sizes: [],
+        colors: [],
         discount: '',
-        category: ''
+        category: '',
+        tags: '',
+        isFeatured: false,
+        seoTitle: '',
+        seoDescription: ''
       });
       setMediaFiles([]);
       setPreviewUrls([]);
@@ -210,6 +257,45 @@ const AddProduct = () => {
                   required
                 />
               </div>
+              
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2 font-medium">Short Description</label>
+                <textarea
+                  name="shortDescription"
+                  value={formData.shortDescription}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  rows={2}
+                  placeholder="Brief description for product listing (1-2 sentences)"
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2 font-medium">Tags</label>
+                <input
+                  type="text"
+                  name="tags"
+                  value={formData.tags}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="winter, jacket, trending, bestseller (comma-separated)"
+                />
+                <p className="text-sm text-gray-500 mt-1">Separate tags with commas</p>
+              </div>
+              
+              <div className="mb-4">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="isFeatured"
+                    checked={formData.isFeatured}
+                    onChange={handleChange}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span className="ml-2 text-gray-700 font-medium">Featured Product</span>
+                  <span className="ml-2 text-sm text-gray-500">(Display on homepage)</span>
+                </label>
+              </div>
             </div>
             
             <hr className="my-6 border-gray-200" />
@@ -253,6 +339,26 @@ const AddProduct = () => {
                     <option value="Woman">Woman</option>
                     <option value="Unisex">Unisex</option>
                   </select>
+                </div>
+              </div>
+              
+              <div className="mt-6">
+                <label className="block text-gray-700 mb-2 font-medium">Available Colors</label>
+                <div className="flex flex-wrap gap-2">
+                  {colorOptions.map(color => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => handleColorToggle(color)}
+                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                        formData.colors.includes(color)
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {color}
+                    </button>
+                  ))}
                 </div>
               </div>
               
@@ -376,9 +482,9 @@ const AddProduct = () => {
             <div className="mb-8">
               <h3 className="text-xl font-medium mb-4 text-gray-700 border-b pb-2">Pricing And Stock</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <label className="block text-gray-700 mb-2 font-medium">Base Pricing (INR)</label>
+                  <label className="block text-gray-700 mb-2 font-medium">Base Price (INR)</label>
                   <div className="relative">
                     <span className="absolute left-4 top-3 text-gray-500">₹</span>
                     <input
@@ -395,6 +501,44 @@ const AddProduct = () => {
                   </div>
                 </div>
                 
+                <div>
+                  <label className="block text-gray-700 mb-2 font-medium">Compare At Price (INR)</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-3 text-gray-500">₹</span>
+                    <input
+                      type="number"
+                      name="compareAtPrice"
+                      value={formData.compareAtPrice}
+                      onChange={handleChange}
+                      className="w-full pl-10 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="99.99"
+                      step="0.01"
+                      min="0"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">Original price (for discount display)</p>
+                </div>
+                
+                <div>
+                  <label className="block text-gray-700 mb-2 font-medium">Cost Price (INR)</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-3 text-gray-500">₹</span>
+                    <input
+                      type="number"
+                      name="costPrice"
+                      value={formData.costPrice}
+                      onChange={handleChange}
+                      className="w-full pl-10 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="30.00"
+                      step="0.01"
+                      min="0"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">Your cost (for profit tracking)</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <div>
                   <label className="block text-gray-700 mb-2 font-medium">Discount</label>
                   <div className="relative">
@@ -441,6 +585,45 @@ const AddProduct = () => {
                   <option value="Tshirt">Tshirt</option>
                   <option value="Hoodie">Hoodie</option>
                 </select>
+              </div>
+            </div>
+            
+            <hr className="my-6 border-gray-200" />
+            
+            {/* SEO Section */}
+            <div className="mb-8">
+              <h3 className="text-xl font-medium mb-4 text-gray-700 border-b pb-2">SEO & Marketing</h3>
+              
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2 font-medium">SEO Title</label>
+                <input
+                  type="text"
+                  name="seoTitle"
+                  value={formData.seoTitle}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Optimized title for search engines (50-60 characters)"
+                  maxLength={60}
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  {formData.seoTitle.length}/60 characters
+                </p>
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2 font-medium">SEO Description</label>
+                <textarea
+                  name="seoDescription"
+                  value={formData.seoDescription}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  rows={3}
+                  placeholder="Meta description for search engines (150-160 characters)"
+                  maxLength={160}
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  {formData.seoDescription.length}/160 characters
+                </p>
               </div>
             </div>
             

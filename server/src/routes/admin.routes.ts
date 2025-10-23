@@ -3,13 +3,11 @@ import adminProductController from '../controllers/products.controller';
 import adminController from '../controllers/admin.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
 import { adminMiddleware } from '../middleware/admin.middleware';
+import { upload } from '../middleware/multer';
 
 const router = Router();
 
-// Admin login (no auth required)
-router.post('/admin-login', adminController.adminLogin.bind(adminController));
-
-// All other admin routes require authentication and admin role
+// All admin routes require authentication and admin role
 router.use(authMiddleware);
 router.use(adminMiddleware);
 
@@ -17,7 +15,7 @@ router.use(adminMiddleware);
 router.get('/stats', adminController.getStats.bind(adminController));
 
 // Product management routes
-router.post('/products', adminProductController.createProduct);
+router.post('/products', upload.array('media', 10), adminController.createProductWithUpload.bind(adminController));
 router.get('/products', adminProductController.getProducts);
 router.get('/products/:id', adminProductController.getProduct);
 router.put('/products/:id', adminProductController.updateProduct);

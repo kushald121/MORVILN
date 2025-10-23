@@ -7,13 +7,31 @@ import Link from 'next/link';
 
 interface Order {
   id: string;
-  user_id: string;
+  user_id: string | null;
   order_number: string;
-  total_amount: number;
-  status: 'pending' | 'confirmed' | 'delivered' | 'cancelled';
-  created_at: string;
+  customer_email: string;
+  customer_name: string;
+  customer_phone?: string;
   shipping_address: any;
-  items: any[];
+  products: any; // JSONB field with products array
+  subtotal_amount: number;
+  shipping_amount: number;
+  tax_amount: number;
+  discount_amount: number;
+  total_amount: number;
+  payment_status: string;
+  fulfillment_status: string;
+  payment_method?: string;
+  payment_gateway?: string;
+  payment_gateway_id?: string;
+  ordered_at: string;
+  paid_at?: string;
+  fulfilled_at?: string;
+  cancelled_at?: string;
+  created_at: string;
+  updated_at: string;
+  // For backward compatibility with status
+  status?: 'pending' | 'confirmed' | 'delivered' | 'cancelled';
 }
 
 interface Stats {
@@ -51,28 +69,46 @@ const ViewOrders = () => {
   const fetchOrders = async () => {
     try {
       const adminToken = localStorage.getItem('adminToken');
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/admin/orders`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/orders`, {
         headers: { 'Authorization': `Bearer ${adminToken}` }
       });
       
-      const ordersData = response.data.data || response.data;
+      // Handle different response structures
+      let ordersData = response.data.data?.orders || response.data.data || response.data.orders || response.data;
+      
+      // Ensure ordersData is always an array
+      if (!Array.isArray(ordersData)) {
+        console.warn('Orders data is not an array:', ordersData);
+        ordersData = [];
+      }
+      
+      // Map fulfillment_status to status for compatibility
+      ordersData = ordersData.map((order: any) => ({
+        ...order,
+        status: order.fulfillment_status || order.status || 'pending'
+      }));
+      
       setOrders(ordersData);
       calculateStats(ordersData);
     } catch (error: any) {
       console.error('Error fetching orders:', error);
       setUpdateMessage({ type: 'error', text: 'Failed to fetch orders' });
+      setOrders([]); // Set empty array on error
     } finally {
       setIsLoading(false);
     }
   };
 
-  const calculateStats = (ordersData: Order[]) => {
+  const calculateStats = (ordersData: Order[] | any) => {
+    // Ensure ordersData is an array
+    const ordersArray = Array.isArray(ordersData) ? ordersData : [];
+    
     const stats = {
-      total: ordersData.length,
-      pending: ordersData.filter(o => o.status === 'pending').length,
-      confirmed: ordersData.filter(o => o.status === 'confirmed').length,
-      delivered: ordersData.filter(o => o.status === 'delivered').length,
-      cancelled: ordersData.filter(o => o.status === 'cancelled').length
+      total: ordersArray.length,
+      pending: ordersArray.filter(o => (o.status || o.fulfillment_status) === 'pending' || (o.status || o.fulfillment_status) === 'unfulfilled').length,
+      confirmed: ordersArray.filter(o => (o.status || o.fulfillment_status) === 'confirmed').length,
+      delivered: ordersArray.filter(o => (o.status || o.fulfillment_status) === 'delivered' || (o.status || o.fulfillment_status) === 'fulfilled').length,
+      cancelled: ordersArray.filter(o => (o.status || o.fulfillment_status) === 'cancelled').length
     };
     setStats(stats);
   };
@@ -87,7 +123,9 @@ const ViewOrders = () => {
     if (searchTerm) {
       filtered = filtered.filter(order =>
         order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.user_id.toLowerCase().includes(searchTerm.toLowerCase())
+        (order.user_id && order.user_id.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        order.customer_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.customer_name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -98,7 +136,7 @@ const ViewOrders = () => {
     try {
       const adminToken = localStorage.getItem('adminToken');
       await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/admin/orders/${orderId}/status`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/orders/${orderId}/status`,
         { status: newStatus },
         { headers: { 'Authorization': `Bearer ${adminToken}` } }
       );
@@ -110,13 +148,20 @@ const ViewOrders = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status?: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-100 text-yellow-700';
-      case 'confirmed': return 'bg-blue-100 text-blue-700';
-      case 'delivered': return 'bg-green-100 text-green-700';
-      case 'cancelled': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'pending':
+      case 'unfulfilled':
+        return 'bg-yellow-100 text-yellow-700';
+      case 'confirmed':
+        return 'bg-blue-100 text-blue-700';
+      case 'delivered':
+      case 'fulfilled':
+        return 'bg-green-100 text-green-700';
+      case 'cancelled':
+        return 'bg-red-100 text-red-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
     }
   };
 
@@ -215,15 +260,17 @@ const ViewOrders = () => {
                   ) : (
                     filteredOrders.map((order) => (
                       <tr key={order.id} className="border-b hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium">{order.order_number}</td>
+                        <td className="px-4 py-3 font-medium">{order.order_number || 'N/A'}</td>
                         <td className="px-4 py-3">
-                          {new Date(order.created_at).toLocaleDateString()}
+                          {order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}
                         </td>
-                        <td className="px-4 py-3">{order.user_id.substring(0, 8)}...</td>
-                        <td className="px-4 py-3">₹{order.total_amount.toFixed(2)}</td>
+                        <td className="px-4 py-3">
+                          {order.user_id ? `${order.user_id.substring(0, 8)}...` : 'Guest'}
+                        </td>
+                        <td className="px-4 py-3">₹{order.total_amount ? order.total_amount.toFixed(2) : '0.00'}</td>
                         <td className="px-4 py-3">
                           <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
-                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'Unknown'}
                           </span>
                         </td>
                         <td className="px-4 py-3">
@@ -286,12 +333,21 @@ const ViewOrders = () => {
                   <div>
                     <p className="text-sm text-gray-600">Status</p>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedOrder.status)}`}>
-                      {selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1)}
+                      {selectedOrder.status ? selectedOrder.status.charAt(0).toUpperCase() + selectedOrder.status.slice(1) : 'Unknown'}
                     </span>
                   </div>
                   <div>
+                    <p className="text-sm text-gray-600">Customer</p>
+                    <p className="font-medium">{selectedOrder.customer_name}</p>
+                    <p className="text-sm text-gray-500">{selectedOrder.customer_email}</p>
+                  </div>
+                  <div>
                     <p className="text-sm text-gray-600">Date</p>
-                    <p className="font-medium">{new Date(selectedOrder.created_at).toLocaleString()}</p>
+                    <p className="font-medium">{new Date(selectedOrder.created_at || selectedOrder.ordered_at).toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Payment Status</p>
+                    <p className="font-medium">{selectedOrder.payment_status || 'N/A'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Total Amount</p>
@@ -310,12 +366,12 @@ const ViewOrders = () => {
                   </div>
                 )}
 
-                {selectedOrder.items && selectedOrder.items.length > 0 && (
+                {selectedOrder.products && (
                   <div>
-                    <p className="text-sm text-gray-600 mb-2">Order Items</p>
+                    <p className="text-sm text-gray-600 mb-2">Order Products</p>
                     <div className="bg-gray-50 p-3 rounded">
                       <pre className="text-sm whitespace-pre-wrap">
-                        {JSON.stringify(selectedOrder.items, null, 2)}
+                        {JSON.stringify(selectedOrder.products, null, 2)}
                       </pre>
                     </div>
                   </div>

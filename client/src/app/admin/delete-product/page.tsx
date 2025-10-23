@@ -9,10 +9,10 @@ interface Product {
   id: string;
   name: string;
   description: string;
-  price: number;
-  stock: number;
-  category: string;
-  media_url?: string;
+  base_price: number;
+  categories?: { name: string } | null;
+  product_media?: Array<{ media_url: string }>;
+  product_variants?: Array<{ stock_quantity: number }>;
 }
 
 const DeleteProduct = () => {
@@ -30,13 +30,18 @@ const DeleteProduct = () => {
   const fetchProducts = async () => {
     try {
       const adminToken = localStorage.getItem('adminToken');
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/products`, {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/products?limit=100`, {
         headers: { 'Authorization': `Bearer ${adminToken}` }
       });
-      setProducts(response.data.data || response.data);
+      
+      // Handle response structure: data.products or data
+      const productsData = response.data.data?.products || response.data.products || response.data.data || response.data;
+      console.log('Fetched products:', productsData); // Debug log
+      setProducts(Array.isArray(productsData) ? productsData : []);
     } catch (error: any) {
       console.error('Error fetching products:', error);
       setDeleteMessage({ type: 'error', text: 'Failed to fetch products' });
+      setProducts([]);
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +72,7 @@ const DeleteProduct = () => {
     try {
       const adminToken = localStorage.getItem('adminToken');
       await axios.delete(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/admin/products/bulk`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/products/bulk`,
         {
           data: { productIds: selectedProducts },
           headers: { 'Authorization': `Bearer ${adminToken}` }
@@ -84,10 +89,11 @@ const DeleteProduct = () => {
     }
   };
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = products.filter(product => {
+    const categoryName = product.categories?.name || '';
+    return product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           categoryName.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   return (
     <AdminProtectedRoute>
@@ -177,15 +183,17 @@ const DeleteProduct = () => {
                         </td>
                         <td className="px-4 py-3">
                           <img
-                            src={product.media_url || 'https://via.placeholder.com/60'}
+                            src={product.product_media?.[0]?.media_url || 'https://via.placeholder.com/60'}
                             alt={product.name}
                             className="w-12 h-12 object-cover rounded"
                           />
                         </td>
                         <td className="px-4 py-3 font-medium">{product.name}</td>
-                        <td className="px-4 py-3">{product.category}</td>
-                        <td className="px-4 py-3">₹{product.price}</td>
-                        <td className="px-4 py-3">{product.stock}</td>
+                        <td className="px-4 py-3">{product.categories?.name || 'N/A'}</td>
+                        <td className="px-4 py-3">₹{product.base_price}</td>
+                        <td className="px-4 py-3">
+                          {product.product_variants?.reduce((sum, v) => sum + (v.stock_quantity || 0), 0) || 0}
+                        </td>
                       </tr>
                     ))
                   )}

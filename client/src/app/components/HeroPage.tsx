@@ -129,9 +129,9 @@ export default function HeroPage() {
   const clothingItems = useMemo(() => [
     {
       id: 1,
-      position: "top-25 left-[5%]",
-      rotation: -12,
-      scale: 1.15,
+      position: "top-20 left-[15%]",
+      rotation: -15,
+      scale: 1.1,
       image: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=600&fit=crop",
       zIndex: 30,
       title: "Premium Leather Jacket",
@@ -141,11 +141,11 @@ export default function HeroPage() {
     },
     {
       id: 2,
-      position: "top-32 right-[5%]",
-      rotation: 10,
-      scale: 0.95,
+      position: "top-10 right-[15%]",
+      rotation: 12,
+      scale: 0.9,
       image: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=400&h=600&fit=crop",
-      zIndex: 20,
+      zIndex: 25,
       title: "Designer Blazer",
       price: "$249",
       oldPrice: "$349",
@@ -153,11 +153,11 @@ export default function HeroPage() {
     },
     {
       id: 3,
-      position: "top-[60%] left-[0%]",
+      position: "top-[55%] left-[8%]",
       rotation: -8,
-      scale: 0.9,
+      scale: 0.95,
       image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&h=600&fit=crop",
-      zIndex: 10,
+      zIndex: 20,
       title: "Silk Evening Dress",
       price: "$399",
       oldPrice: "$549",
@@ -165,7 +165,7 @@ export default function HeroPage() {
     },
     {
       id: 4,
-      position: "top-[65%] right-[0%]",
+      position: "top-[55%] right-[15%]",
       rotation: -6,
       scale: 1.0,
       image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=400&h=600&fit=crop",
@@ -267,8 +267,8 @@ export default function HeroPage() {
       <div className="hero-section relative z-10 flex items-center justify-center min-h-screen px-4 sm:px-6 lg:px-8" style={{ transform: 'translate3d(0,0,0)' }}>
         {/* Optimized clothing items */}
         {clothingItems.map((item, index) => {
-          const parallaxXValues = [parallaxX1, parallaxX2, parallaxX3, parallaxX4];
-          const parallaxYValues = [parallaxY1, parallaxY2, parallaxY3, parallaxY4];
+          const parallaxXValues = [parallaxX1, parallaxX2, parallaxX3, parallaxX4, parallaxX1]; // Reusing parallaxX1 for the 5th item
+          const parallaxYValues = [parallaxY1, parallaxY2, parallaxY3, parallaxY4, parallaxY1]; // Reusing parallaxY1 for the 5th item
 
           return (
             <motion.div

@@ -1,4 +1,5 @@
 import { Router } from 'express';
+<<<<<<< HEAD
 import {
   getCart,
   addToCart,
@@ -6,6 +7,9 @@ import {
   removeFromCart,
   clearCart
 } from '../controllers/cart.controller';
+=======
+import { CartController } from '../controllers/cart.controller';
+>>>>>>> 15fcc80dea87b717b397b8066e5a493ae3c4b53a
 import { authMiddleware } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -13,6 +17,7 @@ const router = Router();
 // All cart routes require authentication
 router.use(authMiddleware);
 
+<<<<<<< HEAD
 /**
  * @route   GET /api/cart
  * @desc    Get user's cart
@@ -51,3 +56,14 @@ router.delete('/items/:itemId', removeFromCart);
 router.delete('/', clearCart);
 
 export default router;
+=======
+router.post('/', CartController.addToCart);
+router.get('/', CartController.getCart);
+router.get('/count', CartController.getCartCount);
+router.get('/validate', CartController.validateCart);
+router.put('/:cartItemId', CartController.updateCartItem);
+router.delete('/:cartItemId', CartController.removeFromCart);
+router.delete('/', CartController.clearCart);
+
+export default router;
+>>>>>>> 15fcc80dea87b717b397b8066e5a493ae3c4b53a

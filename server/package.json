@@ -6,7 +6,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon",
     "build": "tsc",
-    "start": "node server.js"
+    "start": "node server.js",
+    "test-email": "node test-gmail-smtp.js",
+    "test-email-system": "node test-email-system.js",
+    "test-email-ts": "npx ts-node src/test/email.test.ts"
   },
   "keywords": [],
   "author": "",
@@ -33,6 +36,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
+    "nodemailer": "^7.0.10",
     "passport": "^0.7.0",
     "pg": "^8.16.3",
     "razorpay": "^2.9.6",
@@ -46,6 +50,7 @@
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.8.1",
+    "@types/nodemailer": "^7.0.2",
     "@types/passport": "^1.0.17",
     "@types/pg": "^8.15.5",
     "nodemon": "^3.1.10",

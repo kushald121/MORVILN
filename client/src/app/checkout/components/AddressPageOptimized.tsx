@@ -9,7 +9,7 @@ import { Trash2, Edit, MapPin, Home, Briefcase, Plus, X, Check, LocateFixed } fr
 import { AddressService, type Address, type CreateAddressData } from '../../services/address.service';
 
 const AddressPageOptimized = () => {
-  const { user } = useAuth();
+  const { user, isAuthenticated, token } = useAuth();
   const toast = useToast();
   const router = useRouter();
 
@@ -20,8 +20,8 @@ const AddressPageOptimized = () => {
 
   // New address form state
   const [newAddress, setNewAddress] = useState<CreateAddressData>({
-    full_name: user?.name || '',
-    phone: user?.phone || '',
+    full_name: '',
+    phone: '',
     address_line_1: '',
     address_line_2: '',
     landmark: '',
@@ -34,19 +34,36 @@ const AddressPageOptimized = () => {
   });
 
   useEffect(() => {
-    if (!user) {
+    // Check authentication - use token instead of user object
+    const hasToken = typeof window !== 'undefined' && localStorage.getItem('userToken');
+    
+    if (!hasToken && !isAuthenticated) {
+      toast.warning('Please login to continue with checkout');
       router.push('/login');
       return;
+    }
+
+    // Load user data into form if available
+    if (user) {
+      setNewAddress(prev => ({
+        ...prev,
+        full_name: user.name || '',
+        phone: user.phone || '',
+      }));
     }
 
     // Check for previously selected address
     const storedAddress = localStorage.getItem('selectedAddress');
     if (storedAddress) {
-      setSelectedAddress(JSON.parse(storedAddress));
+      try {
+        setSelectedAddress(JSON.parse(storedAddress));
+      } catch (e) {
+        console.error('Failed to parse stored address');
+      }
     }
 
     fetchAddresses();
-  }, [user, router]);
+  }, [isAuthenticated, router, user, toast]);
 
   const fetchAddresses = async () => {
     try {
@@ -185,34 +202,15 @@ const AddressPageOptimized = () => {
     }
   };
 
-  if (!user) {
+  // Show loading state while checking authentication
+  if (loading && addresses.length === 0) {
     return (
-      <motion.div
-        className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 py-12 flex items-center justify-center"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-      >
-        <div className="max-w-md mx-auto px-4">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 p-12 text-center">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <MapPin className="w-8 h-8 text-slate-600" />
-            </div>
-            <h2 className="text-3xl font-light text-slate-800 mb-4">Please Login</h2>
-            <p className="text-slate-600 mb-8 text-lg font-light">
-              You need to be logged in to manage addresses.
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => router.push('/login')}
-              className="bg-gradient-to-r from-slate-700 to-slate-800 text-white px-8 py-4 rounded-xl font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-300 shadow-lg hover:shadow-xl"
-            >
-              Login / Sign Up
-            </motion.button>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin w-16 h-16 border-4 border-slate-200 border-t-slate-700 rounded-full mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">Loading addresses...</p>
         </div>
-      </motion.div>
+      </div>
     );
   }
 

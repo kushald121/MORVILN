@@ -104,6 +104,109 @@ const IconWrapper = ({ name, className = "w-8 h-8", fallback = null }: {
   return <IconComponent className={className} />;
 };
 
+// Animated Statistic Component
+const AnimatedStatistic = ({ stat }: { stat: Statistic }) => {
+  const [count, setCount] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  const statRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isVisible) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (statRef.current) {
+      observer.observe(statRef.current);
+    }
+
+    return () => {
+      if (statRef.current) {
+        observer.unobserve(statRef.current);
+      }
+    };
+  }, [isVisible]);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    let targetNumber = 0;
+    let isRating = false;
+    
+    if (stat.number.includes('/')) {
+      // Handle ratings like "4.9/5"
+      isRating = true;
+      targetNumber = parseFloat(stat.number.split('/')[0]) * 10; // Multiply by 10 for decimal precision
+    } else if (stat.number.includes('K')) {
+      // Handle numbers like "50K+" or "100K+"
+      targetNumber = parseFloat(stat.number.replace('K', '')) * 1000;
+    } else if (stat.number.includes('%')) {
+      // Handle percentages like "100%"
+      targetNumber = parseFloat(stat.number.replace('%', ''));
+    } else {
+      // Handle plain numbers
+      targetNumber = parseFloat(stat.number);
+    }
+
+    // Animate the count
+    let start = 0;
+    const duration = 2000; // 2 seconds
+    const increment = targetNumber / (duration / 16); // 60fps approximation
+
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= targetNumber) {
+        setCount(targetNumber);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor(start));
+      }
+    }, 16);
+
+    return () => clearInterval(timer);
+  }, [isVisible, stat.number]);
+
+  // Format the displayed number
+  const formatNumber = (num: number) => {
+    if (stat.number.includes('/')) {
+      // For ratings like "4.9/5"
+      return `${(num / 10).toFixed(1)}/5`;
+    } else if (stat.number.includes('K')) {
+      // For numbers like "50K+" or "100K+"
+      return `${(num / 1000).toFixed(0)}K+`;
+    } else if (stat.number.includes('%')) {
+      // For percentages like "100%"
+      return `${num}%`;
+    } else {
+      // For plain numbers
+      return num.toString();
+    }
+  };
+
+  return (
+    <motion.div
+      ref={statRef}
+      variants={fadeInUp}
+      className="text-center group"
+    >
+      <div className="relative p-8 bg-card backdrop-blur-sm rounded-2xl border border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg">
+        <div className="inline-flex p-4 rounded-xl bg-primary/10 text-primary mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+          <IconWrapper name={stat.iconName} className="w-8 h-8" />
+        </div>
+        <div className="text-4xl font-bold text-foreground mb-2">
+          {isVisible ? formatNumber(count) : '0'}
+        </div>
+        <div className="text-lg font-semibold text-primary mb-1">{stat.label}</div>
+        <div className="text-sm text-muted-foreground">{stat.description}</div>
+      </div>
+    </motion.div>
+  );
+};
+
 // Data Constants
 const PHILOSOPHY_ITEMS: PhilosophyItem[] = [
   {
@@ -430,20 +533,7 @@ const AboutPage = () => {
               viewport={{ once: true }}
             >
               {STATISTICS.map((stat) => (
-                <motion.div
-                  key={stat.label}
-                  variants={fadeInUp}
-                  className="text-center group"
-                >
-                  <div className="relative p-8 bg-card backdrop-blur-sm rounded-2xl border border-border hover:border-primary/30 transition-all duration-300 hover:shadow-lg">
-                    <div className="inline-flex p-4 rounded-xl bg-primary/10 text-primary mb-4 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
-                      <IconWrapper name={stat.iconName} className="w-8 h-8" />
-                    </div>
-                    <div className="text-4xl font-bold text-foreground mb-2">{stat.number}</div>
-                    <div className="text-lg font-semibold text-primary mb-1">{stat.label}</div>
-                    <div className="text-sm text-muted-foreground">{stat.description}</div>
-                  </div>
-                </motion.div>
+                <AnimatedStatistic key={stat.label} stat={stat} />
               ))}
             </motion.div>
           </div>

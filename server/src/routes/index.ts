@@ -12,6 +12,7 @@ import paymentRoutes from './payment.routes';
 import orderRoutes from './order.routes';
 import favoritesRoutes from './favorites.routes';
 import cartRoutes from './cart.routes';
+import userRoutes from './user.routes';
 const router = Router();
 
 console.log('🔄 Loading routes...');
@@ -29,5 +30,6 @@ router.use('/payment', paymentRoutes);
 router.use('/orders', orderRoutes);
 router.use('/favorites', favoritesRoutes);
 router.use('/cart', cartRoutes);
+router.use('/user', userRoutes); // User routes (addresses, profile, etc.)
 
 export default router;

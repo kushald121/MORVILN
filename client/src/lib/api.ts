@@ -1,12 +1,17 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
+import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { logError, isNetworkError } from './errorHandler';
 
 // API Base URL - can be configured via environment variable
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+// Track if we're currently redirecting to avoid multiple redirects
+let isRedirecting = false;
 
 // Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
+  timeout: 30000, // 30 seconds timeout
   headers: {
     'Content-Type': 'application/json',
   },
@@ -14,7 +19,7 @@ const apiClient: AxiosInstance = axios.create({
 
 // Request interceptor - Add auth token to all requests
 apiClient.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('userToken');
       if (token) {
@@ -24,6 +29,7 @@ apiClient.interceptors.request.use(
     return config;
   },
   (error) => {
+    logError(error, 'Request Error');
     return Promise.reject(error);
   }
 );
@@ -31,15 +37,61 @@ apiClient.interceptors.request.use(
 // Response interceptor - Handle errors globally
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      // Unauthorized - clear token and redirect to login
+  async (error: AxiosError) => {
+    // Log the error
+    logError(error, 'API Error');
+
+    // Handle network errors
+    if (isNetworkError(error)) {
+      console.error('Network error detected. Server may be unreachable.');
+      
+      // You can show a toast notification here
       if (typeof window !== 'undefined') {
+        // Store error in session for recovery
+        sessionStorage.setItem('lastNetworkError', JSON.stringify({
+          url: error.config?.url,
+          timestamp: Date.now(),
+        }));
+      }
+      
+      return Promise.reject(error);
+    }
+
+    // Handle authentication errors (401)
+    if (error.response?.status === 401 && !isRedirecting) {
+      isRedirecting = true;
+      
+      if (typeof window !== 'undefined') {
+        // Clear auth data
         localStorage.removeItem('userToken');
         localStorage.removeItem('userData');
+        
+        // Save current location for redirect after login
+        const currentPath = window.location.pathname;
+        if (currentPath !== '/login' && currentPath !== '/signup') {
+          sessionStorage.setItem('redirectAfterLogin', currentPath);
+        }
+        
+        // Redirect to login
         window.location.href = '/login';
       }
+      
+      // Reset flag after delay
+      setTimeout(() => {
+        isRedirecting = false;
+      }, 1000);
     }
+
+    // Handle forbidden errors (403)
+    if (error.response?.status === 403) {
+      console.error('Access forbidden. You do not have permission.');
+    }
+
+    // Handle server errors (5xx)
+    if (error.response && error.response.status >= 500) {
+      console.error('Server error. Please try again later.');
+    }
+
     return Promise.reject(error);
   }
 );

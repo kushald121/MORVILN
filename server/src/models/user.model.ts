@@ -29,6 +29,10 @@ export interface CreateUserInput {
 
 class UserModel {
   async createUser(userData: CreateUserInput): Promise<User> {
+    if (!supabaseAdmin) {
+      throw new Error('Database not configured');
+    }
+    
     // Use supabaseAdmin to bypass Row Level Security
     const { data, error } = await supabaseAdmin
       .from('users')
@@ -55,6 +59,10 @@ class UserModel {
   }
 
   async findUserByEmail(email: string): Promise<User | null> {
+    if (!supabase) {
+      return null;
+    }
+    
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -71,6 +79,10 @@ class UserModel {
   }
 
   async findUserByProvider(provider: string, providerId: string): Promise<User | null> {
+    if (!supabase) {
+      return null;
+    }
+    
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -88,6 +100,10 @@ class UserModel {
   }
 
   async updateUser(id: string, updates: Partial<CreateUserInput>): Promise<User> {
+    if (!supabaseAdmin) {
+      throw new Error('Database not configured');
+    }
+    
     const updateData: any = {
       updated_at: new Date().toISOString()
     };
@@ -116,6 +132,10 @@ class UserModel {
   }
 
   async getUserById(id: string): Promise<User | null> {
+    if (!supabase) {
+      return null;
+    }
+    
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -132,6 +152,10 @@ class UserModel {
   }
 
   async deleteUser(id: string): Promise<boolean> {
+    if (!supabaseAdmin) {
+      throw new Error('Database not configured');
+    }
+    
     // Use supabaseAdmin to bypass RLS for deletes
     const { error } = await supabaseAdmin
       .from('users')

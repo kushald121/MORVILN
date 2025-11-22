@@ -1,4 +1,4 @@
-import pool from '../config/database';
+import supabase from '../config/database';
 
 async function insertDummyUsers() {
   try {
@@ -10,49 +10,38 @@ async function insertDummyUsers() {
         name: 'Alice Johnson',
         avatar: 'https://i.pravatar.cc/150?img=1',
         provider: 'google',
-        providerId: 'google_alice_123',
-        isVerified: true
+        provider_id: 'google_alice_123',
+        is_verified: true
       },
       {
         email: 'bob@morviln.com',
         name: 'Bob Smith',
         avatar: 'https://i.pravatar.cc/150?img=12',
         provider: 'facebook',
-        providerId: 'facebook_bob_456',
-        isVerified: true
+        provider_id: 'facebook_bob_456',
+        is_verified: true
       },
       {
         email: 'charlie@morviln.com',
         name: 'Charlie Davis',
         avatar: 'https://i.pravatar.cc/150?img=33',
         provider: 'email',
-        providerId: null,
-        isVerified: false
+        provider_id: null,
+        is_verified: false
       }
     ];
 
     for (const user of dummyUsers) {
-      const query = `
-        INSERT INTO users (email, name, avatar, provider, provider_id, is_verified)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        ON CONFLICT (email) DO UPDATE SET
-          name = EXCLUDED.name,
-          avatar = EXCLUDED.avatar,
-          updated_at = CURRENT_TIMESTAMP
-        RETURNING id, email, name, provider
-      `;
+      const { data, error } = await supabase
+        .from('users')
+        .upsert(user, { onConflict: 'email' })
+        .select('id, email, name, provider');
 
-      const values = [
-        user.email,
-        user.name,
-        user.avatar,
-        user.provider,
-        user.providerId,
-        user.isVerified
-      ];
-
-      const result = await pool.query(query, values);
-      console.log(`✅ ${result.rows[0].name} (${result.rows[0].email}) - ${result.rows[0].provider}`);
+      if (error) {
+        console.error(`❌ Error inserting user ${user.email}:`, error.message);
+      } else if (data && data.length > 0) {
+        console.log(`✅ ${data[0].name} (${data[0].email}) - ${data[0].provider}`);
+      }
     }
 
     console.log('\n✅ All dummy users inserted successfully!');

@@ -8,19 +8,15 @@ const products_controller_1 = __importDefault(require("../controllers/products.c
 const admin_controller_1 = __importDefault(require("../controllers/admin.controller"));
 const auth_middleware_1 = require("../middleware/auth.middleware");
 const admin_middleware_1 = require("../middleware/admin.middleware");
+const multer_1 = require("../middleware/multer");
 const router = (0, express_1.Router)();
-// Admin login (no auth required) - automatically recognizes role from database
-router.post('/login', (req, res, next) => {
-    console.log('📍 Hit /admin/login route');
-    next();
-}, admin_controller_1.default.adminLogin.bind(admin_controller_1.default));
-// All other admin routes require authentication and admin role
+// All admin routes require authentication and admin role
 router.use(auth_middleware_1.authMiddleware);
 router.use(admin_middleware_1.adminMiddleware);
 // Dashboard stats
 router.get('/stats', admin_controller_1.default.getStats.bind(admin_controller_1.default));
 // Product management routes
-router.post('/products', products_controller_1.default.createProduct);
+router.post('/products', multer_1.upload.array('media', 10), admin_controller_1.default.createProductWithUpload.bind(admin_controller_1.default));
 router.get('/products', products_controller_1.default.getProducts);
 router.get('/products/:id', products_controller_1.default.getProduct);
 router.put('/products/:id', products_controller_1.default.updateProduct);

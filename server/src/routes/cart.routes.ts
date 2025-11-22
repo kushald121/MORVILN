@@ -1,53 +1,25 @@
-import { Router } from 'express';
-import {
-  getCart,
-  addToCart,
-  updateCartItem,
-  removeFromCart,
-  clearCart
-} from '../controllers/cart.controller';
+import { Router, Request, Response, NextFunction } from 'express';
+import { CartController } from '../controllers/cart.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
+import { AuthenticatedRequest } from '../types/auth.types';
 
 const router = Router();
+
+// Wrapper function to handle async route handlers
+const asyncHandler = (fn: (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<any>) => 
+  (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req as AuthenticatedRequest, res, next)).catch(next);
+  };
 
 // All cart routes require authentication
 router.use(authMiddleware);
 
-/**
- * @route   GET /api/cart
- * @desc    Get user's cart
- * @access  Private
- */
-router.get('/', getCart);
-
-/**
- * @route   POST /api/cart/items
- * @desc    Add item to cart
- * @access  Private
- * @body    { variantId: string, quantity: number }
- */
-router.post('/items', addToCart);
-
-/**
- * @route   PUT /api/cart/items/:itemId
- * @desc    Update cart item quantity
- * @access  Private
- * @body    { quantity: number }
- */
-router.put('/items/:itemId', updateCartItem);
-
-/**
- * @route   DELETE /api/cart/items/:itemId
- * @desc    Remove item from cart
- * @access  Private
- */
-router.delete('/items/:itemId', removeFromCart);
-
-/**
- * @route   DELETE /api/cart
- * @desc    Clear entire cart
- * @access  Private
- */
-router.delete('/', clearCart);
+router.post('/', asyncHandler(CartController.addToCart));
+router.get('/', asyncHandler(CartController.getCart));
+router.get('/count', asyncHandler(CartController.getCartCount));
+router.get('/validate', asyncHandler(CartController.validateCart));
+router.put('/:cartItemId', asyncHandler(CartController.updateCartItem));
+router.delete('/:cartItemId', asyncHandler(CartController.removeFromCart));
+router.delete('/', asyncHandler(CartController.clearCart));
 
 export default router;

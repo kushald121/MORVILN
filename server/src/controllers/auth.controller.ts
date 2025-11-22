@@ -250,14 +250,14 @@ export class AuthController {
 
   async getCurrentUser(req: Request, res: Response) {
     try {
-      const email = (req as any).user?.email;
-      if (!email) {
+      const userId = (req as any).user?.userId;
+      if (!userId) {
         return res.status(401).json({
           success: false,
           message: 'Unauthorized'
         });
       }
-      const user = await userModel.findUserByEmail(email);
+      const user = await userModel.getUserById(userId);
       
       if (!user) {
         return res.status(404).json({

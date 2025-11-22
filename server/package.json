@@ -9,7 +9,8 @@
     "start": "node server.js",
     "test-email": "node test-gmail-smtp.js",
     "test-email-system": "node test-email-system.js",
-    "test-email-ts": "npx ts-node src/test/email.test.ts"
+    "test-email-ts": "npx ts-node src/test/email.test.ts",
+    "test-cart": "npx ts-node src/test/cart.test.ts"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +21,6 @@
     "@types/cookie-parser": "^1.4.9",
     "@types/web-push": "^3.6.4",
     "@upstash/redis": "^1.35.6",
-    "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
     "canvas": "^3.2.0",
     "cloudinary": "^2.7.0",
@@ -50,9 +50,10 @@
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.8.1",
-    "@types/nodemailer": "^7.0.2",
+    "@types/nodemailer": "^7.0.4",
     "@types/passport": "^1.0.17",
     "@types/pg": "^8.15.5",
+    "axios": "^1.13.2",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"

@@ -1,393 +1,420 @@
 import { Request, Response } from 'express';
 import emailService from '../services/email.service';
-import { testEmailConnection } from '../config/email';
-import { OrderDetails } from '../templates/orderConfirmation';
-import { WelcomeEmailData } from '../templates/welcomeEmail';
-import { PasswordResetData } from '../templates/passwordReset';
+import { OrderConfirmationData, ProductLaunchData, OfferData } from '../types/emailTypes';
 
-export class EmailController {
-  /**
-   * Test email connection
-   */
-  async testConnection(req: Request, res: Response) {
+class EmailController {
+  // Send order confirmation
+  public async sendOrderConfirmation(req: Request, res: Response): Promise<void> {
     try {
-      const isConnected = await testEmailConnection();
-      
-      if (isConnected) {
-        res.status(200).json({
-          success: true,
-          message: 'Gmail SMTP connection successful',
-          status: 'Connected - Ready for sending',
-          nextSteps: [
-            'Test sending an email using /api/email/test-send',
-            'If sending fails, check Gmail App Password',
-            'Ensure 2-Factor Authentication is enabled on Gmail'
-          ]
-        });
-      } else {
-        res.status(500).json({
+      const { email, orderData } = req.body;
+
+      if (!email || !orderData) {
+        res.status(400).json({
           success: false,
-          message: 'Failed to connect to Gmail SMTP server',
+          message: 'Email and order data are required',
         });
+        return;
       }
+
+      await emailService.sendOrderConfirmation(email, orderData as OrderConfirmationData);
+
+      res.status(200).json({
+        success: true,
+        message: 'Order confirmation email sent successfully',
+      });
     } catch (error) {
+      console.error('Error sending order confirmation:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send order confirmation email',
+      });
+    }
+  }
+
+  // Send product launch announcement
+  public async sendProductLaunch(req: Request, res: Response): Promise<void> {
+    try {
+      const { emails, productData } = req.body;
+
+      if (!emails || !Array.isArray(emails) || !productData) {
+        res.status(400).json({
+          success: false,
+          message: 'Emails array and product data are required',
+        });
+        return;
+      }
+
+      await emailService.sendProductLaunch(emails, productData as ProductLaunchData);
+
+      res.status(200).json({
+        success: true,
+        message: 'Product launch emails sent successfully',
+      });
+    } catch (error) {
+      console.error('Error sending product launch emails:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send product launch emails',
+      });
+    }
+  }
+
+  // Send custom offers
+  public async sendCustomOffer(req: Request, res: Response): Promise<void> {
+    try {
+      const { emails, offerData } = req.body;
+
+      if (!emails || !Array.isArray(emails) || !offerData) {
+        res.status(400).json({
+          success: false,
+          message: 'Emails array and offer data are required',
+        });
+        return;
+      }
+
+      await emailService.sendCustomOffer(emails, offerData as OfferData);
+
+      res.status(200).json({
+        success: true,
+        message: 'Custom offer emails sent successfully',
+      });
+    } catch (error) {
+      console.error('Error sending custom offer emails:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send custom offer emails',
+      });
+    }
+  }
+
+  // Verify email service
+  public async verifyEmailService(req: Request, res: Response): Promise<void> {
+    try {
+      const isVerified = await emailService.verifyConnection();
+
+      res.status(200).json({
+        success: isVerified,
+        message: isVerified ? 'Email service is connected' : 'Email service connection failed',
+      });
+    } catch (error) {
+      console.error('Error verifying email service:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error verifying email service',
+      });
+    }
+  }
+
+  // Test connection
+  public async testConnection(req: Request, res: Response): Promise<void> {
+    try {
+      const isVerified = await emailService.verifyConnection();
+      
+      res.status(200).json({
+        success: isVerified,
+        message: isVerified ? 'Email service connection successful' : 'Email service connection failed',
+      });
+    } catch (error) {
+      console.error('Error testing email connection:', error);
       res.status(500).json({
         success: false,
         message: 'Error testing email connection',
-        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
 
-  /**
-   * Send a test email
-   */
-  async sendTestEmail(req: Request, res: Response) {
+  // Send test email
+  public async sendTestEmail(req: Request, res: Response): Promise<void> {
     try {
-      const { to, subject = 'Test Email from Gmail SMTP' } = req.body;
-
-      if (!to) {
-        return res.status(400).json({
+      const { to, subject, text } = req.body;
+      
+      if (!to || !subject) {
+        res.status(400).json({
           success: false,
-          message: 'Recipient email is required',
+          message: 'Recipient email and subject are required',
         });
+        return;
       }
 
       const html = `
-        <h2>🎉 Test Email Successful!</h2>
-        <p>This is a test email sent via Gmail SMTP service.</p>
-        <p><strong>Sent at:</strong> ${new Date().toLocaleString()}</p>
-        <p>If you received this email, your Gmail SMTP configuration is working correctly!</p>
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: #f8f9fa; padding: 20px; text-align: center; }
+              .content { padding: 20px; }
+              .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Email Service Test</h1>
+              </div>
+              <div class="content">
+                <p>This is a test email from your MORVILN application.</p>
+                <p>If you received this email, your email service is working correctly!</p>
+              </div>
+              <div class="footer">
+                <p>&copy; 2024 MORVLIN. All rights reserved.</p>
+              </div>
+            </div>
+          </body>
+        </html>
       `;
 
-      const success = await emailService.sendEmail({
-        to,
-        subject,
-        html,
-      });
-
-      if (success) {
-        res.status(200).json({
-          success: true,
-          message: 'Test email sent successfully',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          message: 'Failed to send test email',
-        });
-      }
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Error sending test email',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  }
-
-  /**
-   * Send order confirmation email
-   */
-  async sendOrderConfirmation(req: Request, res: Response) {
-    try {
-      const orderDetails: OrderDetails = req.body;
-
-      // Validate required fields
-      if (!orderDetails.orderId || !orderDetails.customerEmail || !orderDetails.customerName) {
-        return res.status(400).json({
-          success: false,
-          message: 'Missing required order details',
-        });
-      }
-
-      const success = await emailService.sendOrderConfirmation(orderDetails);
-
-      if (success) {
-        res.status(200).json({
-          success: true,
-          message: 'Order confirmation email sent successfully',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          message: 'Failed to send order confirmation email',
-        });
-      }
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Error sending order confirmation email',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  }
-
-  /**
-   * Send admin order notification
-   */
-  async sendAdminOrderNotification(req: Request, res: Response) {
-    try {
-      const { orderDetails, adminEmails } = req.body;
-
-      if (!orderDetails || !adminEmails) {
-        return res.status(400).json({
-          success: false,
-          message: 'Order details and admin emails are required',
-        });
-      }
-
-      const success = await emailService.sendAdminOrderNotification(orderDetails, adminEmails);
-
-      if (success) {
-        res.status(200).json({
-          success: true,
-          message: 'Admin notification email sent successfully',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          message: 'Failed to send admin notification email',
-        });
-      }
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Error sending admin notification email',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  }
-
-  /**
-   * Send welcome email
-   */
-  async sendWelcomeEmail(req: Request, res: Response) {
-    try {
-      const welcomeData: WelcomeEmailData = req.body;
-
-      if (!welcomeData.userName || !welcomeData.userEmail) {
-        return res.status(400).json({
-          success: false,
-          message: 'User name and email are required',
-        });
-      }
-
-      const success = await emailService.sendWelcomeEmail(welcomeData);
-
-      if (success) {
-        res.status(200).json({
-          success: true,
-          message: 'Welcome email sent successfully',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          message: 'Failed to send welcome email',
-        });
-      }
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Error sending welcome email',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  }
-
-  /**
-   * Send password reset email
-   */
-  async sendPasswordResetEmail(req: Request, res: Response) {
-    try {
-      const { resetData, userEmail } = req.body;
-
-      if (!resetData || !userEmail) {
-        return res.status(400).json({
-          success: false,
-          message: 'Reset data and user email are required',
-        });
-      }
-
-      const success = await emailService.sendPasswordResetEmail(resetData, userEmail);
-
-      if (success) {
-        res.status(200).json({
-          success: true,
-          message: 'Password reset email sent successfully',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          message: 'Failed to send password reset email',
-        });
-      }
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Error sending password reset email',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  }
-
-  /**
-   * Send email verification
-   */
-  async sendEmailVerification(req: Request, res: Response) {
-    try {
-      const { userEmail, userName, verificationLink } = req.body;
-
-      if (!userEmail || !userName || !verificationLink) {
-        return res.status(400).json({
-          success: false,
-          message: 'User email, name, and verification link are required',
-        });
-      }
-
-      const success = await emailService.sendEmailVerification(userEmail, userName, verificationLink);
-
-      if (success) {
-        res.status(200).json({
-          success: true,
-          message: 'Email verification sent successfully',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          message: 'Failed to send email verification',
-        });
-      }
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Error sending email verification',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  }
-
-  /**
-   * Send order status update
-   */
-  async sendOrderStatusUpdate(req: Request, res: Response) {
-    try {
-      const { customerEmail, orderId, status, trackingNumber } = req.body;
-
-      if (!customerEmail || !orderId || !status) {
-        return res.status(400).json({
-          success: false,
-          message: 'Customer email, order ID, and status are required',
-        });
-      }
-
-      const success = await emailService.sendOrderStatusUpdate(
-        customerEmail,
-        orderId,
-        status,
-        trackingNumber
-      );
-
-      if (success) {
-        res.status(200).json({
-          success: true,
-          message: 'Order status update email sent successfully',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          message: 'Failed to send order status update email',
-        });
-      }
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Error sending order status update email',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  }
-
-  /**
-   * Send custom email
-   */
-  async sendCustomEmail(req: Request, res: Response) {
-    try {
-      const { to, subject, html, text, cc, bcc } = req.body;
-
-      if (!to || !subject || (!html && !text)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Recipient, subject, and content (html or text) are required',
-        });
-      }
-
-      const success = await emailService.sendEmail({
+      await emailService.sendEmail({
         to,
         subject,
         html,
         text,
-        cc,
-        bcc,
       });
 
-      if (success) {
-        res.status(200).json({
-          success: true,
-          message: 'Custom email sent successfully',
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          message: 'Failed to send custom email',
-        });
-      }
+      res.status(200).json({
+        success: true,
+        message: 'Test email sent successfully',
+      });
     } catch (error) {
+      console.error('Error sending test email:', error);
       res.status(500).json({
         success: false,
-        message: 'Error sending custom email',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        message: 'Failed to send test email',
       });
     }
   }
 
-  /**
-   * Send bulk emails
-   */
-  async sendBulkEmail(req: Request, res: Response) {
+  // Send welcome email
+  public async sendWelcomeEmail(req: Request, res: Response): Promise<void> {
     try {
-      const { recipients, subject, html, batchSize = 50 } = req.body;
-
-      if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
-        return res.status(400).json({
+      const { userName, userEmail, verificationLink } = req.body;
+      
+      if (!userName || !userEmail || !verificationLink) {
+        res.status(400).json({
           success: false,
-          message: 'Recipients array is required and must not be empty',
+          message: 'User name, email, and verification link are required',
         });
+        return;
       }
 
-      if (!subject || !html) {
-        return res.status(400).json({
-          success: false,
-          message: 'Subject and HTML content are required',
-        });
-      }
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: #f8f9fa; padding: 20px; text-align: center; }
+              .content { padding: 20px; }
+              .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; }
+              .cta-button { display: inline-block; padding: 12px 24px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Welcome to MORVILN!</h1>
+              </div>
+              <div class="content">
+                <p>Hello ${userName},</p>
+                <p>Welcome to MORVILN! We're excited to have you join our community.</p>
+                <p>To get started, please verify your email address by clicking the button below:</p>
+                <a href="${verificationLink}" class="cta-button">Verify Email Address</a>
+                <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+                <p>${verificationLink}</p>
+                <p>Thank you for joining us!</p>
+              </div>
+              <div class="footer">
+                <p>&copy; 2024 MORVLIN. All rights reserved.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
 
-      const result = await emailService.sendBulkEmail(recipients, subject, html, batchSize);
+      await emailService.sendEmail({
+        to: userEmail,
+        subject: 'Welcome to MORVILN!',
+        html,
+      });
 
       res.status(200).json({
         success: true,
-        message: 'Bulk email sending completed',
-        result: {
-          totalRecipients: recipients.length,
-          successful: result.success,
-          failed: result.failed,
-        },
+        message: 'Welcome email sent successfully',
       });
     } catch (error) {
+      console.error('Error sending welcome email:', error);
       res.status(500).json({
         success: false,
-        message: 'Error sending bulk emails',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        message: 'Failed to send welcome email',
+      });
+    }
+  }
+
+  // Send password reset email
+  public async sendPasswordResetEmail(req: Request, res: Response): Promise<void> {
+    try {
+      const { resetData, userEmail } = req.body;
+      
+      if (!resetData || !userEmail) {
+        res.status(400).json({
+          success: false,
+          message: 'Reset data and user email are required',
+        });
+        return;
+      }
+
+      const { userName, resetLink, expiryTime } = resetData;
+
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: #f8f9fa; padding: 20px; text-align: center; }
+              .content { padding: 20px; }
+              .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; }
+              .cta-button { display: inline-block; padding: 12px 24px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }
+              .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin: 20px 0; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>Password Reset Request</h1>
+              </div>
+              <div class="content">
+                <p>Hello ${userName},</p>
+                <p>We received a request to reset your password for your MORVILN account.</p>
+                <p>If you made this request, please click the button below to reset your password:</p>
+                <a href="${resetLink}" class="cta-button">Reset Password</a>
+                <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+                <p>${resetLink}</p>
+                <div class="warning">
+                  <p><strong>Note:</strong> This link will expire on ${expiryTime}. If you didn't request a password reset, please ignore this email.</p>
+                </div>
+              </div>
+              <div class="footer">
+                <p>&copy; 2024 MORVLIN. All rights reserved.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      await emailService.sendEmail({
+        to: userEmail,
+        subject: 'Password Reset Request - MORVILN',
+        html,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'Password reset email sent successfully',
+      });
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send password reset email',
+      });
+    }
+  }
+
+  // Send admin order notification
+  public async sendAdminOrderNotification(req: Request, res: Response): Promise<void> {
+    try {
+      const { orderDetails, adminEmails } = req.body;
+      
+      if (!orderDetails || !adminEmails || !Array.isArray(adminEmails) || adminEmails.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: 'Order details and admin emails array are required',
+        });
+        return;
+      }
+
+      const { orderId, customerName, customerEmail, items, totalAmount, shippingAddress, orderDate } = orderDetails;
+
+      const itemsHtml = items.map((item: { name: string; quantity: number; price: number; }) => `
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #eee;">${item.name}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">$${(item.price / 100).toFixed(2)}</td>
+        </tr>
+      `).join('');
+
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: #f8f9fa; padding: 20px; text-align: center; }
+              .content { padding: 20px; }
+              .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #666; }
+              table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+              th { background: #f8f9fa; padding: 10px; text-align: left; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>New Order Received</h1>
+              </div>
+              <div class="content">
+                <p>A new order has been placed:</p>
+                
+                <p><strong>Order ID:</strong> ${orderId}</p>
+                <p><strong>Customer:</strong> ${customerName} (${customerEmail})</p>
+                <p><strong>Order Date:</strong> ${orderDate}</p>
+                
+                <table>
+                  <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                  </tr>
+                  ${itemsHtml}
+                </table>
+                
+                <p><strong>Total Amount:</strong> $${(totalAmount / 100).toFixed(2)}</p>
+                <p><strong>Shipping Address:</strong><br>${shippingAddress.replace(/\n/g, '<br>')}</p>
+              </div>
+              <div class="footer">
+                <p>&copy; 2024 MORVLIN. All rights reserved.</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `;
+
+      // Send to all admin emails
+      for (const email of adminEmails) {
+        await emailService.sendEmail({
+          to: email,
+          subject: `New Order #${orderId} from ${customerName}`,
+          html,
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: 'Admin order notifications sent successfully',
+      });
+    } catch (error) {
+      console.error('Error sending admin order notification:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to send admin order notification',
       });
     }
   }

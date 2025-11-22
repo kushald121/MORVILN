@@ -9,14 +9,13 @@ router.post('/test-send', emailController.sendTestEmail);
 
 // Template-based email routes
 router.post('/order-confirmation', emailController.sendOrderConfirmation);
-router.post('/admin-order-notification', emailController.sendAdminOrderNotification);
+router.post('/product-launch', emailController.sendProductLaunch);
+router.post('/custom-offer', emailController.sendCustomOffer);
 router.post('/welcome', emailController.sendWelcomeEmail);
 router.post('/password-reset', emailController.sendPasswordResetEmail);
-router.post('/email-verification', emailController.sendEmailVerification);
-router.post('/order-status-update', emailController.sendOrderStatusUpdate);
+router.post('/admin-order-notification', emailController.sendAdminOrderNotification);
 
-// Custom email routes
-router.post('/send-custom', emailController.sendCustomEmail);
-router.post('/send-bulk', emailController.sendBulkEmail);
+// Verification route
+router.get('/verify', emailController.verifyEmailService);
 
 export default router;

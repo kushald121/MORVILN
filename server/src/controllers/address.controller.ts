@@ -21,6 +21,13 @@ export const getUserAddresses = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    if (!supabase) {
+      return res.status(500).json({
+        success: false,
+        message: 'Database not configured',
+      });
+    }
+
     const { data, error } = await supabase
       .from('user_addresses')
       .select('*')
@@ -56,6 +63,13 @@ export const getAddressById = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({
         success: false,
         message: 'Unauthorized',
+      });
+    }
+
+    if (!supabase) {
+      return res.status(500).json({
+        success: false,
+        message: 'Database not configured',
       });
     }
 
@@ -96,6 +110,13 @@ export const createAddress = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({
         success: false,
         message: 'Unauthorized',
+      });
+    }
+
+    if (!supabase) {
+      return res.status(500).json({
+        success: false,
+        message: 'Database not configured',
       });
     }
 
@@ -177,6 +198,13 @@ export const updateAddress = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({
         success: false,
         message: 'Unauthorized',
+      });
+    }
+
+    if (!supabase) {
+      return res.status(500).json({
+        success: false,
+        message: 'Database not configured',
       });
     }
 
@@ -272,6 +300,13 @@ export const deleteAddress = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    if (!supabase) {
+      return res.status(500).json({
+        success: false,
+        message: 'Database not configured',
+      });
+    }
+
     const { error } = await supabase
       .from('user_addresses')
       .delete()
@@ -306,6 +341,13 @@ export const setDefaultAddress = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({
         success: false,
         message: 'Unauthorized',
+      });
+    }
+
+    if (!supabase) {
+      return res.status(500).json({
+        success: false,
+        message: 'Database not configured',
       });
     }
 

@@ -7,6 +7,8 @@ exports.AdminController = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const supabaseclient_1 = __importDefault(require("../config/supabaseclient"));
+const cloudinary_1 = __importDefault(require("../config/cloudinary"));
+const stream_1 = require("stream");
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 class AdminController {
     /**
@@ -360,6 +362,287 @@ class AdminController {
             res.status(500).json({
                 success: false,
                 message: 'Failed to update order status'
+            });
+        }
+    }
+    /**
+     * Create Product with Cloudinary Upload
+     */
+    async createProductWithUpload(req, res) {
+        try {
+            console.log('📦 Creating product with file uploads...');
+            const files = req.files;
+            const { name, description, shortDescription, price, compareAtPrice, costPrice, stock, gender, sizes, // Can be comma-separated string or array
+            colors, // Can be comma-separated string or array
+            discount, category, // This should be category UUID from client
+            tags, // Comma-separated string
+            isFeatured, seoTitle, seoDescription } = req.body;
+            // Validate required fields
+            if (!name || !price) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Product name and price are required'
+                });
+            }
+            console.log('📝 Product data:', { name, price, stock, gender, category, sizes, colors });
+            console.log('📁 Files received:', files?.length || 0);
+            // Upload images to Cloudinary
+            const uploadedMedia = [];
+            if (files && files.length > 0) {
+                console.log('☁️  Uploading to Cloudinary...');
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    try {
+                        // Upload to Cloudinary using buffer
+                        const uploadResult = await new Promise((resolve, reject) => {
+                            const uploadStream = cloudinary_1.default.uploader.upload_stream({
+                                folder: 'products',
+                                resource_type: 'auto',
+                                transformation: [
+                                    { width: 1000, height: 1000, crop: 'limit' },
+                                    { quality: 'auto' }
+                                ]
+                            }, (error, result) => {
+                                if (error)
+                                    reject(error);
+                                else
+                                    resolve(result);
+                            });
+                            // Create readable stream from buffer
+                            const bufferStream = new stream_1.Readable();
+                            bufferStream.push(file.buffer);
+                            bufferStream.push(null);
+                            bufferStream.pipe(uploadStream);
+                        });
+                        console.log(`✅ Uploaded image ${i + 1}/${files.length}`);
+                        uploadedMedia.push({
+                            media_url: uploadResult.secure_url,
+                            cloudinary_public_id: uploadResult.public_id,
+                            media_type: file.mimetype.startsWith('video') ? 'video' : 'image',
+                            is_primary: i === 0, // First image is primary
+                            sort_order: i
+                        });
+                    }
+                    catch (uploadError) {
+                        console.error('Cloudinary upload error:', uploadError);
+                        throw new Error(`Failed to upload image ${i + 1}`);
+                    }
+                }
+            }
+            // Generate slug from name
+            const slug = name.toLowerCase()
+                .trim()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-|-$/g, '')
+                .replace(/--+/g, '-');
+            // Add timestamp to make slug unique
+            const uniqueSlug = `${slug}-${Date.now()}`;
+            // Parse sizes array (handle both string and array)
+            let sizesArray = [];
+            if (sizes) {
+                if (typeof sizes === 'string') {
+                    // Split by comma if it's a string
+                    sizesArray = sizes.split(',').map(s => s.trim()).filter(Boolean);
+                }
+                else if (Array.isArray(sizes)) {
+                    sizesArray = sizes;
+                }
+            }
+            // If no sizes provided, use a default
+            if (sizesArray.length === 0) {
+                sizesArray = ['One Size'];
+            }
+            // Parse colors array (handle both string and array)
+            let colorsArray = [];
+            if (colors) {
+                if (typeof colors === 'string') {
+                    colorsArray = colors.split(',').map(c => c.trim()).filter(Boolean);
+                }
+                else if (Array.isArray(colors)) {
+                    colorsArray = colors;
+                }
+            }
+            // If no colors provided, use default
+            if (colorsArray.length === 0) {
+                colorsArray = ['Default'];
+            }
+            // Parse tags array from comma-separated string
+            let tagsArray = [];
+            if (tags && typeof tags === 'string') {
+                tagsArray = tags.split(',').map(t => t.trim()).filter(Boolean);
+            }
+            // Use provided compareAtPrice or calculate from discount
+            let finalCompareAtPrice = null;
+            if (compareAtPrice && parseFloat(compareAtPrice) > 0) {
+                finalCompareAtPrice = parseFloat(compareAtPrice);
+            }
+            else if (discount && parseFloat(discount) > 0) {
+                // Calculate original price from base price and discount
+                const discountPercent = parseFloat(discount);
+                const basePrice = parseFloat(price);
+                finalCompareAtPrice = basePrice / (1 - discountPercent / 100);
+            }
+            // Get category ID - if it's a string name, find it in categories table
+            let categoryId = category;
+            if (category && !category.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+                // It's a category name, find the ID
+                const { data: categoryData } = await supabaseclient_1.default
+                    .from('categories')
+                    .select('id')
+                    .ilike('name', category)
+                    .single();
+                categoryId = categoryData?.id || null;
+            }
+            // Normalize gender to lowercase (database expects: 'men', 'women', 'unisex', 'kids')
+            const normalizedGender = gender ? gender.toLowerCase() : 'unisex';
+            // Validate gender value
+            const validGenders = ['men', 'women', 'unisex', 'kids'];
+            const finalGender = validGenders.includes(normalizedGender) ? normalizedGender : 'unisex';
+            // 1. Insert the main product
+            const { data: newProduct, error: productError } = await supabaseclient_1.default
+                .from('products')
+                .insert({
+                name,
+                slug: uniqueSlug,
+                description: description || '',
+                short_description: shortDescription || description?.substring(0, 200) || '',
+                base_price: parseFloat(price),
+                compare_at_price: finalCompareAtPrice,
+                cost_price: costPrice ? parseFloat(costPrice) : null,
+                category_id: categoryId || null,
+                gender: finalGender,
+                tags: tagsArray.length > 0 ? tagsArray : null,
+                is_featured: isFeatured === 'true' || isFeatured === true,
+                is_active: true,
+                seo_title: seoTitle || name,
+                seo_description: seoDescription || description?.substring(0, 160) || ''
+            })
+                .select()
+                .single();
+            if (productError) {
+                console.error('❌ Create product error:', productError);
+                // Cleanup uploaded images
+                for (const media of uploadedMedia) {
+                    try {
+                        await cloudinary_1.default.uploader.destroy(media.cloudinary_public_id);
+                    }
+                    catch (e) {
+                        console.error('Failed to cleanup image:', e);
+                    }
+                }
+                if (productError.code === '23505') {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Product slug already exists'
+                    });
+                }
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to create product',
+                    error: productError.message
+                });
+            }
+            console.log('✅ Product created:', newProduct.id);
+            // 2. Insert product variants (one for each size+color combination)
+            const stockPerVariant = stock
+                ? Math.floor(parseInt(stock) / (sizesArray.length * colorsArray.length))
+                : 0;
+            const variantData = [];
+            let variantIndex = 0;
+            for (const size of sizesArray) {
+                for (const color of colorsArray) {
+                    variantData.push({
+                        product_id: newProduct.id,
+                        sku: `${uniqueSlug}-${size.toLowerCase().replace(/\s+/g, '-')}-${color.toLowerCase().replace(/\s+/g, '-')}-${variantIndex}`,
+                        size,
+                        color,
+                        color_code: null, // Can be enhanced to accept color codes from form
+                        material: null,
+                        additional_price: 0,
+                        stock_quantity: stockPerVariant,
+                        reserved_quantity: 0,
+                        low_stock_threshold: 5,
+                        is_active: true
+                    });
+                    variantIndex++;
+                }
+            }
+            const { data: createdVariants, error: variantsError } = await supabaseclient_1.default
+                .from('product_variants')
+                .insert(variantData)
+                .select();
+            if (variantsError) {
+                console.error('❌ Create variants error:', variantsError);
+                // Rollback product
+                await supabaseclient_1.default.from('products').delete().eq('id', newProduct.id);
+                // Cleanup images
+                for (const media of uploadedMedia) {
+                    try {
+                        await cloudinary_1.default.uploader.destroy(media.cloudinary_public_id);
+                    }
+                    catch (e) {
+                        console.error('Failed to cleanup image:', e);
+                    }
+                }
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to create product variants',
+                    error: variantsError.message
+                });
+            }
+            console.log(`✅ Created ${variantData.length} variants (${sizesArray.length} sizes × ${colorsArray.length} colors)`);
+            // 3. Insert product media (link to product, not specific variants for now)
+            if (uploadedMedia.length > 0) {
+                const mediaData = uploadedMedia.map(media => ({
+                    product_id: newProduct.id,
+                    variant_id: null, // Can be updated later to link to specific variants
+                    media_url: media.media_url,
+                    cloudinary_public_id: media.cloudinary_public_id,
+                    media_type: media.media_type,
+                    alt_text: name,
+                    sort_order: media.sort_order,
+                    is_primary: media.is_primary
+                }));
+                const { error: mediaError } = await supabaseclient_1.default
+                    .from('product_media')
+                    .insert(mediaData);
+                if (mediaError) {
+                    console.error('❌ Create media error:', mediaError);
+                    // Rollback
+                    await supabaseclient_1.default.from('product_variants').delete().eq('product_id', newProduct.id);
+                    await supabaseclient_1.default.from('products').delete().eq('id', newProduct.id);
+                    // Cleanup images
+                    for (const media of uploadedMedia) {
+                        try {
+                            await cloudinary_1.default.uploader.destroy(media.cloudinary_public_id);
+                        }
+                        catch (e) {
+                            console.error('Failed to cleanup image:', e);
+                        }
+                    }
+                    return res.status(500).json({
+                        success: false,
+                        message: 'Failed to create product media',
+                        error: mediaError.message
+                    });
+                }
+                console.log(`✅ Created ${uploadedMedia.length} media records`);
+            }
+            res.status(201).json({
+                success: true,
+                message: 'Product created successfully',
+                data: {
+                    product: newProduct,
+                    variants: createdVariants,
+                    mediaCount: uploadedMedia.length
+                }
+            });
+        }
+        catch (error) {
+            console.error('💥 Create product error:', error);
+            res.status(500).json({
+                success: false,
+                message: error.message || 'Failed to create product'
             });
         }
     }

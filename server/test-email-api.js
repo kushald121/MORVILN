@@ -1,68 +1,68 @@
+/**
+ * MORVILN Email API Testing Script
+ * This script tests all email endpoints using Node.js
+ */
+
 const axios = require('axios');
 
+const BASE_URL = 'http://localhost:5000/api/email';
+
 async function testEmailAPI() {
-  const baseURL = 'http://localhost:5000/api/email';
-  
-  console.log('📧 Testing Email API Endpoints...\n');
+  console.log('=== MORVILN Email API Testing ===');
+  console.log('Make sure the server is running on http://localhost:5000\n');
 
   try {
-    // Test 1: Connection Test
-    console.log('1️⃣ Testing Gmail SMTP connection...');
-    const connectionTest = await axios.get(`${baseURL}/test-connection`);
-    console.log('✅ Connection test result:', connectionTest.data);
+    // Test Email Connection
+    console.log('1. Testing Email Connection...');
+    const testConnectionResponse = await axios.get(`${BASE_URL}/test-connection`);
+    console.log('Response:', testConnectionResponse.data);
     console.log('');
 
-    // Test 2: Send Test Email
-    console.log('2️⃣ Sending test email...');
-    const testEmail = await axios.post(`${baseURL}/test-send`, {
-      to: 'rachnacollection11@gmail.com', // Send to the same Gmail account
-      subject: '🎉 API Test Email - Success!'
+    // Verify Email Service
+    console.log('2. Verifying Email Service...');
+    const verifyResponse = await axios.get(`${BASE_URL}/verify`);
+    console.log('Response:', verifyResponse.data);
+    console.log('');
+
+    // Send Test Email
+    console.log('3. Sending Test Email...');
+    const testEmailResponse = await axios.post(`${BASE_URL}/test-send`, {
+      to: 'recipient@example.com',
+      subject: 'Test Email from MORVILN',
+      text: 'This is a test email sent from the MORVILN application.'
     });
-    console.log('✅ Test email result:', testEmail.data);
+    console.log('Response:', testEmailResponse.data);
     console.log('');
 
-    // Test 3: Order Confirmation Email
-    console.log('3️⃣ Testing order confirmation email...');
-    const orderConfirmation = await axios.post(`${baseURL}/order-confirmation`, {
-      orderId: 'TEST-ORD-001',
-      customerName: 'Test Customer',
-      customerEmail: 'rachnacollection11@gmail.com',
-      items: [
-        {
-          name: 'Test Product',
-          quantity: 1,
-          price: 999
-        }
-      ],
-      totalAmount: 999,
-      shippingAddress: '123 Test Street\nTest City, Test State 12345',
-      orderDate: new Date().toLocaleDateString(),
-      estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()
+    // Send Order Confirmation
+    console.log('4. Sending Order Confirmation...');
+    const orderConfirmationResponse = await axios.post(`${BASE_URL}/order-confirmation`, {
+      email: 'customer@example.com',
+      orderData: {
+        customerName: 'John Doe',
+        orderId: 'ORD-12345',
+        orderDate: '2025-11-22',
+        totalAmount: 15000,
+        shippingAddress: '123 Main St, City, State 12345',
+        items: [
+          {
+            name: 'Product 1',
+            quantity: 2,
+            price: 5000
+          }
+        ]
+      }
     });
-    console.log('✅ Order confirmation result:', orderConfirmation.data);
+    console.log('Response:', orderConfirmationResponse.data);
     console.log('');
 
-    // Test 4: Welcome Email
-    console.log('4️⃣ Testing welcome email...');
-    const welcomeEmail = await axios.post(`${baseURL}/welcome`, {
-      userName: 'Test User',
-      userEmail: 'rachnacollection11@gmail.com',
-      verificationLink: 'https://example.com/verify?token=test123'
-    });
-    console.log('✅ Welcome email result:', welcomeEmail.data);
-    console.log('');
-
-    console.log('🎉 All email tests completed successfully!');
-    console.log('📬 Check your Gmail inbox for the test emails.');
+    console.log('=== Testing Complete ===');
+    console.log('Check your email inbox for the sent emails');
 
   } catch (error) {
-    console.error('❌ Email API test failed:', error.response?.data || error.message);
-    
-    if (error.code === 'ECONNREFUSED') {
-      console.log('\n💡 Make sure your server is running on http://localhost:5000');
-      console.log('   Run: npm run dev');
-    }
+    console.error('Error testing email API:', error.response ? error.response.data : error.message);
   }
 }
 
+// Run the test
 testEmailAPI();

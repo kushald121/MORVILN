@@ -1,0 +1,291 @@
+{
+	"info": {
+		"_postman_id": "9d4e5f4a-1c1a-4c1a-9d4e-5f4a1c1a4c1a",
+		"name": "MORVILN Email API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"description": "Collection for testing MORVILN Email API endpoints"
+	},
+	"item": [
+		{
+			"name": "Test Email Connection",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/email/test-connection",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"email",
+						"test-connection"
+					]
+				},
+				"description": "Test the email service connection"
+			},
+			"response": []
+		},
+		{
+			"name": "Verify Email Service",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/email/verify",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"email",
+						"verify"
+					]
+				},
+				"description": "Verify the email service is working"
+			},
+			"response": []
+		},
+		{
+			"name": "Send Test Email",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"to\": \"test@example.com\",\n  \"subject\": \"Test Email from MORVILN\",\n  \"text\": \"This is a test email sent from the MORVILN application.\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/email/test-send",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"email",
+						"test-send"
+					]
+				},
+				"description": "Send a test email"
+			},
+			"response": []
+		},
+		{
+			"name": "Send Order Confirmation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"customer@example.com\",\n  \"orderData\": {\n    \"customerName\": \"John Doe\",\n    \"orderId\": \"ORD-12345\",\n    \"orderDate\": \"2025-11-22\",\n    \"totalAmount\": 15000,\n    \"shippingAddress\": \"123 Main St, City, State 12345\",\n    \"items\": [\n      {\n        \"name\": \"Product 1\",\n        \"quantity\": 2,\n        \"price\": 5000\n      },\n      {\n        \"name\": \"Product 2\",\n        \"quantity\": 1,\n        \"price\": 5000\n      }\n    ]\n  }\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/email/order-confirmation",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"email",
+						"order-confirmation"
+					]
+				},
+				"description": "Send an order confirmation email"
+			},
+			"response": []
+		},
+		{
+			"name": "Send Product Launch Announcement",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"emails\": [\n    \"subscriber1@example.com\",\n    \"subscriber2@example.com\"\n  ],\n  \"productData\": {\n    \"productName\": \"New Amazing Product\",\n    \"productDescription\": \"This is an amazing new product that will change your life!\",\n    \"productImage\": \"https://example.com/product-image.jpg\",\n    \"productUrl\": \"https://example.com/new-product\",\n    \"launchDate\": \"2025-12-01\",\n    \"specialOffer\": \"Get 20% off for the first 100 customers!\"\n  }\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/email/product-launch",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"email",
+						"product-launch"
+					]
+				},
+				"description": "Send a product launch announcement to multiple subscribers"
+			},
+			"response": []
+		},
+		{
+			"name": "Send Custom Offer",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"emails\": [\n    \"customer1@example.com\",\n    \"customer2@example.com\"\n  ],\n  \"offerData\": {\n    \"customerName\": \"Valued Customer\",\n    \"offerTitle\": \"Special Holiday Offer\",\n    \"offerDescription\": \"Enjoy exclusive discounts on our premium products this holiday season.\",\n    \"discountCode\": \"HOLIDAY25\",\n    \"validUntil\": \"2025-12-31\",\n    \"termsAndConditions\": \"Offer valid for new customers only. Cannot be combined with other offers.\"\n  }\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/email/custom-offer",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"email",
+						"custom-offer"
+					]
+				},
+				"description": "Send a custom offer to multiple customers"
+			},
+			"response": []
+		},
+		{
+			"name": "Send Welcome Email",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"userName\": \"John Doe\",\n  \"userEmail\": \"john.doe@example.com\",\n  \"verificationLink\": \"https://example.com/verify?token=abc123\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/email/welcome",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"email",
+						"welcome"
+					]
+				},
+				"description": "Send a welcome email to a new user"
+			},
+			"response": []
+		},
+		{
+			"name": "Send Password Reset Email",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"userEmail\": \"user@example.com\",\n  \"resetData\": {\n    \"userName\": \"John Doe\",\n    \"resetLink\": \"https://example.com/reset-password?token=xyz789\",\n    \"expiryTime\": \"2025-11-23 16:00:00 UTC\"\n  }\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/email/password-reset",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"email",
+						"password-reset"
+					]
+				},
+				"description": "Send a password reset email to a user"
+			},
+			"response": []
+		},
+		{
+			"name": "Send Admin Order Notification",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"adminEmails\": [\n    \"admin1@example.com\",\n    \"admin2@example.com\"\n  ],\n  \"orderDetails\": {\n    \"orderId\": \"ORD-12345\",\n    \"customerName\": \"John Doe\",\n    \"customerEmail\": \"john.doe@example.com\",\n    \"items\": [\n      {\n        \"name\": \"Product 1\",\n        \"quantity\": 2,\n        \"price\": 5000\n      }\n    ],\n    \"totalAmount\": 10000,\n    \"shippingAddress\": \"123 Main St\\nCity, State 12345\",\n    \"orderDate\": \"2025-11-22\"\n  }\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/email/admin-order-notification",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"email",
+						"admin-order-notification"
+					]
+				},
+				"description": "Send an order notification to admin users"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

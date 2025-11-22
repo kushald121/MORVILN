@@ -1,19 +1,30 @@
 import dotenv from 'dotenv';
-import supabase, { testSupabaseConnection, initializeSupabaseTables } from './supabaseclient';
+import supabase, { testSupabaseConnection, initializeSupabaseTables, isSupabaseEnabled } from './supabaseclient';
 
 dotenv.config();
 
-console.log('✅ Using Supabase client for database operations');
+if (isSupabaseEnabled) {
+  console.log('✅ Using Supabase client for database operations');
+} else {
+  console.log('⚠️ Supabase not configured - using minimal database setup');
+}
 
 // Initialize Supabase database connection and check tables
 export const initializeDatabase = async () => {
-  console.log('🔄 Initializing Supabase connection...');
+  console.log('🔄 Initializing database connection...');
+  
+  // If Supabase is not enabled, skip initialization
+  if (!isSupabaseEnabled) {
+    console.log('⚠️ Supabase not configured - skipping database initialization');
+    return Promise.resolve(true);
+  }
   
   try {
     // Test Supabase connection
     const connectionTest = await testSupabaseConnection();
     if (!connectionTest) {
-      throw new Error('Supabase connection failed');
+      console.log('⚠️ Supabase connection failed - continuing with limited functionality');
+      return Promise.resolve(false);
     }
 
     // Check if tables exist and are properly set up
@@ -22,14 +33,15 @@ export const initializeDatabase = async () => {
       console.log('📝 SQL Schema needed. Please run this SQL in your Supabase dashboard:');
       console.log('   Go to: Project Dashboard → SQL Editor → New Query');
       console.log('   Copy and execute the SQL from: server/sql/schema.sql');
-      return false;
+      return Promise.resolve(false);
     }
 
     console.log('✅ Supabase database initialized successfully');
-    return true;
+    return Promise.resolve(true);
   } catch (error: any) {
     console.error('❌ Supabase database initialization failed:', error.message);
-    throw error;
+    console.log('⚠️ Continuing with limited functionality');
+    return Promise.resolve(false);
   }
 };
 

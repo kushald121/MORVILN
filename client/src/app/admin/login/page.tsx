@@ -55,7 +55,7 @@ const AdminLogin = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Navigation */}
-      <nav className="bg-white shadow-sm">
+      {/* <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-orange-500 via-rose-500 to-indigo-600 bg-clip-text text-transparent">
@@ -66,7 +66,7 @@ const AdminLogin = () => {
             </Link>
           </div>
         </div>
-      </nav>
+      </nav> */}
 
       {/* Login Form */}
       <div className="flex-grow flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

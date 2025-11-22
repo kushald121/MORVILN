@@ -9,23 +9,23 @@ const transporter = nodemailer.createTransport({
   port: parseInt(process.env.SMTP_PORT || '587'),
   secure: false, // Use STARTTLS
   auth: {
-    user: process.env.SMTP_EMAIL,
-    pass: process.env.SMTP_PASSWORD,
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
   },
 });
 
 // Validate required environment variables
-if (!process.env.SMTP_EMAIL || !process.env.SMTP_PASSWORD) {
+if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
   console.error('❌ Missing required Gmail SMTP environment variables');
-  console.error('Required: SMTP_EMAIL, SMTP_PASSWORD');
+  console.error('Required: GMAIL_USER, GMAIL_APP_PASSWORD');
   console.error('💡 Make sure to use Gmail App Password, not regular password');
   process.exit(1);
 }
 
 // Email configuration
 export const emailConfig = {
-  from: process.env.SMTP_EMAIL,
-  fromName: process.env.FROM_NAME || 'Your App',
+  from: process.env.GMAIL_USER,
+  fromName: process.env.EMAIL_FROM_NAME || 'MORVLIN',
 };
 
 // Test connection function

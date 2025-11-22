@@ -4,6 +4,10 @@ import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authService } from '@/lib/auth';
+import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
+import { apiClient } from '@/lib/api';
+import { AddressService, type Address } from '../services/address.service';
 import { 
   User, Mail, Phone, MapPin, Settings, ShoppingBag, Heart, 
   Edit2, Save, X, LogOut, Package, Clock, Shield 
@@ -20,12 +24,26 @@ interface UserData {
   createdAt?: string;
 }
 
+interface UserStats {
+  totalOrders: number;
+  wishlistItems: number;
+  pendingOrders: number;
+}
+
 const ProfilePage = () => {
   const router = useRouter();
+  const { user: authUser, isAuthenticated } = useAuth();
+  const toast = useToast();
   const [user, setUser] = useState<UserData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [stats, setStats] = useState<UserStats>({
+    totalOrders: 0,
+    wishlistItems: 0,
+    pendingOrders: 0
+  });
   const [editedData, setEditedData] = useState({
     name: '',
     phone: '',
@@ -36,10 +54,20 @@ const ProfilePage = () => {
 
   useEffect(() => {
     loadUserData();
-  }, []);
+    loadUserStats();
+    loadUserAddresses();
+  }, [authUser, isAuthenticated]);
 
   const loadUserData = () => {
     try {
+      const hasToken = typeof window !== 'undefined' && localStorage.getItem('userToken');
+      
+      if (!hasToken && !isAuthenticated) {
+        toast.warning('Please login to view your profile');
+        router.push('/login');
+        return;
+      }
+
       const userData = authService.getCurrentUser();
       if (!userData) {
         router.push('/login');
@@ -55,9 +83,43 @@ const ProfilePage = () => {
       });
     } catch (error) {
       console.error('Error loading user data:', error);
+      toast.error('Failed to load user data');
       router.push('/login');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadUserStats = async () => {
+    try {
+      // Fetch orders
+      const ordersResponse = await apiClient.get('/api/orders');
+      const orders = ordersResponse.data.orders || [];
+      
+      // Fetch favorites
+      const favoritesResponse = await apiClient.get('/api/favorites');
+      const favorites = favoritesResponse.data.favorites || [];
+      
+      setStats({
+        totalOrders: orders.length,
+        wishlistItems: favorites.length,
+        pendingOrders: orders.filter((order: any) => 
+          order.status === 'pending' || order.status === 'processing'
+        ).length
+      });
+    } catch (error) {
+      console.error('Error loading user stats:', error);
+      // Keep default stats if error
+    }
+  };
+
+  const loadUserAddresses = async () => {
+    try {
+      const fetchedAddresses = await AddressService.getAddresses();
+      setAddresses(fetchedAddresses);
+    } catch (error) {
+      console.error('Error loading addresses:', error);
+      // Keep empty addresses if error
     }
   };
 
@@ -73,20 +135,31 @@ const ProfilePage = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // TODO: API call to update user profile
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated API call
+      // Update user profile
+      const response = await apiClient.put('/api/auth/profile', {
+        name: editedData.name,
+        phone: editedData.phone
+      });
       
-      if (user) {
-        setUser({
-          ...user,
-          name: editedData.name,
-          phone: editedData.phone
-        });
+      if (response.data.success) {
+        if (user) {
+          const updatedUser = {
+            ...user,
+            name: editedData.name,
+            phone: editedData.phone
+          };
+          setUser(updatedUser);
+          
+          // Update localStorage
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+        
+        toast.success('Profile updated successfully!');
+        setIsEditing(false);
       }
-      
-      setIsEditing(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving profile:', error);
+      toast.error(error.response?.data?.message || 'Failed to update profile');
     } finally {
       setSaving(false);
     }
@@ -202,7 +275,7 @@ const ProfilePage = () => {
                     </div>
                     <span className="text-sm font-medium text-gray-700">Total Orders</span>
                   </div>
-                  <span className="font-bold text-orange-600 text-lg">12</span>
+                  <span className="font-bold text-orange-600 text-lg">{stats.totalOrders}</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-3">
@@ -211,7 +284,7 @@ const ProfilePage = () => {
                     </div>
                     <span className="text-sm font-medium text-gray-700">Wishlist Items</span>
                   </div>
-                  <span className="font-bold text-rose-600 text-lg">8</span>
+                  <span className="font-bold text-rose-600 text-lg">{stats.wishlistItems}</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-3">
@@ -220,7 +293,7 @@ const ProfilePage = () => {
                     </div>
                     <span className="text-sm font-medium text-gray-700">Pending</span>
                   </div>
-                  <span className="font-bold text-amber-600 text-lg">2</span>
+                  <span className="font-bold text-amber-600 text-lg">{stats.pendingOrders}</span>
                 </div>
               </div>
             </div>
@@ -326,41 +399,53 @@ const ProfilePage = () => {
                 <div>
                   <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                     <MapPin className="w-4 h-4 text-orange-500" />
-                    Shipping Address
+                    Saved Addresses
                   </label>
-                  {isEditing ? (
-                    <div className="space-y-3">
-                      <input
-                        type="text"
-                        value={editedData.address}
-                        onChange={(e) => setEditedData({ ...editedData, address: e.target.value })}
-                        className="w-full p-4 bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-                        placeholder="Street Address"
-                      />
-                      <div className="grid grid-cols-2 gap-3">
-                        <input
-                          type="text"
-                          value={editedData.city}
-                          onChange={(e) => setEditedData({ ...editedData, city: e.target.value })}
-                          className="w-full p-4 bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-                          placeholder="City"
-                        />
-                        <input
-                          type="text"
-                          value={editedData.country}
-                          onChange={(e) => setEditedData({ ...editedData, country: e.target.value })}
-                          className="w-full p-4 bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
-                          placeholder="Country"
-                        />
+                  <div className="space-y-3">
+                    {addresses.length > 0 ? (
+                      addresses.slice(0, 2).map((address) => (
+                        <div 
+                          key={address.id}
+                          className="p-4 bg-gradient-to-r from-orange-50 to-rose-50 rounded-xl border border-gray-100"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-gray-900 font-medium">{address.full_name}</p>
+                            {address.label && (
+                              <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">
+                                {address.label}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-gray-700 text-sm">
+                            {address.address_line_1}
+                            {address.address_line_2 && `, ${address.address_line_2}`}
+                          </p>
+                          <p className="text-gray-600 text-sm mt-1">
+                            {address.city}, {address.state} - {address.postal_code}
+                          </p>
+                          <p className="text-gray-500 text-xs mt-1">{address.phone}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 bg-gradient-to-r from-orange-50 to-rose-50 rounded-xl border border-gray-100">
+                        <p className="text-gray-500 text-sm">No saved addresses</p>
+                        <button
+                          onClick={() => router.push('/profile/addresses')}
+                          className="text-orange-600 text-sm font-medium mt-2 hover:underline"
+                        >
+                          Add your first address →
+                        </button>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="p-4 bg-gradient-to-r from-orange-50 to-rose-50 rounded-xl border border-gray-100">
-                      <p className="text-gray-900 font-medium">123 Fashion Street</p>
-                      <p className="text-gray-600 text-sm mt-1">Mumbai, Maharashtra 400001</p>
-                      <p className="text-gray-600 text-sm">India</p>
-                    </div>
-                  )}
+                    )}
+                    {addresses.length > 2 && (
+                      <button
+                        onClick={() => router.push('/profile/addresses')}
+                        className="text-orange-600 text-sm font-medium hover:underline"
+                      >
+                        View all {addresses.length} addresses →
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 import { useRouter } from 'next/navigation';
 import { Trash2, Plus, Minus, MapPin, User, Phone, ShoppingBag } from 'lucide-react';
 import { type Address } from '../../services/address.service';
@@ -23,13 +24,13 @@ interface CartItem {
 }
 
 const OrderSummaryPageOptimized = () => {
-  const { user, getAuthHeaders, getCurrentSessionId, getSessionType } = useAuth();
+  const { user, isAuthenticated, getAuthHeaders, getCurrentSessionId, getSessionType } = useAuth();
+  const toast = useToast();
   const router = useRouter();
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [orderSummary, setOrderSummary] = useState({
     subtotal: 0,
     shipping: 0,
@@ -38,7 +39,10 @@ const OrderSummaryPageOptimized = () => {
   });
 
   useEffect(() => {
-    if (!user) {
+    // Check authentication
+    const hasToken = typeof window !== 'undefined' && localStorage.getItem('userToken');
+    
+    if (!hasToken && !isAuthenticated) {
       router.push('/login');
       return;
     }
@@ -46,19 +50,24 @@ const OrderSummaryPageOptimized = () => {
     // Get selected address from localStorage
     const storedAddress = localStorage.getItem('selectedAddress');
     if (storedAddress) {
-      setSelectedAddress(JSON.parse(storedAddress));
+      try {
+        setSelectedAddress(JSON.parse(storedAddress));
+      } catch (e) {
+        console.error('Failed to parse stored address');
+        router.push('/checkout/address');
+        return;
+      }
     } else {
       router.push('/checkout/address');
       return;
     }
 
     fetchCartItems();
-  }, [user, router]);
+  }, [isAuthenticated, router]);
 
   const fetchCartItems = async () => {
     try {
       setLoading(true);
-      setError('');
 
       const sessionId = getCurrentSessionId?.();
       const sessionType = getSessionType?.();
@@ -75,11 +84,11 @@ const OrderSummaryPageOptimized = () => {
         setCartItems(items);
         calculateOrderSummary(items);
       } else {
-        setError(response.data.message || 'Failed to load cart items');
+        toast.error(response.data.message || 'Failed to load cart items');
       }
     } catch (error: any) {
       console.error('Error fetching cart:', error);
-      setError(error.response?.data?.message || 'Failed to load cart items');
+      toast.error(error.response?.data?.message || 'Failed to load cart items');
     } finally {
       setLoading(false);
     }
@@ -126,7 +135,7 @@ const OrderSummaryPageOptimized = () => {
       fetchCartItems();
     } catch (error: any) {
       console.error('Error updating quantity:', error);
-      setError(error.response?.data?.message || 'Failed to update quantity');
+      toast.error(error.response?.data?.message || 'Failed to update quantity');
     }
   };
 
@@ -148,18 +157,18 @@ const OrderSummaryPageOptimized = () => {
       fetchCartItems();
     } catch (error: any) {
       console.error('Error removing item:', error);
-      setError(error.response?.data?.message || 'Failed to remove item');
+      toast.error(error.response?.data?.message || 'Failed to remove item');
     }
   };
 
   const handleProceedToPayment = () => {
     if (cartItems.length === 0) {
-      setError('Your cart is empty');
+      toast.warning('Your cart is empty');
       return;
     }
 
     if (!selectedAddress) {
-      setError('Please select a delivery address');
+      toast.warning('Please select a delivery address');
       return;
     }
 
@@ -232,20 +241,6 @@ const OrderSummaryPageOptimized = () => {
             Review your order before proceeding to payment
           </p>
         </motion.div>
-
-        {/* Error Message */}
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="max-w-4xl mx-auto mb-6 bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl"
-            >
-              {error}
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           {/* Order Items */}

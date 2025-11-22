@@ -14,7 +14,7 @@ export const generatePasswordResetToken = (): { token: string; expires: Date } =
   const token = crypto.randomBytes(32).toString('hex');
   const expires = new Date();
   expires.setHours(expires.getHours() + 1); // Token expires in 1 hour
-  
+
   return { token, expires };
 };
 
@@ -104,7 +104,7 @@ export const isDisposableEmail = (email: string): boolean => {
     'yopmail.com',
     // Add more disposable email domains as needed
   ];
-  
+
   const domain = extractDomain(email).toLowerCase();
   return disposableDomains.includes(domain);
 };
@@ -129,7 +129,7 @@ export const createUnsubscribeLink = (baseUrl: string, email: string, token: str
 export const validateBulkRecipients = (recipients: string[]): { valid: string[]; invalid: string[] } => {
   const valid: string[] = [];
   const invalid: string[] = [];
-  
+
   recipients.forEach(email => {
     if (isValidEmail(email) && !isDisposableEmail(email)) {
       valid.push(email);
@@ -137,7 +137,7 @@ export const validateBulkRecipients = (recipients: string[]): { valid: string[];
       invalid.push(email);
     }
   });
-  
+
   return { valid, invalid };
 };
 
@@ -155,10 +155,10 @@ export const calculateSendingDelay = (totalEmails: number, maxPerHour: number = 
 export const generatePreviewText = (content: string, maxLength: number = 150): string => {
   // Remove HTML tags and get plain text
   const plainText = content.replace(/<[^>]*>/g, '').trim();
-  
+
   if (plainText.length <= maxLength) {
     return plainText;
   }
-  
+
   return plainText.substring(0, maxLength).trim() + '...';
 };

@@ -32,6 +32,7 @@ class EmailService {
     }
   }
 
+<<<<<<< HEAD
   // Order Confirmation Mail 
   public async sendOrderConfirmation(
     email: string,
@@ -48,6 +49,103 @@ class EmailService {
       `
       )
       .join('');
+=======
+  /**
+   * Send order confirmation email to customer
+   */
+  async sendOrderConfirmation(orderDetails: OrderDetails): Promise<boolean> {
+    const html = orderConfirmationTemplate(orderDetails);
+
+    return this.sendEmail({
+      to: orderDetails.customerEmail,
+      subject: `Order Confirmation - ${orderDetails.orderId}`,
+      html,
+    });
+  }
+
+  /**
+   * Send order notification to admin
+   */
+  async sendAdminOrderNotification(
+    orderDetails: OrderDetails,
+    adminEmails: string | string[]
+  ): Promise<boolean> {
+    const html = adminOrderNotificationTemplate(orderDetails);
+
+    return this.sendEmail({
+      to: adminEmails,
+      subject: `🔔 New Order Received - ${orderDetails.orderId}`,
+      html,
+    });
+  }
+
+  /**
+   * Send welcome email to new user
+   */
+  async sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean> {
+    const html = welcomeEmailTemplate(data);
+
+    return this.sendEmail({
+      to: data.userEmail,
+      subject: '🎉 Welcome to Our Platform!',
+      html,
+    });
+  }
+
+  /**
+   * Send password reset email
+   */
+  async sendPasswordResetEmail(data: PasswordResetData, userEmail: string): Promise<boolean> {
+    const html = passwordResetTemplate(data);
+
+    return this.sendEmail({
+      to: userEmail,
+      subject: '🔐 Password Reset Request',
+      html,
+    });
+  }
+
+  /**
+   * Send email verification
+   */
+  async sendEmailVerification(
+    userEmail: string,
+    userName: string,
+    verificationLink: string
+  ): Promise<boolean> {
+    const data: WelcomeEmailData = {
+      userName,
+      userEmail,
+      verificationLink,
+    };
+
+    const html = welcomeEmailTemplate(data);
+
+    return this.sendEmail({
+      to: userEmail,
+      subject: '📧 Please Verify Your Email Address',
+      html,
+    });
+  }
+
+  /**
+   * Send order status update
+   */
+  async sendOrderStatusUpdate(
+    customerEmail: string,
+    orderId: string,
+    status: string,
+    trackingNumber?: string
+  ): Promise<boolean> {
+    const statusMessages = {
+      processing: 'Your order is being processed',
+      shipped: 'Your order has been shipped',
+      delivered: 'Your order has been delivered',
+      cancelled: 'Your order has been cancelled',
+    };
+
+    const message = statusMessages[status as keyof typeof statusMessages] || `Order status updated to: ${status}`;
+>>>>>>> f3387b1 (fix: saving all local changes before merge)
 
     const html = `
       <!DOCTYPE html>
@@ -153,6 +251,7 @@ class EmailService {
       </html>
     `;
 
+<<<<<<< HEAD
     // Send to multiple recipients
     for (const email of emails) {
       await this.sendEmail({
@@ -160,6 +259,29 @@ class EmailService {
         subject: `New Product: ${data.productName}`,
         html,
       });
+=======
+    // Send emails in batches to avoid overwhelming the SMTP server
+    for (let i = 0; i < recipients.length; i += batchSize) {
+      const batch = recipients.slice(i, i + batchSize);
+
+      try {
+        await this.sendEmail({
+          bcc: batch, // Use BCC to hide recipient list
+          to: emailConfig.from, // Send to self as primary recipient
+          subject,
+          html,
+        });
+        success += batch.length;
+      } catch (error) {
+        console.error(`Failed to send batch ${i / batchSize + 1}:`, error);
+        failed += batch.length;
+      }
+
+      // Add delay between batches to be respectful to the SMTP server
+      if (i + batchSize < recipients.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+>>>>>>> f3387b1 (fix: saving all local changes before merge)
     }
   }
 

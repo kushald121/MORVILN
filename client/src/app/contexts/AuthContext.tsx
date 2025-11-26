@@ -28,12 +28,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Initialize auth state
+  // Function to sync auth state from localStorage
+  const syncAuthState = () => {
     const currentUser = authService.getCurrentUser();
     const currentToken = authService.getToken();
     setUser(currentUser);
     setToken(currentToken);
+  };
+
+  useEffect(() => {
+    // Initialize auth state on mount
+    syncAuthState();
+
+    // Listen for storage changes (when OAuth callback updates localStorage in another tab/window)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'userToken' || e.key === 'userData') {
+        syncAuthState();
+      }
+    };
+
+    // Listen for custom event when auth state changes in same window
+    const handleAuthChange = () => {
+      syncAuthState();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('auth-state-changed', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('auth-state-changed', handleAuthChange);
+    };
   }, []);
 
   const login = async (email: string, password: string) => {

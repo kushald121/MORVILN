@@ -58,21 +58,48 @@ const ProfilePage = () => {
     loadUserAddresses();
   }, [authUser, isAuthenticated]);
 
-  const loadUserData = () => {
+  const loadUserData = async () => {
     try {
+      setLoading(true);
+      
+      // Check for token in localStorage first
       const hasToken = typeof window !== 'undefined' && localStorage.getItem('userToken');
       
-      if (!hasToken && !isAuthenticated) {
+      // If no token and not authenticated, redirect to login
+      if (!hasToken && !isAuthenticated && !authUser) {
         toast.warning('Please login to view your profile');
         router.push('/login');
         return;
       }
 
-      const userData = authService.getCurrentUser();
+      // Get user from AuthContext or localStorage
+      let userData = authUser || authService.getCurrentUser();
+      
+      // If still no user data, try to fetch from API
+      if (!userData && hasToken) {
+        try {
+          const response = await apiClient.get('/auth/me');
+          if (response.data.success) {
+            userData = response.data.user;
+            // Update localStorage with fresh data
+            localStorage.setItem('userData', JSON.stringify(userData));
+          }
+        } catch (error) {
+          console.error('Failed to fetch user profile:', error);
+          // Token might be invalid
+          localStorage.removeItem('userToken');
+          localStorage.removeItem('userData');
+          toast.error('Session expired. Please login again.');
+          router.push('/login');
+          return;
+        }
+      }
+
       if (!userData) {
         router.push('/login');
         return;
       }
+
       setUser(userData);
       setEditedData({
         name: userData.name || '',
@@ -92,21 +119,42 @@ const ProfilePage = () => {
 
   const loadUserStats = async () => {
     try {
-      // Fetch orders
-      const ordersResponse = await apiClient.get('/api/orders');
-      const orders = ordersResponse.data.orders || [];
-      
-      // Fetch favorites
-      const favoritesResponse = await apiClient.get('/api/favorites');
-      const favorites = favoritesResponse.data.favorites || [];
-      
-      setStats({
-        totalOrders: orders.length,
-        wishlistItems: favorites.length,
-        pendingOrders: orders.filter((order: any) => 
-          order.status === 'pending' || order.status === 'processing'
-        ).length
-      });
+      const hasToken = typeof window !== 'undefined' && localStorage.getItem('userToken');
+      if (!hasToken) {
+        // No token, skip loading stats
+        return;
+      }
+
+      // Fetch orders (with error handling)
+      try {
+        const ordersResponse = await apiClient.get('/api/orders');
+        const orders = ordersResponse.data.orders || [];
+        
+        setStats(prev => ({
+          ...prev,
+          totalOrders: orders.length,
+          pendingOrders: orders.filter((order: any) => 
+            order.status === 'pending' || order.status === 'processing'
+          ).length
+        }));
+      } catch (orderError) {
+        console.log('Orders endpoint not available yet');
+        // Keep default order stats
+      }
+
+      // Fetch favorites (with error handling)
+      try {
+        const favoritesResponse = await apiClient.get('/api/favorites');
+        const favorites = favoritesResponse.data.favorites || [];
+        
+        setStats(prev => ({
+          ...prev,
+          wishlistItems: favorites.length
+        }));
+      } catch (favError) {
+        console.log('Favorites endpoint not available yet');
+        // Keep default favorites stats
+      }
     } catch (error) {
       console.error('Error loading user stats:', error);
       // Keep default stats if error
@@ -150,8 +198,11 @@ const ProfilePage = () => {
           };
           setUser(updatedUser);
           
-          // Update localStorage
-          localStorage.setItem('user', JSON.stringify(updatedUser));
+          // Update localStorage with correct key
+          localStorage.setItem('userData', JSON.stringify(updatedUser));
+          
+          // Dispatch event to sync AuthContext
+          window.dispatchEvent(new Event('auth-state-changed'));
         }
         
         toast.success('Profile updated successfully!');

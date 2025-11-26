@@ -99,7 +99,7 @@ class UserModel {
     return data ? this.mapRowToUser(data) : null;
   }
 
-  async updateUser(id: string, updates: Partial<CreateUserInput>): Promise<User> {
+  async updateUser(id: string, updates: Partial<CreateUserInput & { passwordHash?: string }>): Promise<User> {
     if (!supabaseAdmin) {
       throw new Error('Database not configured');
     }
@@ -114,6 +114,7 @@ class UserModel {
     if (updates.providerId) updateData.provider_id = updates.providerId;
     if (updates.isVerified !== undefined) updateData.is_verified = updates.isVerified;
     if (updates.phone) updateData.phone = updates.phone;
+    if (updates.passwordHash) updateData.password_hash = updates.passwordHash;
 
     // Use supabaseAdmin to bypass RLS for updates
     const { data, error } = await supabaseAdmin

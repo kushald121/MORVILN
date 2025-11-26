@@ -1,16 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { authService } from '@/lib/auth';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiShoppingCart } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { FaFacebook } from 'react-icons/fa';
+import { CheckCircle } from 'lucide-react';
 
-const Login = () => {
+const LoginContent = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -18,6 +20,16 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showVerifiedMessage, setShowVerifiedMessage] = useState(false);
+
+  useEffect(() => {
+    // Check if user was redirected after email verification
+    if (searchParams.get('verified') === 'true') {
+      setShowVerifiedMessage(true);
+      // Hide message after 5 seconds
+      setTimeout(() => setShowVerifiedMessage(false), 5000);
+    }
+  }, [searchParams]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -35,7 +47,10 @@ const Login = () => {
 
     try {
       await authService.login(formData);
-      router.push('/');
+      // Give AuthContext time to sync
+      setTimeout(() => {
+        router.push('/');
+      }, 100);
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.');
     } finally {
@@ -126,6 +141,26 @@ const Login = () => {
               <h2 className="text-2xl font-bold text-gray-800 mb-1">Sign in</h2>
               <p className="text-sm text-gray-600">Welcome back! Please enter your details</p>
             </div>
+
+            {/* Email Verified Success Message */}
+            <AnimatePresence>
+              {showVerifiedMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  className="mb-4 p-3 bg-green-50 border-2 border-green-200 rounded-xl"
+                >
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                    <div className="text-sm">
+                      <p className="font-semibold text-green-800">Email Verified Successfully! ✓</p>
+                      <p className="text-green-700">You can now login with your credentials.</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {error && (
               <motion.div 
@@ -251,6 +286,19 @@ const Login = () => {
         </motion.div>
       </div>
     </div>
+  );
+};
+
+// Wrap with Suspense for useSearchParams
+const Login = () => {
+  return (
+    <Suspense fallback={
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 };
 

@@ -39,11 +39,40 @@ export class AuthController {
         });
       }
 
-      // Hash password
+      // Use Supabase Auth to create user with email confirmation
+      console.log('🔐 Creating user with Supabase Auth...');
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            phone
+          },
+          emailRedirectTo: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback`
+        }
+      });
+
+      if (authError) {
+        console.error('❌ Supabase Auth error:', authError);
+        return res.status(400).json({
+          success: false,
+          message: authError.message || 'Failed to create account'
+        });
+      }
+
+      if (!authData.user) {
+        return res.status(400).json({
+          success: false,
+          message: 'Failed to create user'
+        });
+      }
+
+      // Hash password for our custom users table
       console.log('🔐 Hashing password...');
       const hashedPassword = await hashPassword(password);
 
-      // Create user with correct field name
+      // Create user in our custom users table
       console.log('👤 Creating user in database...');
       const user = await userModel.createUser({
         email,
@@ -55,6 +84,25 @@ export class AuthController {
       } as CreateUserInput);
       console.log('✅ User created successfully:', user.id);
 
+      // Check if email confirmation is required
+      const requiresConfirmation = !authData.session;
+
+      if (requiresConfirmation) {
+        console.log('📧 Email confirmation required');
+        return res.status(201).json({
+          success: true,
+          message: 'Registration successful! Please check your email to confirm your account.',
+          requiresEmailConfirmation: true,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            isVerified: false
+          }
+        });
+      }
+
+      // If no confirmation needed (shouldn't happen with email provider)
       // Generate auth response
       const authResponse = generateAuthResponse(user);
 
@@ -100,7 +148,7 @@ export class AuthController {
         });
       }
 
-      // Find user
+      // Find user in custom database
       const user = await userModel.findUserByEmail(email);
       if (!user) {
         return res.status(401).json({
@@ -117,7 +165,7 @@ export class AuthController {
         });
       }
 
-      // Verify password
+      // Verify password against custom database
       if (!user.passwordHash) {
         return res.status(401).json({
           success: false,
@@ -133,13 +181,31 @@ export class AuthController {
         });
       }
 
+      // Also sign in to Supabase Auth to create session (optional - for features that need Supabase)
+      if (user.provider === 'email') {
+        try {
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password
+          });
+          
+          if (signInError) {
+            console.log('Supabase sign in info:', signInError.message);
+            // Don't block login if Supabase fails - our custom auth is sufficient
+          }
+        } catch (supabaseError) {
+          console.log('Supabase sign in error - continuing with custom auth');
+          // Continue with custom auth - this is fine
+        }
+      }
+
       // Update last login (use supabaseAdmin to bypass RLS)
       await supabaseAdmin
         .from('users')
         .update({ last_login: new Date().toISOString() })
         .eq('id', user.id);
 
-      // Generate auth response
+      // Generate auth response from custom database
       const authResponse = generateAuthResponse(user);
 
       // Set cookie
@@ -272,6 +338,7 @@ export class AuthController {
           id: user.id,
           email: user.email,
           name: user.name,
+          phone: user.phone,
           avatar: user.avatarUrl,
           isVerified: user.isVerified,
           provider: user.provider
@@ -297,6 +364,299 @@ export class AuthController {
       success: true,
       message: 'Logged out successfully'
     });
+  }
+
+  // Forgot Password - Send reset email using Supabase
+  async forgotPassword(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email is required'
+        });
+      }
+
+      // Check if user exists
+      const user = await userModel.findUserByEmail(email);
+      
+      // For security, always return success even if user doesn't exist
+      // This prevents email enumeration attacks
+      if (!user) {
+        return res.json({
+          success: true,
+          message: 'If an account exists with this email, a password reset link has been sent'
+        });
+      }
+
+      // Use Supabase's built-in password reset
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password`,
+      });
+
+      if (error) {
+        console.error('Supabase password reset error:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to send password reset email'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'If an account exists with this email, a password reset link has been sent'
+      });
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
+  }
+
+  // Reset Password - Update password with new one
+  async resetPassword(req: Request, res: Response) {
+    try {
+      const { password, token } = req.body;
+
+      if (!password) {
+        return res.status(400).json({
+          success: false,
+          message: 'New password is required'
+        });
+      }
+
+      // Validate password strength
+      if (password.length < 8) {
+        return res.status(400).json({
+          success: false,
+          message: 'Password must be at least 8 characters long'
+        });
+      }
+
+      // Get user from token (set by auth middleware or from Supabase session)
+      const userId = (req as any).user?.userId;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid or expired reset token'
+        });
+      }
+
+      // Get user to find their email
+      const user = await userModel.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      // Update password in Supabase Auth (CRITICAL - this is the main auth system)
+      if (user.provider === 'email') {
+        try {
+          const { data: supabaseUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(user.id);
+          
+          if (!getUserError && supabaseUser) {
+            const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+              user.id,
+              { password }
+            );
+            
+            if (updateError) {
+              console.error('Supabase password update error:', updateError);
+              throw updateError;
+            }
+            console.log('✅ Password updated in Supabase Auth');
+          }
+        } catch (supabaseError) {
+          console.error('Supabase Auth error:', supabaseError);
+          // Continue to update custom table even if Supabase fails
+        }
+      }
+
+      // Hash the new password for our custom table
+      const hashedPassword = await hashPassword(password);
+
+      // Update user's password in our custom users table
+      await userModel.updateUser(userId, {
+        passwordHash: hashedPassword
+      });
+
+      console.log('✅ Password updated in custom users table');
+
+      res.json({
+        success: true,
+        message: 'Password reset successful. You can now login with your new password.'
+      });
+    } catch (error) {
+      console.error('Reset password error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to reset password'
+      });
+    }
+  }
+
+  // Update user profile
+  async updateProfile(req: Request, res: Response) {
+    try {
+      const userId = (req as any).user?.userId;
+      
+      if (!userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Unauthorized'
+        });
+      }
+
+      const { name, phone } = req.body;
+
+      if (!name && !phone) {
+        return res.status(400).json({
+          success: false,
+          message: 'At least one field (name or phone) is required'
+        });
+      }
+
+      const updateData: any = {};
+      if (name) updateData.name = name;
+      if (phone) updateData.phone = phone;
+
+      const updatedUser = await userModel.updateUser(userId, updateData);
+
+      res.json({
+        success: true,
+        message: 'Profile updated successfully',
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          name: updatedUser.name,
+          phone: updatedUser.phone,
+          avatar: updatedUser.avatarUrl
+        }
+      });
+    } catch (error) {
+      console.error('Update profile error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update profile'
+      });
+    }
+  }
+
+  // Verify Email - Handle email confirmation callback
+  async verifyEmail(req: Request, res: Response) {
+    try {
+      const { token_hash, type } = req.query;
+
+      if (!token_hash || type !== 'email') {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid verification link'
+        });
+      }
+
+      // Verify email with Supabase
+      const { data, error } = await supabase.auth.verifyOtp({
+        token_hash: token_hash as string,
+        type: 'email'
+      });
+
+      if (error) {
+        console.error('Email verification error:', error);
+        return res.status(400).json({
+          success: false,
+          message: error.message || 'Email verification failed'
+        });
+      }
+
+      if (!data.user) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email verification failed'
+        });
+      }
+
+      // Update user's verified status in our database
+      const user = await userModel.findUserByEmail(data.user.email!);
+      if (user) {
+        await userModel.updateUser(user.id, { isVerified: true });
+      }
+
+      res.json({
+        success: true,
+        message: 'Email verified successfully!',
+        user: data.user
+      });
+    } catch (error) {
+      console.error('Verify email error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to verify email'
+      });
+    }
+  }
+
+  // Resend Verification Email
+  async resendVerificationEmail(req: Request, res: Response) {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email is required'
+        });
+      }
+
+      // Check if user exists
+      const user = await userModel.findUserByEmail(email);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      if (user.isVerified) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email is already verified'
+        });
+      }
+
+      // Resend verification email using Supabase
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth/callback`
+        }
+      });
+
+      if (error) {
+        console.error('Resend verification error:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to resend verification email'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Verification email sent successfully'
+      });
+    } catch (error) {
+      console.error('Resend verification email error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to resend verification email'
+      });
+    }
   }
 }
 

@@ -20,6 +20,17 @@ router.post('/oauth/callback', authController.supabaseOAuthCallback);
 // Get current user
 router.get('/me', authMiddleware, authController.getCurrentUser);
 
+// Update profile
+router.put('/profile', authMiddleware, authController.updateProfile);
+
+// Email verification routes
+router.get('/verify-email', authController.verifyEmail);
+router.post('/resend-verification', authController.resendVerificationEmail);
+
+// Password reset routes
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-password', authMiddleware, authController.resetPassword);
+
 // Logout
 router.post('/logout', authMiddleware, authController.logout);
 

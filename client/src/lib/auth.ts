@@ -27,8 +27,10 @@ export interface AuthResponse {
     email: string;
     name: string;
     provider?: string;
+    isVerified?: boolean;
   };
   message?: string;
+  requiresEmailConfirmation?: boolean;
 }
 
 // Auth Service
@@ -37,13 +39,17 @@ export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
       const response = await authAPI.login(credentials.email, credentials.password);
-      if (response.data.token) {
+      
+      if (response.data.success && response.data.token) {
         localStorage.setItem('userToken', response.data.token);
         localStorage.setItem('userData', JSON.stringify(response.data.user));
+        window.dispatchEvent(new Event('auth-state-changed'));
+        return response.data;
+      } else {
+        throw new Error(response.data.message || 'Login failed - no token received');
       }
-      return response.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Login failed');
+      throw new Error(error.response?.data?.message || error.message || 'Login failed');
     }
   },
 
@@ -54,6 +60,8 @@ export const authService = {
       if (response.data.token) {
         localStorage.setItem('userToken', response.data.token);
         localStorage.setItem('userData', JSON.stringify(response.data.user));
+        // Notify AuthContext
+        window.dispatchEvent(new Event('auth-state-changed'));
       }
       return response.data;
     } catch (error: any) {
@@ -113,6 +121,8 @@ export const authService = {
       if (response.data.token) {
         localStorage.setItem('userToken', response.data.token);
         localStorage.setItem('userData', JSON.stringify(response.data.user));
+        // Notify AuthContext
+        window.dispatchEvent(new Event('auth-state-changed'));
       }
 
       return response.data;

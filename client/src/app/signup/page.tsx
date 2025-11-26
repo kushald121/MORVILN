@@ -77,13 +77,21 @@ const SignupPage = () => {
     setError("");
 
     try {
-      await authService.signup({
+      const response = await authService.signup({
         name: formData.name,
         email: formData.email,
         password: formData.password,
         phone: formData.phone,
       });
-      router.push("/");
+
+      // Check if email confirmation is required
+      if (response.requiresEmailConfirmation) {
+        // Redirect to verify email page with email parameter
+        router.push(`/verify-email?email=${encodeURIComponent(formData.email)}`);
+      } else if (response.token) {
+        // Normal login flow (if no confirmation needed)
+        router.push("/");
+      }
     } catch (err: any) {
       setError(err.message || "Signup failed. Please try again.");
     } finally {

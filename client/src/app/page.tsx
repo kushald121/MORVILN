@@ -8,18 +8,20 @@ import ExploreProducts from "./components/ExploreProducts";
 import Banner2 from "./components/ui/Banner2";
 import Footer from "./components/Footer";
 import VideoSection from "./components/VideoSection";
+import Loader from "./components/Loader";
 
 export default function Home() {
   return (
     <>
-      <HeroPage/>
+    <Loader/>
+      {/* <HeroPage/>
       <Banner/>
       <Productspreiview/>
       <DirectPages/>
       <Banner2/>
       <ExploreProducts/>
       <Brands/>
-      <VideoSection/>
+      <VideoSection/> */}
     </>
   );
 }

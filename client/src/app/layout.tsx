@@ -111,11 +111,11 @@ export default function RootLayout({
             <AuthProvider>
               <CartProvider>
                 <div className="relative min-h-screen flex flex-col">
-                  <Navbar />
+                  
                   <main className="flex-1 max-w-full overflow-x-hidden pt-16 lg:pt-16 pb-14 lg:pb-0">
                     {children}
                   </main>
-                  <Footer />
+                 
                 </div>
               </CartProvider>
             </AuthProvider>

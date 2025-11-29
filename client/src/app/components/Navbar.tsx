@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Dialog, Transition } from "@headlessui/react";
+import Flag from "./flag";
 import {
   Bars3Icon,
   MagnifyingGlassIcon,
@@ -20,14 +21,14 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useTheme } from "next-themes";
 import { useCart } from "../contexts/CartContext";
+import CountryDropdown from "./flag";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const navigation = {
   pages: [
     { name: "COLLECTIONS", href: "/allproducts" },
-    { name: "ABOUT US", href: "/about" },
-    { name: "ADMIN", href: "/admin/login" },
+    { name: "ABOUT US", href: "/about" }
   ],
 };
 
@@ -83,7 +84,7 @@ const NavBar = () => {
         "-=0.8"
       );
     }
-
+  
     if (navItemsRef.current) {
       tl.fromTo(navItemsRef.current.children,
         { y: -20, opacity: 0 },
@@ -121,6 +122,11 @@ const NavBar = () => {
       );
     }
   }, []);
+
+  
+  const handleCountrySelect = (country) => {
+    console.log("Selected country:", country);
+  }
 
   // GSAP hover animations for navigation items
   useEffect(() => {
@@ -558,9 +564,11 @@ const NavBar = () => {
               transition={{ delay: 1, duration: 0.8 }}
             >
               {/* Country Indicator */}
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-semibold text-foreground">🇮🇳 IN</span>
-              </div>
+    <div className="flex items-center gap-1 relative z-50">
+      <div className="flex items-center justify-end w-full relative ">
+        <CountryDropdown onSelect={handleCountrySelect} />
+      </div>
+    </div>
 
               {/* Profile */}
               <Link href="/profile" className="flex flex-col items-center group cursor-pointer">

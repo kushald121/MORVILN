@@ -6,6 +6,8 @@ import Banner from "./components/ui/Banner";
 import DirectPages from "./components/DirectPage";
 import ExploreProducts from "./components/ExploreProducts";
 import Banner2 from "./components/ui/Banner2";
+import Footer from "./components/Footer";
+import VideoSection from "./components/VideoSection";
 
 export default function Home() {
   return (
@@ -17,6 +19,7 @@ export default function Home() {
       <Banner2/>
       <ExploreProducts/>
       <Brands/>
+      <VideoSection/>
     </>
   );
 }

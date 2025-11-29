@@ -6,6 +6,8 @@ import { Minus, Plus, Trash2, ShoppingBag, ArrowLeft, CreditCard } from 'lucide-
 import Image from 'next/image';
 import { useCart } from '../contexts/CartContext';
 
+import {PaymentService} from "@/app/services/payment.service";
+
 // Types for cart items
 interface CartItem {
   id: string;
@@ -24,6 +26,73 @@ interface CartSummary {
   shipping: number;
   total: number;
 }
+
+// Razorpay payment handler inside BagPage
+const handleProceedToPayment = async () => {
+  setIsLoading(true);
+
+  // Prepare order data
+  const orderData = {
+    items: cartItems,
+    subtotal: summary.subtotal,
+    tax: summary.tax,
+    shipping: summary.shipping,
+    total: summary.total,
+  };
+
+  // Convert total to paise for Razorpay
+  const amountInPaise = PaymentService.convertToPaise(summary.total);
+
+  // Example user info (replace with actual user data)
+  const userInfo = {
+    name: "Customer Name",
+    email: "customer@example.com",
+  };
+
+  try {
+    // Create order on backend and get Razorpay order_id
+    const { orderId } = await PaymentService.createRazorpayOrder(amountInPaise, orderData, userInfo);
+
+    // Configure Razorpay options
+    const options = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      amount: amountInPaise,
+      currency: "INR",
+      name: "Morviln",
+      description: "Order Payment",
+      order_id: orderId,
+      handler: function (response: any) {
+        // Handle successful payment here (e.g., verify payment, show success message)
+        alert("Payment successful! Payment ID: " + response.razorpay_payment_id);
+        clearCart();
+      },
+      prefill: {
+        name: userInfo.name,
+        email: userInfo.email,
+      },
+      theme: {
+        color: "#6366f1",
+      },
+    };
+
+    // Load Razorpay script if not already loaded
+    if (typeof window !== "undefined") {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => {
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      };
+      document.body.appendChild(script);
+    }
+  } catch (error) {
+    console.error(error);
+    alert("Payment failed. Please try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
 const BagPage: React.FC = () => {
   const { state, removeFromCart, updateCartQuantity, clearCart, getCartTotal } = useCart();
@@ -421,22 +490,22 @@ const BagPage: React.FC = () => {
             <div className="backdrop-blur-sm bg-card rounded-xl md:rounded-2xl p-4 md:p-6 border border-border shadow-xl hover:shadow-2xl transition-all duration-300">
               <div className="flex items-center space-x-3 mb-6 md:mb-8">
                 <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
-                  <CreditCard className="w-5 h-5 md:w-6 md:h-6 text-white" />
-                </div>
-                <h2 className="text-xl md:text-2xl font-bold text-foreground">
-                  Order Summary
-                </h2>
-              </div>
-
-              <div className="space-y-3 md:space-y-5 mb-6 md:mb-8">
-                <div className="flex justify-between items-center p-3 bg-secondary/50 rounded-lg border border-border">
-                  <span className="text-muted-foreground font-medium text-sm md:text-base">Subtotal</span>
-                  <span className="font-bold text-foreground text-sm md:text-base">{formatCurrency(summary.subtotal)}</span>
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-secondary/50 rounded-lg border border-border">
-                  <span className="text-muted-foreground font-medium text-sm md:text-base">Tax</span>
-                  <span className="font-bold text-foreground text-sm md:text-base">{formatCurrency(summary.tax)}</span>
+              <motion.button
+                whileHover={{
+                  scale: 1.02,
+                  boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)"
+                }}
+                whileTap={{ scale: 0.98 }}
+                className="group w-full py-4 md:py-5 px-4 md:px-6 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 text-white font-bold text-base md:text-lg rounded-lg md:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden relative"
+                onClick={handleProceedToPayment}
+                disabled={isLoading}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                <span className="relative flex items-center justify-center space-x-2 md:space-x-3">
+                  <CreditCard className="w-5 h-5 md:w-6 md:h-6" />
+                  <span>{isLoading ? 'Processing...' : 'Proceed to Checkout'}</span>
+                </span>
+              </motion.button>
                 </div>
 
                 <div className="flex justify-between items-center p-3 bg-secondary/50 rounded-lg border border-border">

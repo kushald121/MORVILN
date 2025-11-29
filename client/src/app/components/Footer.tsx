@@ -1,6 +1,7 @@
 "use client"
 import React, { useRef } from 'react';
 import { Truck, RotateCcw, MessageSquare, Smile, Star, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import Link from 'next/link';
 
 const testimonials = [
   {
@@ -257,27 +258,27 @@ const Footer = () => {
               </h4>
               
               <nav className="flex flex-col space-y-4 text-center">
-                <a href="/about/" className="text-gray-300 hover:text-white hover:underline transition text-lg">
+                <Link href="/helpfullpage/about" className="text-gray-300 hover:text-white hover:underline transition text-lg">
                   About Morviln
-                </a>
-                <a href="/" className="text-gray-300 hover:text-white hover:underline transition text-lg">
+                </Link>
+                <Link href="/" className="text-gray-300 hover:text-white hover:underline transition text-lg">
                   Careers
-                </a>
-                <a href="/sign-in/" className="text-gray-300 hover:text-white hover:underline transition text-lg">
+                </Link>
+                <Link href="/sign-in/" className="text-gray-300 hover:text-white hover:underline transition text-lg">
                   My Account
-                </a>
-                <a href="/refundpolicy" className="text-gray-300 hover:text-white hover:underline transition text-lg">
+                </Link>
+                <Link href="/helpfullpage/refundpolicy" className="text-gray-300 hover:text-white hover:underline transition text-lg">
                   Refund Policy
-                </a>
-                <a href="/privacypolicy" className="text-gray-300 hover:text-white hover:underline transition text-lg">
+                </Link>
+                <Link href="/helpfullpage/privacypolicy" className="text-gray-300 hover:text-white hover:underline transition text-lg">
                   Privacy Policy
-                </a>
-                <a href="/termsandcondition/" className="text-gray-300 hover:text-white hover:underline transition text-lg">
+                </Link>
+                <Link href="/helpfullpage/terms&conditions" className="text-gray-300 hover:text-white hover:underline transition text-lg">
                   Terms of Service
-                </a>
-                <a href="/contactus" className="text-gray-300 hover:text-white hover:underline transition text-lg">
+                </Link>
+                <Link href="/helpfullpage/contactus" className="text-gray-300 hover:text-white hover:underline transition text-lg">
                   Contact Us
-                </a>
+                </Link>
               </nav>
             </div>
 
@@ -324,14 +325,14 @@ const Footer = () => {
                </a>
                <span className="text-zinc-700">|</span>
 
-               <a href="/" className="hover:text-white underline-offset-4 hover:underline transition">
+               <Link href="/" className="hover:text-white underline-offset-4 hover:underline transition">
                  Investors
-               </a>
+               </Link>
                <span className="text-zinc-700">|</span>
 
-               <a href="/" className="hover:text-white underline-offset-4 hover:underline transition">
+               <Link href="/" className="hover:text-white underline-offset-4 hover:underline transition">
                  Sustainability
-               </a>
+               </Link>
             </nav>
           </div>
         </div>

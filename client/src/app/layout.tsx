@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import CartSidebar from "@/app/components/CartSidebar";
 import { ThemeProvider } from "./providers/theme.provider";
 import { CartProvider } from "./contexts/CartContext";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -115,6 +116,7 @@ export default function RootLayout({
                   <main className="flex-1 max-w-full overflow-x-hidden pt-16 lg:pt-16 pb-14 lg:pb-0">
                     {children}
                   </main>
+                  <CartSidebar />
                   <Footer />
                 </div>
               </CartProvider>

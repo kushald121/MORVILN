@@ -144,6 +144,12 @@ interface CartContextType {
   isInFavorites: (productId: string) => boolean;
   getCartTotal: () => number;
   getCartItemCount: () => number;
+  // UI controls for cart sidebar
+  isCartOpen: boolean;
+  openCart: () => void;
+  closeCart: () => void;
+  toggleCart: () => void;
+  cartTotal: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -239,6 +245,16 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     return state.items.reduce((count, item) => count + item.quantity, 0);
   };
 
+  // UI state for cart sidebar (open/close)
+  const [isCartOpen, setIsCartOpen] = React.useState(false);
+
+  const openCart = () => setIsCartOpen(true);
+  const closeCart = () => setIsCartOpen(false);
+  const toggleCart = () => setIsCartOpen((v) => !v);
+
+  // Derived cart total
+  const cartTotal = getCartTotal();
+
   const contextValue: CartContextType = {
     state,
     addToCart,
@@ -251,6 +267,11 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     isInFavorites,
     getCartTotal,
     getCartItemCount,
+    isCartOpen,
+    openCart,
+    closeCart,
+    toggleCart,
+    cartTotal,
   };
 
   return (

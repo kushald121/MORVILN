@@ -40,7 +40,7 @@ const NavBar = () => {
   const [mounted, setMounted] = useState(false);
 
   const { theme, setTheme } = useTheme();
-  const { getCartItemCount, state } = useCart();
+  const { getCartItemCount, state, openCart } = useCart();
   const cartCount = getCartItemCount();
 
   const navbarRef = useRef<HTMLDivElement>(null);
@@ -477,8 +477,8 @@ const NavBar = () => {
                 <HeartIcon className="h-6 w-6 sm:h-7 sm:w-7" />
               </Link>
 
-              <button className="p-2.5 sm:p-3 text-foreground hover:bg-accent rounded-full transition-colors relative min-h-[44px] min-w-[44px] flex items-center justify-center"
-                      aria-label="Shopping bag">
+              <button onClick={() => openCart()} className="p-2.5 sm:p-3 text-foreground hover:bg-accent rounded-full transition-colors relative min-h-[44px] min-w-[44px] flex items-center justify-center"
+                      aria-label="Open cart">
                 <ShoppingBagIcon className="h-6 w-6 sm:h-7 sm:w-7" />
                 {cartCount > 0 && (
                   <span className="absolute -top-1 -right-1 h-5 w-5 sm:h-6 sm:w-6 bg-primary text-primary-foreground text-xs sm:text-sm font-bold rounded-full flex items-center justify-center">
@@ -603,12 +603,12 @@ const NavBar = () => {
               </Link>
 
               {/* Bag */}
-              <Link href="/bag" className="flex flex-col items-center group cursor-pointer relative">
+              <button onClick={() => openCart()} className="flex flex-col items-center group cursor-pointer relative">
                 <ShoppingBagIcon className="h-6 w-6 text-foreground group-hover:text-primary transition-colors" />
                 <span className="text-[10px] font-semibold text-muted-foreground mt-1 group-hover:text-primary transition-colors uppercase tracking-wide">
                   Bag
                 </span>
-              </Link>
+              </button>
             </motion.div>
           </div>
         </nav>
@@ -716,10 +716,7 @@ const NavBar = () => {
         </Link>
 
         {/* Bag */}
-        <Link
-          href="/bag"
-          className="flex flex-col items-center justify-center flex-1 py-2 group"
-        >
+        <button onClick={() => openCart()} className="flex flex-col items-center justify-center flex-1 py-2 group">
           <motion.div
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
@@ -739,7 +736,7 @@ const NavBar = () => {
           <span className="text-[10px] sm:text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors mt-0.5 sm:mt-1">
             Bag
           </span>
-        </Link>
+        </button>
 
         {/* Account */}
         <Link

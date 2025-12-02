@@ -5,6 +5,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Star,
+  Minus,
+  Plus,
+  CheckCircle2,
+  ShieldCheck,
+  Trophy,
+  TrendingUp,
+  Store
 } from "lucide-react";
 import Image from "next/image";
 import { useTheme } from "next-themes";
@@ -13,7 +20,211 @@ import { useCart } from "../contexts/CartContext";
 import { LoaderThree } from "@/app/components/ui/loader";
 import { ProductService, Product } from "../services/productService";
 
+const ReviewsSection = () => {
+  return (
+    <div className="w-full max-w-[1600px] mx-auto px-4 lg:px-8 mt-24 text-white">
+      {/* Tabs Header */}
+      <div className="flex gap-8 border-b border-gray-800 mb-8">
+        <button className="pb-4 border-b-2 border-white font-bold text-lg">
+          Product Reviews (2075)
+        </button>
+        <button className="pb-4 border-b-2 border-transparent text-gray-400 hover:text-white font-medium text-lg transition-colors">
+          Shop Reviews (87)
+        </button>
+      </div>
 
+      {/* Summary Section */}
+      <div className="bg-black border border-gray-800 p-8 rounded-lg mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          {/* Rating Score */}
+          <div className="lg:col-span-3 flex flex-col gap-2">
+            <div className="flex items-center gap-4">
+              <div className="flex gap-1 text-[#00b67a]">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star key={star} size={24} fill="currentColor" strokeWidth={0} />
+                ))}
+              </div>
+              <span className="text-2xl font-bold">4.82</span>
+              <span className="text-gray-400">out of 5</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <span>Based on 2162 reviews</span>
+              <CheckCircle2 size={16} className="text-[#00b67a]" />
+            </div>
+          </div>
+
+          {/* Progress Bars */}
+          <div className="lg:col-span-5 space-y-2">
+            {[
+              { stars: 5, count: 1766, percent: "85%" },
+              { stars: 4, count: 394, percent: "12%" },
+              { stars: 3, count: 1, percent: "1%" },
+              { stars: 2, count: 0, percent: "0%" },
+              { stars: 1, count: 1, percent: "1%" },
+            ].map((item) => (
+              <div key={item.stars} className="flex items-center gap-4 text-sm">
+                <div className="flex gap-0.5 text-[#00b67a] w-24">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      size={12}
+                      fill={i < item.stars ? "currentColor" : "none"}
+                      stroke={i < item.stars ? "none" : "#333"}
+                      strokeWidth={i < item.stars ? 0 : 2}
+                      className={i >= item.stars ? "text-gray-700" : ""}
+                    />
+                  ))}
+                </div>
+                <div className="flex-1 h-4 bg-gray-800 rounded-sm overflow-hidden">
+                  <div
+                    className="h-full bg-gray-200"
+                    style={{ width: item.percent }}
+                  />
+                </div>
+                <span className="w-8 text-right text-gray-400">{item.count}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Write Review Button */}
+          <div className="lg:col-span-4 flex justify-end">
+            <button className="bg-white text-black px-8 py-3 font-bold uppercase tracking-wider hover:bg-gray-200 transition-colors">
+              Write a Store Review
+            </button>
+          </div>
+        </div>
+
+        {/* Trust Badges */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-12 pt-8 border-t border-gray-800">
+          {[
+            { icon: ShieldCheck, label: "VERIFIED REVIEWS", sub: "1673" },
+            { icon: CheckCircle2, label: "MONTHLY RECORD", sub: "114" },
+            { icon: Trophy, label: "BRONZE TRANSPARENCY", sub: "AWARD" },
+            { icon: TrendingUp, label: "TOP 1%", sub: "TRENDING" },
+            { icon: Store, label: "TOP 5%", sub: "STORES" },
+          ].map((badge, idx) => (
+            <div key={idx} className="flex flex-col items-center justify-center text-center gap-2">
+              <div className="w-12 h-12 rounded-full border-2 border-[#d4af37] flex items-center justify-center text-[#d4af37] mb-1">
+                <badge.icon size={24} />
+              </div>
+              <div className="text-[10px] font-bold tracking-widest text-[#d4af37]">
+                {badge.label}
+              </div>
+              <div className="text-[10px] text-gray-400 uppercase tracking-wider">
+                {badge.sub}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Reviews List */}
+      <div className="space-y-8">
+        <div className="flex justify-between items-center">
+          <div className="relative">
+            <select className="bg-transparent text-white border-none outline-none cursor-pointer font-medium appearance-none pr-8">
+              <option>Most Recent</option>
+              <option>Highest Rating</option>
+              <option>Lowest Rating</option>
+            </select>
+            <ChevronRight className="absolute right-0 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" size={16} />
+          </div>
+        </div>
+
+        {[
+          {
+            product: "Bexor Black Unisex Straight Fit Baggy Pants",
+            user: "Nishu Singh",
+            verified: true,
+            rating: 5,
+            title: "Great",
+            content: "Great"
+          },
+          {
+            product: "Dawn Unisex Straight Fit Baggy Pants",
+            user: "Anonymous",
+            verified: true,
+            rating: 5,
+            title: "Its",
+            content: "Its fine"
+          },
+          {
+            product: "Raudra Unisex Straight Fit Baggy Pants",
+            user: "Anonymous",
+            verified: true,
+            rating: 5,
+            title: "Good nice",
+            content: "God nice clothe qualify"
+          }
+        ].map((review, idx) => (
+          <div key={idx} className="border-b border-gray-800 pb-8">
+            <div className="text-sm text-gray-400 mb-2">
+              about <span className="text-white underline decoration-gray-600 underline-offset-4">{review.product}</span>
+            </div>
+            <div className="flex gap-1 text-[#00b67a] mb-3">
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  size={16}
+                  fill={i < review.rating ? "currentColor" : "none"}
+                  stroke={i < review.rating ? "none" : "currentColor"}
+                />
+              ))}
+            </div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 bg-gray-800 rounded flex items-center justify-center text-gray-400" />
+              <span className="font-medium text-gray-300">{review.user}</span>
+              {review.verified && (
+                <span className="bg-gray-800 text-gray-400 text-[10px] px-1.5 py-0.5 rounded uppercase tracking-wider">
+                  Verified
+                </span>
+              )}
+            </div>
+            <h4 className="font-bold text-white mb-1">{review.title}</h4>
+            <p className="text-gray-400">{review.content}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const CountdownTimer = () => {
+  const [timeLeft, setTimeLeft] = useState({
+    hours: 0,
+    minutes: 34,
+    seconds: 35,
+  });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev.seconds > 0) {
+          return { ...prev, seconds: prev.seconds - 1 };
+        } else if (prev.minutes > 0) {
+          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
+        } else if (prev.hours > 0) {
+          return { ...prev, hours: prev.hours - 1, minutes: 59, seconds: 59 };
+        }
+        return prev;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="flex items-center gap-2 text-2xl font-mono font-bold text-white tracking-wider">
+      <span>00</span>
+      <span>:</span>
+      <span>{String(timeLeft.hours).padStart(2, "0")}</span>
+      <span>:</span>
+      <span>{String(timeLeft.minutes).padStart(2, "0")}</span>
+      <span>:</span>
+      <span>{String(timeLeft.seconds).padStart(2, "0")}</span>
+    </div>
+  );
+};
 
 const ProductPage = () => {
   const searchParams = useSearchParams();
@@ -25,9 +236,10 @@ const ProductPage = () => {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const { theme } = useTheme();
-  const { addToFavorites, removeFromFavorites, isInFavorites } = useCart();
+  const { addToFavorites, removeFromFavorites, isInFavorites, addToCart } = useCart();
 
   // Fetch product data
   useEffect(() => {
@@ -47,10 +259,26 @@ const ProductPage = () => {
 
         // Set default selections
         if (productData.variants && productData.variants.length > 0) {
-          const firstVariant = productData.variants[0];
-          setSelectedSize(firstVariant.size || '');
-          setSelectedColor(firstVariant.color || '');
+          // Find first available variant
+          const firstAvailable = productData.variants.find(v => v.stock_quantity > 0 && v.is_active) || productData.variants[0];
+          setSelectedSize(firstAvailable.size || '');
+          setSelectedColor(firstAvailable.color || '');
         }
+
+        // Update document title and meta description for SEO
+        if (productData.seo_title) {
+          document.title = productData.seo_title;
+        } else {
+          document.title = `${productData.name} | Store`;
+        }
+
+        // Note: Meta description update would typically require a head management library like next/head or Next.js Metadata API
+        // For client-side only updates:
+        const metaDescription = document.querySelector('meta[name="description"]');
+        if (metaDescription) {
+          metaDescription.setAttribute('content', productData.seo_description || productData.short_description || productData.description || '');
+        }
+
       } catch (error: any) {
         console.error('Error fetching product:', error);
         setError(error.message || 'Failed to fetch product');
@@ -71,7 +299,8 @@ const ProductPage = () => {
           limit: 4,
           is_featured: true
         });
-        setRelatedProducts(products);
+        // Filter out current product
+        setRelatedProducts(products.filter(p => p.id !== productId));
       } catch (error) {
         console.error('Error fetching related products:', error);
       } finally {
@@ -79,16 +308,61 @@ const ProductPage = () => {
       }
     };
 
-    fetchRelatedProducts();
-  }, []);
+    if (productId) {
+      fetchRelatedProducts();
+    }
+  }, [productId]);
 
+  // Deduplicate sizes and colors
+  const sizeOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL'];
+  const uniqueSizes = Array.from(new Set(product?.variants?.map(v => v.size?.trim()).filter(Boolean)))
+    .sort((a, b) => {
+      const indexA = sizeOrder.indexOf(a as string);
+      const indexB = sizeOrder.indexOf(b as string);
+      // If both are in the known list, sort by index
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      // If only A is known, it comes first
+      if (indexA !== -1) return -1;
+      // If only B is known, it comes first
+      if (indexB !== -1) return 1;
+      // Otherwise sort alphabetically
+      return (a as string).localeCompare(b as string);
+    });
 
-  // Get available sizes and colors from variants
-  const availableSizes = product?.variants?.map(v => v.size).filter(Boolean) || [];
-  const availableColors = product?.variants?.map(v => ({
-    name: v.color || 'Default',
-    code: v.color_code || '#000000'
-  })).filter(v => v.name !== 'Default') || [];
+  // For colors, we might want to keep the color code mapping
+  const colorMap: { [key: string]: string } = {
+    'Black': '#000000',
+    'White': '#FFFFFF',
+    'Red': '#EF4444',
+    'Blue': '#3B82F6',
+    'Green': '#22C55E',
+    'Yellow': '#EAB308',
+    'Pink': '#EC4899',
+    'Gray': '#6B7280',
+    'Purple': '#A855F7',
+    'Orange': '#F97316',
+    'Brown': '#78350F',
+    'Navy': '#1E3A8A',
+    'Beige': '#F5F5DC',
+    'Maroon': '#800000',
+    'Teal': '#14B8A6',
+    'Olive': '#808000',
+    'Cream': '#FFFDD0',
+  };
+
+  const uniqueColorsMap = new Map();
+  product?.variants?.forEach(v => {
+    const colorName = v.color?.trim();
+    if (colorName && !uniqueColorsMap.has(colorName)) {
+      // Use provided code, or fallback to map, or fallback to black
+      const code = v.color_code && v.color_code !== '#000000'
+        ? v.color_code
+        : (colorMap[colorName] || colorMap[Object.keys(colorMap).find(k => k.toLowerCase() === colorName.toLowerCase()) || ''] || '#000000');
+
+      uniqueColorsMap.set(colorName, code);
+    }
+  });
+  const uniqueColors = Array.from(uniqueColorsMap.entries()).map(([name, code]) => ({ name, code }));
 
   // Get product images from media
   const productImages = product?.media?.filter(m => m.media_type === 'image').sort((a, b) => a.sort_order - b.sort_order) || [];
@@ -109,6 +383,14 @@ const ProductPage = () => {
     setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
+  const handleQuantityChange = (type: 'inc' | 'dec') => {
+    if (type === 'inc') {
+      setQuantity(prev => prev + 1);
+    } else {
+      setQuantity(prev => (prev > 1 ? prev - 1 : 1));
+    }
+  };
+
   // Keyboard navigation for image carousel
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -121,17 +403,14 @@ const ProductPage = () => {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, []);
+  }, [images.length]); // Add dependency
 
   // Show loading state
   if (isLoading) {
     return (
-      <div
-        className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? "bg-gray-900 text-white" : "bg-white text-gray-900"
-          } transition-colors duration-200`}
-      >
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
         <div className="text-center">
-          <LoaderThree size="lg" color={theme === 'dark' ? '#ffffff' : '#000000'} />
+          <LoaderThree size="lg" color="#ffffff" />
           <p className="mt-4 text-lg">Loading product...</p>
         </div>
       </div>
@@ -141,16 +420,13 @@ const ProductPage = () => {
   // Show error state
   if (error || !product) {
     return (
-      <div
-        className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? "bg-gray-900 text-white" : "bg-white text-gray-900"
-          } transition-colors duration-200`}
-      >
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
           <p className="text-gray-500 mb-4">{error || 'The requested product could not be found.'}</p>
           <button
             onClick={() => window.history.back()}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            className="px-6 py-2 bg-white text-black rounded hover:bg-gray-200 transition-colors"
           >
             Go Back
           </button>
@@ -160,351 +436,110 @@ const ProductPage = () => {
   }
 
   return (
-    <div
-      className={`min-h-screen ${theme === 'dark' ? "bg-gray-900 text-white" : "bg-white text-gray-900"
-        } transition-colors duration-200`}
-    >
-      {/* Breadcrumb */}
-      <div
-        className={`px-4 py-4 text-sm ${theme === 'dark' ? "text-gray-400" : "text-gray-600"
-          }`}
-      >
-        <div className="max-w-7xl mx-auto">
-          Home {">"} Shop {">"} {product.category?.name || 'Products'} {" "}
-          <span className={theme === 'dark' ? "text-white" : "text-gray-900"}>
-            {product.name}
-          </span>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Section - Product Images */}
-          <div className="space-y-4">
-            {/* Main Image */}
-            <div className="relative">
-              <div
-                className={`relative ${theme === 'dark' ? "bg-gray-800" : "bg-gray-100"
-                  } rounded-lg overflow-hidden`}
-              >
-                <Image
-                  width={100}
-                  height={100}
-                  src={images[currentImageIndex]}
-                  alt="Product"
-                  className="w-full h-full object-contain"
-                />
-                <div className="absolute top-4 left-4">
-                  <span
-                    className={`px-3 py-1 text-xs font-semibold ${theme === 'dark'
-                        ? "bg-gray-700 text-white"
-                        : "bg-white text-black"
-                      } rounded`}
-                  >
-                    OVERSIZED FIT
-                  </span>
-                </div>
-                <button
-                  onClick={handlePrevImage}
-                  className={`absolute left-2 top-1/2 -translate-y-1/2 p-2 ${theme === 'dark'
-                      ? "bg-gray-800/80 text-white"
-                      : "bg-white/80 text-black"
-                    } rounded-full hover:scale-110 transition-transform`}
-                >
-                  <ChevronLeft size={20} />
-                </button>
-                <button
-                  onClick={handleNextImage}
-                  className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 ${theme === 'dark'
-                      ? "bg-gray-800/80 text-white"
-                      : "bg-white/80 text-black"
-                    } rounded-full hover:scale-110 transition-transform`}
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-            </div>
-
-            {/* Thumbnail Images */}
-            <div className="grid grid-cols-4 gap-2">
+    <div className="min-h-screen bg-black text-white selection:bg-red-500 selection:text-white">
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          {/* Left Column - Images (60-65% width approx) */}
+          <div className="lg:col-span-7 flex gap-4 h-[85vh] sticky top-4">
+            {/* Thumbnails Strip */}
+            <div className="w-24 flex-shrink-0 flex flex-col gap-4 overflow-y-auto no-scrollbar">
               {images.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentImageIndex(idx)}
-                  className={`${theme === 'dark' ? "bg-gray-800" : "bg-gray-100"
-                    } rounded-lg overflow-hidden aspect-square ${idx === currentImageIndex ? "ring-2 ring-blue-500" : ""
+                  className={`w-full aspect-[3/4] relative border-2 transition-all duration-200 ${idx === currentImageIndex ? "border-white" : "border-transparent opacity-60 hover:opacity-100"
                     }`}
                 >
                   <Image
-                    width={100}
-                    height={100}
                     src={img}
-                    alt={`Thumbnail ${idx + 1}`}
-                    className="w-full h-full object-cover"
+                    alt={`View ${idx + 1}`}
+                    fill
+                    className="object-cover"
                   />
                 </button>
               ))}
             </div>
 
-            {/* Fit Comparison - Desktop */}
-            <div
-              className={`hidden lg:block ${theme === 'dark' ? "bg-gray-800" : "bg-gray-100"
-                } rounded-lg p-6`}
-            >
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center">
-                  <div className="mb-2">
-                    <svg className="w-full h-32 mx-auto" viewBox="0 0 100 150">
-                      <rect
-                        x="30"
-                        y="20"
-                        width="40"
-                        height="60"
-                        fill={theme === 'dark' ? "#4B5563" : "#9CA3AF"}
-                        rx="3"
-                      />
-                      <rect
-                        x="35"
-                        y="80"
-                        width="30"
-                        height="50"
-                        fill={theme === 'dark' ? "#4B5563" : "#9CA3AF"}
-                        rx="2"
-                      />
-                    </svg>
-                  </div>
-                  <p
-                    className={`text-sm font-semibold mb-1 ${theme === 'dark' ? "text-white" : "text-black"
-                      }`}
-                  >
-                    REGULAR FIT
-                  </p>
-                  <p
-                    className={`text-xs ${theme === 'dark' ? "text-gray-400" : "text-gray-600"
-                      }`}
-                  >
-                    An All Time &nbsp;Hit Fit!&nbsp;
-                  </p>
-                  <p
-                    className={`text-xs ${theme === 'dark' ? "text-gray-500" : "text-gray-500"
-                      } mt-2`}
-                  >
-                    Hugging you just the right amount around sleeves and torso,
-                    this fit flaunts your best look impeccably.
-                  </p>
-                  <p
-                    className={`text-xs font-semibold mt-2 ${theme === 'dark' ? "text-white" : "text-black"
-                      }`}
-                  >
-                    Let Good Looks Come Naturally
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="mb-2">
-                    <svg className="w-full h-32 mx-auto" viewBox="0 0 100 150">
-                      <rect
-                        x="20"
-                        y="20"
-                        width="60"
-                        height="70"
-                        fill={theme === 'dark' ? "#4B5563" : "#9CA3AF"}
-                        rx="3"
-                      />
-                      <rect
-                        x="30"
-                        y="90"
-                        width="40"
-                        height="50"
-                        fill={theme === 'dark' ? "#4B5563" : "#9CA3AF"}
-                        rx="2"
-                      />
-                    </svg>
-                  </div>
-                  <p
-                    className={`text-sm font-semibold mb-1 ${theme === 'dark' ? "text-white" : "text-black"
-                      }`}
-                  >
-                    OVERSIZED
-                  </p>
-                  <p
-                    className={`text-xs ${theme === 'dark' ? "text-gray-400" : "text-gray-600"
-                      }`}
-                  >
-                    Fit that is straight outta streets!
-                  </p>
-                  <p
-                    className={`text-xs ${theme === 'dark' ? "text-gray-500" : "text-gray-500"
-                      } mt-2`}
-                  >
-                    Featuring a shoulder-drop design & a baggy form, this fit
-                    gives you a &nbsp;dope&nbsp; casual appeal.
-                  </p>
-                  <p
-                    className={`text-xs font-semibold mt-2 ${theme === 'dark' ? "text-white" : "text-black"
-                      }`}
-                  >
-                    Unravel your street style now.
-                  </p>
-                </div>
-              </div>
-              <div
-                className={`text-center mt-4 text-xs ${theme === 'dark' ? "text-gray-400" : "text-gray-600"
-                  }`}
+            {/* Main Image */}
+            <div className="flex-1 relative bg-[#0a0a0a] h-full">
+              <Image
+                src={images[currentImageIndex]}
+                alt={product.name}
+                fill
+                className="object-contain"
+                priority
+              />
+
+              {/* Navigation Arrows (Mobile/Tablet only usually, but good to have) */}
+              <button
+                onClick={handlePrevImage}
+                className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full hover:bg-black transition-colors lg:hidden"
               >
-                Model Height 6&nbsp; | Size M
-              </div>
+                <ChevronLeft size={24} />
+              </button>
+              <button
+                onClick={handleNextImage}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full hover:bg-black transition-colors lg:hidden"
+              >
+                <ChevronRight size={24} />
+              </button>
             </div>
           </div>
 
-          {/* Right Section - Product Details */}
-          <div className="space-y-6">
-            {/* Brand & Title */}
-            <div>
-              <h2
-                className={`text-lg font-semibold ${theme === 'dark' ? "text-gray-400" : "text-gray-600"
-                  }`}
-              >
-                {product.category?.name || 'MORVILN'}
-              </h2>
-              <h1
-                className={`text-2xl font-bold mt-1 ${theme === 'dark' ? "text-white" : "text-black"
-                  }`}
-              >
-                {product.name}
-              </h1>
-              {product.short_description && (
-                <p className={`text-sm mt-2 ${theme === 'dark' ? "text-gray-400" : "text-gray-600"}`}>
-                  {product.short_description}
-                </p>
-              )}
+          {/* Right Column - Product Info */}
+          <div className="lg:col-span-5 flex flex-col justify-center py-8">
+            {/* Title */}
+            <h1 className="text-4xl lg:text-5xl font-bold uppercase tracking-wide mb-4 leading-tight">
+              {product.name}
+            </h1>
+
+            {/* Rating */}
+            <div className="flex items-center gap-2 mb-8">
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((_, i) => (
+                  <Star key={i} size={18} className="fill-green-500 text-green-500" />
+                ))}
+              </div>
+              <span className="text-gray-400 text-sm">(4.8)</span>
             </div>
 
-            {/* Price & Rating */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold">₹{Math.round(product.base_price)}</span>
+            {/* Price */}
+            <div className="mb-10">
+              {discountPercentage > 0 && (
+                <span className="inline-block bg-red-600 text-white text-xs font-bold px-2 py-1 mb-2">
+                  SAVE {discountPercentage}%
+                </span>
+              )}
+              <div className="flex items-baseline gap-4">
+                <span className="text-3xl font-bold text-red-600">
+                  RS. {Math.round(product.base_price).toLocaleString()}.00
+                </span>
                 {product.compare_at_price && (
-                  <>
-                    <span
-                      className={`text-lg line-through ${theme === 'dark' ? "text-gray-500" : "text-gray-400"
-                        }`}
-                    >
-                      ₹{Math.round(product.compare_at_price)}
-                    </span>
-                    {discountPercentage > 0 && (
-                      <span className="text-lg font-semibold text-green-600">
-                        {discountPercentage}% OFF
-                      </span>
-                    )}
-                  </>
+                  <span className="text-xl text-gray-500 line-through">
+                    RS. {Math.round(product.compare_at_price).toLocaleString()}.00
+                  </span>
                 )}
               </div>
-              <div className="flex items-center gap-1 ml-auto">
-                <Star size={16} className="fill-yellow-400 text-yellow-400" />
-                <span className="font-semibold">4.3</span>
-                <span className={theme === 'dark' ? "text-gray-500" : "text-gray-400"}>
-                  | 12
-                </span>
-              </div>
             </div>
 
-            {/* Inclusive of all taxes */}
-            <p
-              className={`text-sm ${theme === 'dark' ? "text-gray-400" : "text-gray-600"
-                }`}
-            >
-              inclusive of all taxes
-            </p>
-
-            {/* EMI Option */}
-            <div
-              className={`${theme === 'dark'
-                  ? "bg-purple-900/30 text-purple-300"
-                  : "bg-purple-50 text-purple-700"
-                } px-4 py-2 rounded`}
-            >
-              <span className="text-sm">Get it for as low as ₹595</span>
-            </div>
-
-            {/* Purchase Info */}
-            <div
-              className={`${theme === 'dark'
-                  ? "bg-blue-900/30 text-blue-300"
-                  : "bg-blue-50 text-blue-700"
-                } px-4 py-2 rounded`}
-            >
-              <span className="text-sm font-medium">
-                256 people bought this in the last 7 days
-              </span>
-            </div>
-
-            {/* Premium Fabric Badge */}
-            <div className="inline-block">
-              <span
-                className={`px-3 py-1 text-xs ${theme === 'dark'
-                    ? "bg-gray-800 border-gray-700 text-gray-300"
-                    : "bg-white border-gray-300 text-gray-700"
-                  } border rounded`}
-              >
-                Premium Dense Fabric
-              </span>
-            </div>
-
-            {/* Color Selection */}
-            {availableColors.length > 0 && (
-              <div>
-                <h3
-                  className={`text-sm font-semibold mb-3 ${theme === 'dark' ? "text-white" : "text-black"
-                    }`}
-                >
-                  Colour: {selectedColor}
-                </h3>
-                <div className="flex gap-2 flex-wrap">
-                  {availableColors.map((color) => (
-                    <button
-                      key={color.name}
-                      onClick={() => setSelectedColor(color.name)}
-                      className={`w-10 h-10 rounded-full border-2 ${selectedColor === color.name
-                          ? "border-black ring-2 ring-offset-2 ring-black"
-                          : theme === 'dark'
-                            ? "border-gray-700"
-                            : "border-gray-300"
-                        }`}
-                      style={{ backgroundColor: color.code }}
-                      title={color.name}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Size Selection */}
-            {availableSizes.length > 0 && (
-              <div>
-                <div className="flex justify-between items-center mb-3">
-                  <h3
-                    className={`text-sm font-semibold ${theme === 'dark' ? "text-white" : "text-black"
-                      }`}
-                  >
-                    Select Size
-                  </h3>
-                  <button className="text-sm text-blue-600 hover:underline">
-                    Size guide {">"}
+            {/* Size Selector */}
+            {uniqueSizes.length > 0 && (
+              <div className="mb-8">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-lg">Size:</span>
+                  <button className="text-sm text-gray-400 hover:text-white underline">
+                    Size chart
                   </button>
                 </div>
-                <div className="grid grid-cols-6 gap-2">
-                  {availableSizes.map((size) => (
+                <div className="flex flex-wrap gap-3">
+                  {uniqueSizes.map((size) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`py-3 text-sm font-semibold rounded border ${selectedSize === size
-                          ? theme === 'dark'
-                            ? "bg-gray-700 border-gray-600 text-white"
-                            : "bg-gray-900 border-gray-900 text-white"
-                          : theme === 'dark'
-                            ? "bg-gray-800 border-gray-700 text-gray-300 hover:border-gray-600"
-                            : "bg-white border-gray-300 hover:border-gray-400"
+                      className={`px-6 py-3 border transition-all duration-200 min-w-[3rem] ${selectedSize === size
+                        ? "bg-white text-black border-white font-bold"
+                        : "bg-black text-white border-gray-700 hover:border-gray-500"
                         }`}
                     >
                       {size}
@@ -514,427 +549,266 @@ const ProductPage = () => {
               </div>
             )}
 
-            {/* Add to Bag & Wishlist */}
-            <div className="flex gap-3">
-              <button className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-3 px-6 rounded flex items-center justify-center gap-2 transition-colors">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+            {/* Color Selector */}
+            {uniqueColors.length > 0 && (
+              <div className="mb-8">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-lg">Color: <span className="text-gray-400">{selectedColor}</span></span>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {uniqueColors.map((color) => (
+                    <button
+                      key={color.name}
+                      onClick={() => setSelectedColor(color.name)}
+                      className={`w-10 h-10 rounded-full border-2 transition-all duration-200 ${selectedColor === color.name
+                        ? "border-white scale-110"
+                        : "border-transparent hover:border-gray-500"
+                        }`}
+                      style={{ backgroundColor: color.code }}
+                      title={color.name}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Quantity Selector */}
+            <div className="mb-8">
+              <div className="flex items-center border border-gray-700 w-fit">
+                <button
+                  onClick={() => handleQuantityChange('dec')}
+                  className="p-4 hover:bg-gray-900 transition-colors"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                  />
-                </svg>
-                ADD TO BAG
+                  <Minus size={16} />
+                </button>
+                <div className="w-12 text-center font-bold">{quantity}</div>
+                <button
+                  onClick={() => handleQuantityChange('inc')}
+                  className="p-4 hover:bg-gray-900 transition-colors"
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-4 mb-12">
+              <button
+                onClick={() => addToCart({
+                  id: product.id,
+                  name: product.name,
+                  price: product.base_price,
+                  image: images[0],
+                  size: selectedSize,
+                  color: selectedColor,
+                  quantity: quantity,
+                })}
+                disabled={!selectedSize}
+                className={`w-full py-4 text-lg font-bold tracking-wider transition-colors ${selectedSize
+                  ? "bg-[#333] hover:bg-[#444] text-white"
+                  : "bg-gray-800 text-gray-500 cursor-not-allowed"
+                  }`}
+              >
+                {selectedSize ? "ADD TO CART" : "SELECT SIZE"}
               </button>
               <button
                 onClick={() => {
-                  if (product) {
-                    if (isInFavorites(product.id)) {
-                      removeFromFavorites(product.id);
-                    } else {
-                      addToFavorites({
-                        productId: product.id,
-                        name: product.name,
-                        price: product.base_price,
-                        originalPrice: product.compare_at_price,
-                        image: images[0] || '',
-                        stock: 10 // Default stock
-                      });
-                    }
-                  }
+                  if (!selectedSize) return;
+                  addToCart({
+                    id: product.id,
+                    name: product.name,
+                    price: product.base_price,
+                    image: images[0],
+                    size: selectedSize,
+                    color: selectedColor,
+                    quantity: quantity,
+                  });
+                  // In a real app, this would redirect to checkout
+                  console.log("Proceed to checkout");
                 }}
-                className={`p-3 rounded border transition-colors ${isInFavorites(product.id)
-                    ? 'bg-red-500 text-white border-red-500'
-                    : theme === 'dark'
-                      ? "border-gray-700 hover:bg-gray-800"
-                      : "border-gray-300 hover:bg-gray-50"
+                disabled={!selectedSize}
+                className={`w-full py-4 text-lg font-bold tracking-wider transition-colors ${selectedSize
+                  ? "bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white"
+                  : "bg-gray-900 text-gray-600 cursor-not-allowed"
                   }`}
               >
-                <Heart size={24} className={isInFavorites(product.id) ? 'fill-current' : ''} />
+                BUY IT NOW
               </button>
             </div>
 
-            {/* Offers */}
-            <div
-              className={`${theme === 'dark' ? "bg-gray-800" : "bg-white"} border ${theme === 'dark' ? "border-gray-700" : "border-gray-200"
-                } rounded-lg p-4`}
-            >
-              <h3
-                className={`text-sm font-semibold mb-3 ${theme === 'dark' ? "text-white" : "text-black"
-                  }`}
-              >
-                Save extra with these offers
-              </h3>
-              <div
-                className={`${theme === 'dark'
-                    ? "bg-yellow-900/30 border-yellow-700"
-                    : "bg-yellow-50 border-yellow-300"
-                  } border rounded p-3 flex items-start gap-3`}
-              >
-                <span className="text-2xl">🎉</span>
-                <div className="flex-1">
-                  <p
-                    className={`text-sm font-medium ${theme === 'dark' ? "text-white" : "text-black"
-                      }`}
-                  >
-                    Get EXTRA 15% CASHBACK on all orders. Coupon code - DIWALI15
-                  </p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <code
-                      className={`px-2 py-1 text-xs font-mono ${theme === 'dark'
-                          ? "bg-gray-700 text-white"
-                          : "bg-white text-black"
-                        } border ${theme === 'dark' ? "border-gray-600" : "border-gray-300"
-                        } rounded`}
-                    >
-                      DIWALI15
-                    </code>
-                    <button className="text-xs text-blue-600 hover:underline font-semibold">
-                      Copy code
-                    </button>
+            {/* Promo Section */}
+            <div className="flex flex-col items-center justify-center py-8 border-t border-gray-800">
+              <h3 className="text-xl font-bold mb-2">BLACK FRIDAY 2025</h3>
+              <p className="text-gray-400 text-sm mb-4">offer ends in:</p>
+              <CountdownTimer />
+            </div>
+
+            {/* Product Details Section */}
+            <div className="py-8 border-t border-gray-800 space-y-8">
+              {/* Branding & Origin */}
+              <div className="space-y-2">
+                <h3 className="text-2xl font-bold tracking-wider">MUTATION <span className="text-sm font-normal text-gray-400">by Rage Studios ©</span></h3>
+                <p className="text-sm text-gray-400 flex items-center gap-2">
+                  Proudly Made in India <Heart size={12} className="fill-red-500 text-red-500" />
+                </p>
+              </div>
+
+              {/* Stock Status */}
+              <div className="flex items-center gap-2 text-green-500 font-bold tracking-wide uppercase text-sm">
+                <div className={`w-2 h-2 rounded-full ${product.variants?.some(v => v.stock_quantity > 0) ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                {product.variants?.some(v => v.stock_quantity > 0) ? 'In Stock' : 'Out of Stock'}
+              </div>
+
+              {/* Description */}
+              <div className="space-y-4">
+                <h4 className="font-bold uppercase tracking-wide text-gray-300 text-sm">Description</h4>
+                <div className="text-sm text-gray-400 leading-relaxed whitespace-pre-line">
+                  {product.description}
+                </div>
+              </div>
+
+              {/* Product Details: Gender, Short Description, Tags, Stock */}
+              <div className="space-y-6">
+                <h4 className="font-bold uppercase tracking-wide text-gray-300 text-sm">Product Details</h4>
+
+                <div className="space-y-4 text-sm text-gray-400">
+                  {/* Gender */}
+                  {product.gender && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-white font-medium">Gender:</span>
+                      <span className="capitalize">{product.gender}</span>
+                    </div>
+                  )}
+
+                  {/* Short Description */}
+                  {product.short_description && (
+                    <div>
+                      <span className="text-white font-medium block mb-1">Overview:</span>
+                      <p className="leading-relaxed">{product.short_description}</p>
+                    </div>
+                  )}
+
+                  {/* Tags */}
+                  {product.tags && product.tags.length > 0 && (
+                    <div>
+                      <span className="text-white font-medium block mb-2">Tags:</span>
+                      <div className="flex flex-wrap gap-2">
+                        {product.tags.map((tag, index) => (
+                          <span
+                            key={index}
+                            className="px-3 py-1 bg-gray-900 border border-gray-800 rounded-full text-xs text-gray-300"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Category */}
+                  {product.category && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-white font-medium">Category:</span>
+                      <span>{product.category.name}</span>
+                    </div>
+                  )}
+
+                  {/* Stock Quantity */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-white font-medium">Stock:</span>
+                    <span className={
+                      (product.variants?.find(v => v.size === selectedSize && v.color === selectedColor)?.stock_quantity || 0) > 0
+                        ? "text-green-500 font-bold"
+                        : "text-red-500 font-bold"
+                    }>
+                      {product.variants?.find(v => v.size === selectedSize && v.color === selectedColor)?.stock_quantity || 0} units
+                    </span>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* Free Shipping Banner */}
-            <div
-              className={`${theme === 'dark'
-                  ? "bg-blue-900/30 text-blue-300"
-                  : "bg-blue-50 text-blue-700"
-                } px-4 py-3 rounded flex items-center gap-2`}
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
-                />
-              </svg>
-              <span className="text-sm font-medium">
-                This product is eligible for FREE SHIPPING
-              </span>
-            </div>
-
-            {/* Key Highlights */}
-            <div
-              className={`${theme === 'dark' ? "bg-gray-800" : "bg-white"} border ${theme === 'dark' ? "border-gray-700" : "border-gray-200"
-                } rounded-lg p-4`}
-            >
-              <h3
-                className={`text-lg font-semibold mb-4 ${theme === 'dark' ? "text-white" : "text-black"
-                  }`}
-              >
-                Key Highlights
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p
-                    className={`text-xs ${theme === 'dark' ? "text-gray-400" : "text-gray-600"
-                      }`}
-                  >
-                    Design
-                  </p>
-                  <p
-                    className={`font-semibold ${theme === 'dark' ? "text-white" : "text-black"
-                      }`}
-                  >
-                    Solid
-                  </p>
-                </div>
-                <div>
-                  <p
-                    className={`text-xs ${theme === 'dark' ? "text-gray-400" : "text-gray-600"
-                      }`}
-                  >
-                    Fit
-                  </p>
-                  <p
-                    className={`font-semibold ${theme === 'dark' ? "text-white" : "text-black"
-                      }`}
-                  >
-                    Oversized Fit
-                  </p>
-                </div>
-                <div>
-                  <p
-                    className={`text-xs ${theme === 'dark' ? "text-gray-400" : "text-gray-600"
-                      }`}
-                  >
-                    Neck
-                  </p>
-                  <p
-                    className={`font-semibold ${theme === 'dark' ? "text-white" : "text-black"
-                      }`}
-                  >
-                    Round Neck
-                  </p>
-                </div>
-                <div>
-                  <p
-                    className={`text-xs ${theme === 'dark' ? "text-gray-400" : "text-gray-600"
-                      }`}
-                  >
-                    Occasion
-                  </p>
-                  <p
-                    className={`font-semibold ${theme === 'dark' ? "text-white" : "text-black"
-                      }`}
-                  >
-                    Casual Wear
-                  </p>
-                </div>
-                <div>
-                  <p
-                    className={`text-xs ${theme === 'dark' ? "text-gray-400" : "text-gray-600"
-                      }`}
-                  >
-                    Sleeve Style
-                  </p>
-                  <p
-                    className={`font-semibold ${theme === 'dark' ? "text-white" : "text-black"
-                      }`}
-                  >
-                    Full Sleeve
-                  </p>
-                </div>
-                <div>
-                  <p
-                    className={`text-xs ${theme === 'dark' ? "text-gray-400" : "text-gray-600"
-                      }`}
-                  >
-                    Wash Care
-                  </p>
-                  <p
-                    className={`font-semibold ${theme === 'dark' ? "text-white" : "text-black"
-                      }`}
-                  >
-                    Gentle Machine Wash
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Trust Badges */}
-            <div className="grid grid-cols-3 gap-4 py-6">
-              <div className="text-center">
-                <div
-                  className={`${theme === 'dark' ? "bg-yellow-900/30" : "bg-yellow-50"
-                    } w-16 h-16 rounded-full mx-auto mb-2 flex items-center justify-center`}
-                >
-                  <svg
-                    className="w-8 h-8 text-yellow-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <p
-                  className={`text-xs font-semibold ${theme === 'dark' ? "text-gray-300" : "text-gray-700"
-                    }`}
-                >
-                  100% GENUINE
-                </p>
-                <p
-                  className={`text-xs ${theme === 'dark' ? "text-gray-500" : "text-gray-500"
-                    }`}
-                >
-                  PRODUCT
-                </p>
-              </div>
-              <div className="text-center">
-                <div
-                  className={`${theme === 'dark' ? "bg-yellow-900/30" : "bg-yellow-50"
-                    } w-16 h-16 rounded-full mx-auto mb-2 flex items-center justify-center`}
-                >
-                  <svg
-                    className="w-8 h-8 text-yellow-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                </div>
-                <p
-                  className={`text-xs font-semibold ${theme === 'dark' ? "text-gray-300" : "text-gray-700"
-                    }`}
-                >
-                  100% SECURE
-                </p>
-                <p
-                  className={`text-xs ${theme === 'dark' ? "text-gray-500" : "text-gray-500"
-                    }`}
-                >
-                  PAYMENT
-                </p>
-              </div>
-              <div className="text-center">
-                <div
-                  className={`${theme === 'dark' ? "bg-yellow-900/30" : "bg-yellow-50"
-                    } w-16 h-16 rounded-full mx-auto mb-2 flex items-center justify-center`}
-                >
-                  <svg
-                    className="w-8 h-8 text-yellow-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                    />
-                  </svg>
-                </div>
-                <p
-                  className={`text-xs font-semibold ${theme === 'dark' ? "text-gray-300" : "text-gray-700"
-                    }`}
-                >
-                  EASY RETURNS &
-                </p>
-                <p
-                  className={`text-xs ${theme === 'dark' ? "text-gray-500" : "text-gray-500"
-                    }`}
-                >
-                  INSTANT REFUNDS
-                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* You May Also Like */}
-        <div className="mt-16">
-          <h2
-            className={`text-2xl font-bold mb-6 ${theme === 'dark' ? "text-white" : "text-black"
-              }`}
-          >
-            You May Also Like
-          </h2>
-          {isRelatedLoading ? (
-            <div className="flex justify-center py-8">
-              <LoaderThree size="md" color={theme === 'dark' ? '#ffffff' : '#000000'} />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((relatedProduct) => {
-                const relatedProductImage = relatedProduct.media?.find(m => m.is_primary)?.media_url ||
-                  relatedProduct.media?.[0]?.media_url ||
-                  "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=500&fit=crop";
+        {/* Reviews Section */}
+        <ReviewsSection />
 
-                const relatedDiscountPercentage = relatedProduct.compare_at_price && relatedProduct.base_price
-                  ? Math.round(((relatedProduct.compare_at_price - relatedProduct.base_price) / relatedProduct.compare_at_price) * 100)
-                  : 0;
+        {/* Related Products */}
+        {relatedProducts.length > 0 && (
+          <div className="mt-32 mb-16">
+            <h2 className="text-3xl font-bold mb-12 uppercase text-center tracking-widest">Related Products</h2>
 
-                return (
-                  <div
-                    key={relatedProduct.id}
-                    className={`${theme === 'dark' ? "bg-gray-800" : "bg-white"
-                      } rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-shadow cursor-pointer`}
-                    onClick={() => window.location.href = `/productpage?id=${relatedProduct.id}`}
-                  >
-                    <div className="relative">
-                      <Image
-                        width={400}
-                        height={500}
-                        src={relatedProductImage}
-                        alt={relatedProduct.name}
-                        className="w-full aspect-[4/5] object-cover"
-                      />
-                      {relatedProduct.is_featured && (
-                        <div className="absolute top-2 left-2">
-                          <span
-                            className={`px-2 py-1 text-xs font-semibold ${theme === 'dark'
-                                ? "bg-gray-700 text-white"
-                                : "bg-white text-black"
-                              } rounded`}
-                          >
-                            FEATURED
-                          </span>
-                        </div>
-                      )}
-                      <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-white px-2 py-1 rounded">
-                        <Star
-                          size={12}
-                          className="fill-yellow-400 text-yellow-400"
+            <div className="relative">
+              {/* Navigation Arrows (Visual only for grid, functional if we added carousel logic) */}
+              <button className="absolute -right-12 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full flex items-center justify-center text-black z-10 hover:scale-110 transition-transform hidden lg:flex">
+                <ChevronRight size={20} />
+              </button>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {relatedProducts.map((relatedProduct) => {
+                  const discount = relatedProduct.compare_at_price
+                    ? Math.round(((relatedProduct.compare_at_price - relatedProduct.base_price) / relatedProduct.compare_at_price) * 100)
+                    : 0;
+
+                  return (
+                    <div
+                      key={relatedProduct.id}
+                      className="group cursor-pointer relative"
+                      onClick={() => window.location.href = `/productpage?id=${relatedProduct.id}`}
+                    >
+                      {/* Image Container */}
+                      <div className="relative aspect-[3/4] mb-6 overflow-hidden bg-[#0a0a0a]">
+                        <Image
+                          src={relatedProduct.media?.[0]?.media_url || ""}
+                          alt={relatedProduct.name}
+                          fill
+                          className="object-cover transition-transform duration-700 group-hover:scale-110"
                         />
-                        <span className="text-xs font-semibold">4.3</span>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <p
-                        className={`text-sm font-semibold mb-1 ${theme === 'dark' ? "text-gray-400" : "text-gray-600"
-                          }`}
-                      >
-                        {relatedProduct.category?.name || 'MORVILN'}
-                      </p>
-                      <p
-                        className={`text-sm mb-2 ${theme === 'dark' ? "text-white" : "text-black"
-                          }`}
-                      >
-                        {relatedProduct.name}
-                      </p>
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <span
-                          className={`text-lg font-bold ${theme === 'dark' ? "text-white" : "text-black"
-                            }`}
-                        >
-                          ₹{Math.round(relatedProduct.base_price)}
-                        </span>
-                        {relatedProduct.compare_at_price && (
-                          <>
-                            <span
-                              className={`text-sm line-through ${theme === 'dark' ? "text-gray-500" : "text-gray-400"
-                                }`}
-                            >
-                              ₹{Math.round(relatedProduct.compare_at_price)}
-                            </span>
-                            {relatedDiscountPercentage > 0 && (
-                              <span className="text-sm font-semibold text-green-600">
-                                {relatedDiscountPercentage}% OFF
-                              </span>
-                            )}
-                          </>
+
+                        {/* Save Badge */}
+                        {discount > 0 && (
+                          <div className="absolute top-4 left-4 bg-[#E31E24] text-white text-[10px] font-bold px-2 py-1 uppercase tracking-wider">
+                            Save {discount}%
+                          </div>
                         )}
+
+                        {/* Black Friday Tag (CSS simulated) */}
+                        <div className="absolute top-12 left-2 transform -rotate-12">
+                          <div className="bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-sm shadow-lg border border-white/20 relative">
+                            <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-1 h-3 bg-white/50 rounded-full"></div>
+                            BLACK<br />FRIDAY
+                          </div>
+                        </div>
+
+                        {/* Add Button */}
+                        <button className="absolute bottom-4 right-4 w-8 h-8 bg-white text-black flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-gray-200">
+                          <Plus size={16} />
+                        </button>
                       </div>
-                      {relatedProduct.short_description && (
-                        <p className={`text-xs ${theme === 'dark' ? "text-gray-400" : "text-gray-600"}`}>
-                          {relatedProduct.short_description}
-                        </p>
-                      )}
+
+                      {/* Product Info */}
+                      <div className="text-center space-y-2">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-gray-200 leading-relaxed">
+                          {relatedProduct.name}
+                        </h3>
+                        <div className="flex items-center justify-center gap-3 text-xs font-bold">
+                          <span className="text-[#E31E24]">
+                            RS. {Math.round(relatedProduct.base_price).toLocaleString()}.00
+                          </span>
+                          {relatedProduct.compare_at_price && (
+                            <span className="text-gray-500 line-through decoration-gray-500">
+                              RS. {Math.round(relatedProduct.compare_at_price).toLocaleString()}.00
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

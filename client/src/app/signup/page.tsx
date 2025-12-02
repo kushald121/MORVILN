@@ -11,7 +11,6 @@ import {
   FiEye,
   FiEyeOff,
   FiPhone,
-  FiShoppingBag,
 } from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
 import { FaFacebook } from "react-icons/fa";
@@ -116,100 +115,98 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50 px-4 py-4 relative overflow-hidden">
-      {/* Decorative Background Elements */}
+    <div className="min-h-screen flex bg-black relative overflow-hidden">
+      {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-orange-300 to-rose-300 rounded-full opacity-20 blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-300 to-purple-300 rounded-full opacity-20 blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-amber-200 to-orange-200 rounded-full opacity-10 blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-gradient-to-tr from-gray-900/30 to-purple-900/20 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="w-full max-w-6xl mx-auto grid lg:grid-cols-2 gap-8 items-center relative z-10">
-        {/* Left Side - Illustration/Branding */}
-        <motion.div
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
-          className="hidden lg:flex flex-col justify-center items-center space-y-4 px-8"
-        >
-          <div className="text-center space-y-3">
-            <Link href="/">
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-500 via-rose-500 to-indigo-600 bg-clip-text text-transparent mb-2">
-                MORVILN
-              </h1>
-            </Link>
-            <h2 className="text-3xl font-bold text-gray-800 leading-tight">
-              Start your fashion
-              <br />
-              journey today
+      {/* Left Side - Branding */}
+      <motion.div
+        initial={{ opacity: 0, x: -50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8 }}
+        className="hidden lg:flex flex-col justify-center items-center w-1/2 px-12 relative z-10"
+      >
+        <div className="text-center space-y-8">
+          <Link href="/" className="block">
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="flex items-center justify-center gap-2"
+            >
+              <span className="text-8xl font-serif text-white drop-shadow-lg">𝕸</span>
+              <span className="text-5xl font-bold tracking-[0.3em] text-white font-serif">ORVILN</span>
+            </motion.div>
+          </Link>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="space-y-4"
+          >
+            <h2 className="text-4xl font-bold text-white tracking-wide">
+              Join the Fashion Elite
             </h2>
-            <p className="text-base text-gray-600">
-              Join thousands of fashion enthusiasts
+            <p className="text-gray-400 text-lg tracking-wider max-w-md">
+              Create your account and discover exclusive collections
             </p>
+          </motion.div>
+
+          {/* Decorative Line */}
+          <motion.div
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: 1 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+            className="w-32 h-[2px] bg-gradient-to-r from-purple-500 to-pink-500 mx-auto"
+          />
+        </div>
+      </motion.div>
+
+      {/* Right Side - Signup Form */}
+      <motion.div
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className="w-full lg:w-1/2 flex items-center justify-center px-6 py-8 relative z-10"
+      >
+        <div className="w-full max-w-md">
+          {/* Mobile Logo */}
+          <div className="lg:hidden text-center mb-6">
+            <Link href="/" className="inline-flex items-center gap-2">
+              <span className="text-5xl font-serif text-white">𝕸</span>
+              <span className="text-2xl font-bold tracking-[0.2em] text-white font-serif">ORVILN</span>
+            </Link>
           </div>
 
-          {/* Illustration */}
-          <motion.div
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="relative"
-          >
-            <div className="w-56 h-56 relative">
-              <FiShoppingBag className="w-full h-full text-rose-500 opacity-20" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-32 h-32 bg-gradient-to-br from-rose-400 to-orange-500 rounded-full opacity-30 blur-2xl"></div>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-
-        {/* Right Side - Signup Form */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="w-full max-w-md mx-auto"
-        >
-          <div className="bg-white rounded-2xl shadow-2xl p-5 sm:p-6 backdrop-blur-lg border border-gray-100 max-h-[95vh] overflow-y-auto">
-            {/* Mobile Logo */}
-            <div className="lg:hidden text-center mb-3">
-              <Link href="/">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-500 via-rose-500 to-indigo-600 bg-clip-text text-transparent">
-                  MORVILN
-                </h1>
-              </Link>
-            </div>
-
-            <div className="text-center mb-4">
-              <h2 className="text-2xl font-bold text-gray-800 mb-1">
-                Create Account
-              </h2>
-              <p className="text-sm text-gray-600">
-                Join us and start shopping today!
-              </p>
+          {/* Form Container */}
+          <div className="bg-gray-900/50 backdrop-blur-xl border border-gray-800 rounded-2xl p-6 sm:p-8 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-white tracking-wider mb-2">CREATE ACCOUNT</h2>
+              <p className="text-gray-400 text-sm tracking-wide">Join us and start shopping today</p>
             </div>
 
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm"
+                className="mb-4 p-4 bg-red-900/30 border border-red-700/50 text-red-400 rounded-xl text-sm"
               >
                 {error}
               </motion.div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-3.5">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Name */}
               <div>
-                <label
-                  htmlFor="name"
-                  className="block text-xs font-semibold text-gray-700 mb-1"
-                >
+                <label htmlFor="name" className="block text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">
                   Full Name
                 </label>
                 <div className="relative">
-                  <FiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <FiUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                   <input
                     id="name"
                     name="name"
@@ -217,7 +214,7 @@ const SignupPage = () => {
                     required
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all outline-none bg-gray-50 hover:bg-white text-sm"
+                    className="w-full pl-12 pr-4 py-3 bg-black/50 border border-gray-700 text-white rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all outline-none placeholder:text-gray-600 tracking-wide"
                     placeholder="Your name"
                   />
                 </div>
@@ -225,14 +222,11 @@ const SignupPage = () => {
 
               {/* Email */}
               <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-semibold text-gray-700 mb-1.5"
-                >
+                <label htmlFor="email" className="block text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">
                   Email
                 </label>
                 <div className="relative">
-                  <FiMail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                   <input
                     id="email"
                     name="email"
@@ -240,7 +234,7 @@ const SignupPage = () => {
                     required
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all outline-none bg-gray-50 hover:bg-white text-sm"
+                    className="w-full pl-12 pr-4 py-3 bg-black/50 border border-gray-700 text-white rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all outline-none placeholder:text-gray-600 tracking-wide"
                     placeholder="your@email.com"
                   />
                 </div>
@@ -248,21 +242,18 @@ const SignupPage = () => {
 
               {/* Phone */}
               <div>
-                <label
-                  htmlFor="phone"
-                  className="block text-sm font-semibold text-gray-700 mb-1.5"
-                >
+                <label htmlFor="phone" className="block text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">
                   Phone Number (Optional)
                 </label>
                 <div className="relative">
-                  <FiPhone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <FiPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                   <input
                     id="phone"
                     name="phone"
                     type="tel"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all outline-none bg-gray-50 hover:bg-white text-sm"
+                    className="w-full pl-12 pr-4 py-3 bg-black/50 border border-gray-700 text-white rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all outline-none placeholder:text-gray-600 tracking-wide"
                     placeholder="+91 98765 43210"
                   />
                 </div>
@@ -270,14 +261,11 @@ const SignupPage = () => {
 
               {/* Password */}
               <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-semibold text-gray-700 mb-1.5"
-                >
+                <label htmlFor="password" className="block text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">
                   Password
                 </label>
                 <div className="relative">
-                  <FiLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                   <input
                     id="password"
                     name="password"
@@ -285,33 +273,26 @@ const SignupPage = () => {
                     required
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all outline-none bg-gray-50 hover:bg-white text-sm"
+                    className="w-full pl-12 pr-12 py-3 bg-black/50 border border-gray-700 text-white rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all outline-none placeholder:text-gray-600"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
                   >
-                    {showPassword ? (
-                      <FiEyeOff className="w-5 h-5" />
-                    ) : (
-                      <FiEye className="w-5 h-5" />
-                    )}
+                    {showPassword ? <FiEyeOff className="w-5 h-5" /> : <FiEye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
 
               {/* Confirm Password */}
               <div>
-                <label
-                  htmlFor="confirmPassword"
-                  className="block text-sm font-semibold text-gray-700 mb-1.5"
-                >
+                <label htmlFor="confirmPassword" className="block text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">
                   Confirm Password
                 </label>
                 <div className="relative">
-                  <FiLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 w-5 h-5" />
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
@@ -319,45 +300,35 @@ const SignupPage = () => {
                     required
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all outline-none bg-gray-50 hover:bg-white text-sm"
+                    className="w-full pl-12 pr-12 py-3 bg-black/50 border border-gray-700 text-white rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all outline-none placeholder:text-gray-600"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
                   >
-                    {showConfirmPassword ? (
-                      <FiEyeOff className="w-5 h-5" />
-                    ) : (
-                      <FiEye className="w-5 h-5" />
-                    )}
+                    {showConfirmPassword ? <FiEyeOff className="w-5 h-5" /> : <FiEye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
 
               {/* Terms Checkbox */}
-              <div className="flex items-start pt-1">
+              <div className="flex items-start pt-2">
                 <input
                   type="checkbox"
                   id="terms"
                   checked={agreedToTerms}
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="mt-0.5 w-3.5 h-3.5 rounded border-gray-300 text-rose-500 focus:ring-rose-500"
+                  className="mt-1 w-4 h-4 rounded border-gray-600 bg-gray-800 text-purple-500 focus:ring-purple-500"
                 />
-                <label htmlFor="terms" className="ml-2 text-xs text-gray-600">
+                <label htmlFor="terms" className="ml-3 text-sm text-gray-400">
                   I agree to the{" "}
-                  <Link
-                    href="/terms"
-                    className="text-rose-600 hover:text-rose-700 font-semibold"
-                  >
+                  <Link href="/terms" className="text-purple-400 hover:text-purple-300 font-semibold">
                     Terms & Conditions
                   </Link>{" "}
                   and{" "}
-                  <Link
-                    href="/privacy"
-                    className="text-rose-600 hover:text-rose-700 font-semibold"
-                  >
+                  <Link href="/privacy" className="text-purple-400 hover:text-purple-300 font-semibold">
                     Privacy Policy
                   </Link>
                 </label>
@@ -366,84 +337,64 @@ const SignupPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-rose-500 to-orange-500 text-white py-2.5 rounded-xl font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-sm"
+                className="w-full bg-white text-black py-4 font-bold text-sm tracking-[0.2em] uppercase hover:bg-gray-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-lg"
               >
                 {loading ? (
                   <span className="flex items-center justify-center">
-                    <svg
-                      className="animate-spin h-5 w-5 mr-3"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        fill="none"
-                      />
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
+                    <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Creating account...
+                    CREATING ACCOUNT...
                   </span>
                 ) : (
-                  "Create Account"
+                  "CREATE ACCOUNT"
                 )}
               </button>
             </form>
 
             {/* Divider */}
-            <div className="relative my-3">
+            <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
+                <div className="w-full border-t border-gray-700"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500 font-medium">
-                  Or sign up with
-                </span>
+                <span className="px-4 bg-gray-900/50 text-gray-500 tracking-wider uppercase text-xs">Or sign up with</span>
               </div>
             </div>
 
             {/* OAuth Buttons */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               <button
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={loading}
-                className="flex items-center justify-center gap-2 px-3 py-2 border-2 border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-3 px-4 py-3 bg-black/50 border border-gray-700 hover:border-gray-500 hover:bg-gray-800/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl"
               >
-                <FcGoogle className="w-4 h-4" />
-                <span className="font-semibold text-gray-700 text-sm">Google</span>
+                <FcGoogle className="w-5 h-5" />
+                <span className="font-semibold text-white text-sm tracking-wide">Google</span>
               </button>
               <button
                 type="button"
                 onClick={handleFacebookLogin}
                 disabled={loading}
-                className="flex items-center justify-center gap-2 px-3 py-2 border-2 border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-3 px-4 py-3 bg-black/50 border border-gray-700 hover:border-gray-500 hover:bg-gray-800/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl"
               >
-                <FaFacebook className="w-4 h-4 text-blue-600" />
-                <span className="font-semibold text-gray-700 text-sm">Facebook</span>
+                <FaFacebook className="w-5 h-5 text-blue-500" />
+                <span className="font-semibold text-white text-sm tracking-wide">Facebook</span>
               </button>
             </div>
 
             {/* Sign In Link */}
-            <p className="mt-5 text-center text-sm text-gray-600">
+            <p className="mt-6 text-center text-sm text-gray-400 tracking-wide">
               Already have an account?{" "}
-              <Link
-                href="/login"
-                className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 transition-all"
-              >
+              <Link href="/login" className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-300 hover:to-pink-300 transition-all">
                 Sign in
               </Link>
             </p>
           </div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </div>
   );
 };

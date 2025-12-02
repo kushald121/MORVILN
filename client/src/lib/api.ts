@@ -58,28 +58,38 @@ apiClient.interceptors.response.use(
     }
 
     // Handle authentication errors (401)
+    // Only redirect for critical auth endpoints, not for all 401s
     if (error.response?.status === 401 && !isRedirecting) {
-      isRedirecting = true;
+      const url = error.config?.url || '';
       
-      if (typeof window !== 'undefined') {
-        // Clear auth data
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('userData');
+      // Only redirect to login for critical auth failures (login, me, profile)
+      // Don't redirect for secondary endpoints like orders, favorites, addresses
+      const criticalAuthEndpoints = ['/auth/me', '/auth/login', '/auth/profile'];
+      const isCriticalAuthFailure = criticalAuthEndpoints.some(endpoint => url.includes(endpoint));
+      
+      if (isCriticalAuthFailure) {
+        isRedirecting = true;
         
-        // Save current location for redirect after login
-        const currentPath = window.location.pathname;
-        if (currentPath !== '/login' && currentPath !== '/signup') {
-          sessionStorage.setItem('redirectAfterLogin', currentPath);
+        if (typeof window !== 'undefined') {
+          // Clear auth data
+          localStorage.removeItem('userToken');
+          localStorage.removeItem('userData');
+          
+          // Save current location for redirect after login
+          const currentPath = window.location.pathname;
+          if (currentPath !== '/login' && currentPath !== '/signup') {
+            sessionStorage.setItem('redirectAfterLogin', currentPath);
+          }
+          
+          // Redirect to login
+          window.location.href = '/login';
         }
         
-        // Redirect to login
-        window.location.href = '/login';
+        // Reset flag after delay
+        setTimeout(() => {
+          isRedirecting = false;
+        }, 1000);
       }
-      
-      // Reset flag after delay
-      setTimeout(() => {
-        isRedirecting = false;
-      }, 1000);
     }
 
     // Handle forbidden errors (403)

@@ -1,8 +1,9 @@
 "use client"
-import React, { useState, useEffect } from 'react';
-import { Search, ShoppingBag, User, Menu, X, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, ShoppingBag, User, Menu, X, ChevronRight, LogOut } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 import CartSidebar from './CartSidebar';
 import { ProductService, Product } from '../services/productService';
 
@@ -57,7 +58,7 @@ const DropdownMenu: React.FC<{ items: NavLink[]; visible: boolean }> = ({ items,
           >
             {child.label}
             <span className="opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-[-5px] group-hover:translate-x-0">
-               <ChevronRight size={12} />
+              <ChevronRight size={12} />
             </span>
           </a>
         ))}
@@ -67,10 +68,106 @@ const DropdownMenu: React.FC<{ items: NavLink[]; visible: boolean }> = ({ items,
 };
 
 // -------------------------------------------------------
+// USER MENU COMPONENT (Desktop)
+// -------------------------------------------------------
+
+const UserMenu: React.FC<{
+  isAuthenticated: boolean;
+  user: any;
+  onLogout: () => void;
+  router: any;
+}> = ({ isAuthenticated, user, onLogout, router }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  if (!isAuthenticated) {
+    return (
+      <a
+        href="/login"
+        className="hidden md:block hover:opacity-70 transition-opacity hover:scale-110 duration-200"
+        aria-label="Login"
+      >
+        <User size={26} strokeWidth={1.5} />
+      </a>
+    );
+  }
+
+  return (
+    <div className="relative hidden md:block" ref={menuRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 hover:opacity-70 transition-opacity hover:scale-105 duration-200"
+      >
+        {user?.avatar ? (
+          <img
+            src={user.avatar}
+            alt={user.name}
+            className="w-[26px] h-[26px] rounded-full object-cover border border-gray-600"
+          />
+        ) : (
+          <User size={26} strokeWidth={1.5} />
+        )}
+      </button>
+
+      {/* Dropdown */}
+      <div
+        className={`
+          absolute right-0 top-full pt-4 w-48
+          transition-all duration-200 ease-out transform origin-top-right
+          ${isOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-2 pointer-events-none'}
+        `}
+      >
+        <div className="bg-black/95 backdrop-blur-md border border-gray-800 rounded-sm shadow-2xl py-2">
+          <div className="px-4 py-3 border-b border-gray-800">
+            <p className="text-sm text-white font-medium truncate">{user?.name || 'User'}</p>
+            <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+          </div>
+
+          <a
+            href="/profile"
+            className="block px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+          >
+            My Profile
+          </a>
+
+          <button
+            onClick={() => {
+              onLogout();
+              setIsOpen(false);
+            }}
+            className="w-full text-left px-4 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors flex items-center gap-2"
+          >
+            <LogOut size={14} />
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// -------------------------------------------------------
 // MOBILE MENU COMPONENT
 // -------------------------------------------------------
 
-const MobileMenu: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
+const MobileMenu: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  isAuthenticated: boolean;
+  user: any;
+  onLogout: () => void;
+}> = ({ isOpen, onClose, isAuthenticated, user, onLogout }) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -81,7 +178,7 @@ const MobileMenu: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
   }, [isOpen]);
 
   return (
-    <div 
+    <div
       className={`
         fixed inset-0 bg-black z-50 flex flex-col pt-24 px-8 
         transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]
@@ -94,10 +191,61 @@ const MobileMenu: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
       </button>
 
       <nav className="flex flex-col space-y-6">
+        {/* Auth Section for Mobile */}
+        <div className="border-b border-gray-800 pb-6 mb-2">
+          {isAuthenticated ? (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="w-10 h-10 rounded-full object-cover border border-gray-600"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center">
+                    <User size={20} />
+                  </div>
+                )}
+                <div>
+                  <p className="text-white font-medium">{user?.name}</p>
+                  <p className="text-xs text-gray-400">{user?.email}</p>
+                </div>
+              </div>
+              <a
+                href="/profile"
+                onClick={onClose}
+                className="block text-sm text-gray-300 hover:text-white tracking-widest"
+              >
+                MY PROFILE
+              </a>
+              <button
+                onClick={() => {
+                  onLogout();
+                  onClose();
+                }}
+                className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 tracking-widest"
+              >
+                <LogOut size={14} />
+                LOGOUT
+              </button>
+            </div>
+          ) : (
+            <a
+              href="/login"
+              onClick={onClose}
+              className="flex items-center gap-2 text-xl font-serif tracking-widest text-white"
+            >
+              <User size={24} />
+              LOGIN / SIGNUP
+            </a>
+          )}
+        </div>
+
         {NAV_LINKS.map((link) => (
           <div key={link.id} className="border-b border-gray-800 pb-4">
-            <a 
-              href={link.href} 
+            <a
+              href={link.href}
               onClick={onClose}
               className={`text-2xl font-serif tracking-widest block mb-2 ${link.highlight ? 'text-purple-400' : 'text-white'}`}
             >
@@ -106,8 +254,8 @@ const MobileMenu: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen
             {link.children && (
               <div className="mt-2 pl-4 flex flex-col space-y-3 border-l border-gray-700 ml-1">
                 {link.children.map(child => (
-                  <a 
-                    key={child.id} 
+                  <a
+                    key={child.id}
                     href={child.href}
                     onClick={onClose}
                     className="text-gray-400 hover:text-white text-sm tracking-widest block"
@@ -141,6 +289,7 @@ const Navbar: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
   const { toggleCart, getCartItemCount } = useCart();
+  const { isAuthenticated, user, logout } = useAuth();
   const cartItemCount = getCartItemCount();
 
   // Wrapper handlers for the entire header
@@ -201,7 +350,7 @@ const Navbar: React.FC = () => {
 
   return (
     <>
-      <header 
+      <header
         className={`
           fixed top-0 left-0 w-full z-40 relative
           flex items-center justify-start
@@ -209,7 +358,7 @@ const Navbar: React.FC = () => {
           pt-6 pb-4 md:pt-8 md:pb-6
           text-white 
           transition-colors duration-500 ease-in-out
-          ${showBackground 
+          ${showBackground
             ? 'bg-black/95 shadow-xl'
             : 'bg-transparent'
           }
@@ -255,8 +404,8 @@ const Navbar: React.FC = () => {
                 href={link.href}
                 className={`
                   relative text-sm lg:text-base font-bold tracking-[0.15em] py-4 block transition-colors duration-300
-                  ${link.highlight 
-                    ? 'bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent' 
+                  ${link.highlight
+                    ? 'bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent'
                     : 'text-white hover:text-gray-300'
                   }
                 `}
@@ -268,10 +417,10 @@ const Navbar: React.FC = () => {
               </a>
 
               {link.children && (
-                 <DropdownMenu
-                    items={link.children}
-                    visible={activeMenu === link.id}
-                  />
+                <DropdownMenu
+                  items={link.children}
+                  visible={activeMenu === link.id}
+                />
               )}
             </div>
           ))}
@@ -279,9 +428,14 @@ const Navbar: React.FC = () => {
 
         {/* RIGHT ICONS */}
         <div className="ml-auto flex items-center space-x-6 md:space-x-8 pt-2">
-          <a href="/profile" className="hidden md:block hover:opacity-70 transition-opacity hover:scale-110 duration-200">
-            <User size={26} strokeWidth={1.5} />
-          </a>
+
+          {/* User Menu (Desktop) */}
+          <UserMenu
+            isAuthenticated={isAuthenticated}
+            user={user}
+            onLogout={logout}
+            router={router}
+          />
 
           <button
             type="button"
@@ -292,7 +446,7 @@ const Navbar: React.FC = () => {
             <Search size={26} strokeWidth={1.5} />
           </button>
 
-          <button 
+          <button
             onClick={toggleCart}
             className="relative hover:opacity-70 transition-opacity hover:scale-110 duration-200"
             aria-label="Open shopping cart"
@@ -306,7 +460,7 @@ const Navbar: React.FC = () => {
           </button>
 
           {/* Mobile Menu Toggle */}
-          <button 
+          <button
             className="md:hidden ml-2 hover:opacity-70 z-50"
             onClick={() => setIsMobileMenuOpen(true)}
           >
@@ -382,9 +536,12 @@ const Navbar: React.FC = () => {
       </header>
 
       {/* Mobile Menu Overlay */}
-      <MobileMenu 
-        isOpen={isMobileMenuOpen} 
-        onClose={() => setIsMobileMenuOpen(false)} 
+      <MobileMenu
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        isAuthenticated={isAuthenticated}
+        user={user}
+        onLogout={logout}
       />
 
       {/* Cart Sidebar */}

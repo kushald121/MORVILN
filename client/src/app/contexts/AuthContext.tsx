@@ -9,6 +9,9 @@ interface User {
   email: string;
   phone?: string;
   role?: string;
+  avatar?: string;
+  provider?: string;
+  isVerified?: boolean;
 }
 
 interface AuthContextType {

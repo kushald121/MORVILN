@@ -53,29 +53,35 @@ const ProfilePage = () => {
   });
 
   useEffect(() => {
-    loadUserData();
-    loadUserStats();
-    loadUserAddresses();
-  }, [authUser, isAuthenticated]);
+    // Wait a tick to allow AuthContext to hydrate from localStorage
+    const timer = setTimeout(() => {
+      loadUserData();
+      loadUserStats();
+      loadUserAddresses();
+    }, 50);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const loadUserData = async () => {
     try {
       setLoading(true);
       
-      // Check for token in localStorage first
+      // Check for token in localStorage first (most reliable)
       const hasToken = typeof window !== 'undefined' && localStorage.getItem('userToken');
+      const storedUserData = typeof window !== 'undefined' ? localStorage.getItem('userData') : null;
       
-      // If no token and not authenticated, redirect to login
-      if (!hasToken && !isAuthenticated && !authUser) {
+      // If no token at all, redirect to login
+      if (!hasToken) {
         toast.warning('Please login to view your profile');
         router.push('/login');
         return;
       }
 
-      // Get user from AuthContext or localStorage
-      let userData = authUser || authService.getCurrentUser();
+      // Get user data from localStorage directly (since we confirmed token exists)
+      let userData = storedUserData ? JSON.parse(storedUserData) : null;
       
-      // If still no user data, try to fetch from API
+      // If no user data in localStorage but token exists, try to fetch from API
       if (!userData && hasToken) {
         try {
           const response = await apiClient.get('/auth/me');
@@ -83,6 +89,8 @@ const ProfilePage = () => {
             userData = response.data.user;
             // Update localStorage with fresh data
             localStorage.setItem('userData', JSON.stringify(userData));
+            // Notify AuthContext
+            window.dispatchEvent(new Event('auth-state-changed'));
           }
         } catch (error) {
           console.error('Failed to fetch user profile:', error);
@@ -108,10 +116,18 @@ const ProfilePage = () => {
         city: '',
         country: ''
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading user data:', error);
-      toast.error('Failed to load user data');
-      router.push('/login');
+      // Only redirect to login if it's an authentication error (401)
+      if (error?.response?.status === 401) {
+        toast.error('Session expired. Please login again.');
+        localStorage.removeItem('userToken');
+        localStorage.removeItem('userData');
+        router.push('/login');
+      } else {
+        // For other errors, just show error message but don't redirect
+        toast.error('Failed to load some user data');
+      }
     } finally {
       setLoading(false);
     }
@@ -236,8 +252,8 @@ const ProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      <div className="min-h-screen flex items-center justify-center bg-black">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
       </div>
     );
   }
@@ -249,8 +265,14 @@ const ProfilePage = () => {
   const memberSince = user.createdAt ? new Date(user.createdAt).getFullYear() : new Date().getFullYear();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-black py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-gradient-to-tr from-gray-900/30 to-purple-900/20 rounded-full blur-3xl"></div>
+      </div>
+
+      <div className="max-w-6xl mx-auto relative z-10">
         {/* Header */}
         <motion.div
           initial="hidden"
@@ -260,14 +282,14 @@ const ProfilePage = () => {
           className="mb-8 flex justify-between items-center"
         >
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-              My <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-rose-500">Profile</span>
+            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 tracking-wider">
+              My <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Profile</span>
             </h1>
-            <p className="text-gray-600">Manage your account and preferences</p>
+            <p className="text-gray-400 tracking-wide">Manage your account and preferences</p>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors duration-200"
+            className="flex items-center gap-2 px-4 py-2 bg-red-600/20 border border-red-600/50 text-red-400 rounded-xl hover:bg-red-600/30 transition-colors duration-200"
           >
             <LogOut className="w-4 h-4" />
             <span className="hidden sm:inline">Logout</span>
@@ -284,7 +306,7 @@ const ProfilePage = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="lg:col-span-1"
           >
-            <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+            <div className="bg-gray-900/50 backdrop-blur-xl border border-gray-800 rounded-2xl shadow-2xl p-6">
               {/* Profile Picture */}
               <div className="flex flex-col items-center mb-6">
                 <div className="relative">
@@ -292,25 +314,25 @@ const ProfilePage = () => {
                     <img 
                       src={user.avatar} 
                       alt={user.name}
-                      className="w-24 h-24 rounded-full object-cover shadow-lg"
+                      className="w-24 h-24 rounded-full object-cover shadow-lg border-2 border-gray-700"
                     />
                   ) : (
-                    <div className="w-24 h-24 bg-gradient-to-br from-orange-500 to-rose-500 rounded-full flex items-center justify-center shadow-lg">
+                    <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
                       <User className="w-12 h-12 text-white" />
                     </div>
                   )}
                   {user.provider && (
-                    <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-1 shadow-md">
+                    <div className="absolute -bottom-2 -right-2 bg-gray-800 border border-gray-700 rounded-full p-1 shadow-md">
                       {user.provider === 'google' && <FcGoogle className="w-5 h-5" />}
                       {user.provider === 'facebook' && <FaFacebook className="w-5 h-5 text-blue-600" />}
-                      {user.provider === 'email' && <Mail className="w-5 h-5 text-gray-600" />}
+                      {user.provider === 'email' && <Mail className="w-5 h-5 text-gray-400" />}
                     </div>
                   )}
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 mt-4 mb-1">{user.name}</h2>
+                <h2 className="text-xl font-bold text-white mt-4 mb-1">{user.name}</h2>
                 <p className="text-sm text-gray-500">Member since {memberSince}</p>
                 {user.isVerified && (
-                  <div className="mt-2 flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                  <div className="mt-2 flex items-center gap-1 px-3 py-1 bg-green-900/30 border border-green-700/50 text-green-400 rounded-full text-xs font-semibold">
                     <Shield className="w-3 h-3" />
                     Verified
                   </div>
@@ -318,33 +340,33 @@ const ProfilePage = () => {
               </div>
 
               {/* Quick Stats */}
-              <div className="space-y-3 border-t border-gray-200 pt-6">
-                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-orange-50 to-rose-50 rounded-xl hover:shadow-md transition-shadow">
+              <div className="space-y-3 border-t border-gray-800 pt-6">
+                <div className="flex items-center justify-between p-3 bg-purple-900/20 border border-purple-800/30 rounded-xl hover:bg-purple-900/30 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-orange-100 rounded-lg">
-                      <ShoppingBag className="w-5 h-5 text-orange-600" />
+                    <div className="p-2 bg-purple-900/50 rounded-lg">
+                      <ShoppingBag className="w-5 h-5 text-purple-400" />
                     </div>
-                    <span className="text-sm font-medium text-gray-700">Total Orders</span>
+                    <span className="text-sm font-medium text-gray-300">Total Orders</span>
                   </div>
-                  <span className="font-bold text-orange-600 text-lg">{stats.totalOrders}</span>
+                  <span className="font-bold text-purple-400 text-lg">{stats.totalOrders}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-rose-50 to-pink-50 rounded-xl hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between p-3 bg-pink-900/20 border border-pink-800/30 rounded-xl hover:bg-pink-900/30 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-rose-100 rounded-lg">
-                      <Heart className="w-5 h-5 text-rose-600" />
+                    <div className="p-2 bg-pink-900/50 rounded-lg">
+                      <Heart className="w-5 h-5 text-pink-400" />
                     </div>
-                    <span className="text-sm font-medium text-gray-700">Wishlist Items</span>
+                    <span className="text-sm font-medium text-gray-300">Wishlist Items</span>
                   </div>
-                  <span className="font-bold text-rose-600 text-lg">{stats.wishlistItems}</span>
+                  <span className="font-bold text-pink-400 text-lg">{stats.wishlistItems}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between p-3 bg-amber-900/20 border border-amber-800/30 rounded-xl hover:bg-amber-900/30 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-amber-100 rounded-lg">
-                      <Clock className="w-5 h-5 text-amber-600" />
+                    <div className="p-2 bg-amber-900/50 rounded-lg">
+                      <Clock className="w-5 h-5 text-amber-400" />
                     </div>
-                    <span className="text-sm font-medium text-gray-700">Pending</span>
+                    <span className="text-sm font-medium text-gray-300">Pending</span>
                   </div>
-                  <span className="font-bold text-amber-600 text-lg">{stats.pendingOrders}</span>
+                  <span className="font-bold text-amber-400 text-lg">{stats.pendingOrders}</span>
                 </div>
               </div>
             </div>
@@ -358,23 +380,23 @@ const ProfilePage = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="lg:col-span-2"
           >
-            <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-gray-100">
+            <div className="bg-gray-900/50 backdrop-blur-xl border border-gray-800 rounded-2xl shadow-2xl p-6 sm:p-8">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold text-gray-900">Account Information</h3>
+                <h3 className="text-2xl font-bold text-white tracking-wider">Account Information</h3>
                 {!isEditing ? (
                   <button 
                     onClick={() => setIsEditing(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-rose-500 text-white rounded-xl hover:shadow-lg transition-all duration-200"
+                    className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-xl hover:bg-gray-200 transition-all duration-200 font-semibold text-sm"
                   >
                     <Edit2 className="w-4 h-4" />
-                    <span className="text-sm font-medium">Edit</span>
+                    <span>Edit</span>
                   </button>
                 ) : (
                   <div className="flex gap-2">
                     <button 
                       onClick={handleSave}
                       disabled={saving}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition-colors disabled:opacity-50"
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600/20 border border-green-600/50 text-green-400 rounded-xl hover:bg-green-600/30 transition-colors disabled:opacity-50"
                     >
                       <Save className="w-4 h-4" />
                       <span className="text-sm font-medium">{saving ? 'Saving...' : 'Save'}</span>
@@ -382,7 +404,7 @@ const ProfilePage = () => {
                     <button 
                       onClick={handleCancel}
                       disabled={saving}
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-colors disabled:opacity-50"
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-700 text-gray-300 rounded-xl hover:bg-gray-600 transition-colors disabled:opacity-50"
                     >
                       <X className="w-4 h-4" />
                       <span className="text-sm font-medium">Cancel</span>
@@ -395,8 +417,8 @@ const ProfilePage = () => {
               <div className="space-y-5">
                 {/* Full Name */}
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                    <User className="w-4 h-4 text-orange-500" />
+                  <label className="flex items-center gap-2 text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">
+                    <User className="w-4 h-4 text-purple-400" />
                     Full Name
                   </label>
                   {isEditing ? (
@@ -404,31 +426,31 @@ const ProfilePage = () => {
                       type="text"
                       value={editedData.name}
                       onChange={(e) => setEditedData({ ...editedData, name: e.target.value })}
-                      className="w-full p-4 bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                      className="w-full p-4 bg-black/50 border border-gray-700 text-white rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 outline-none transition-all"
                     />
                   ) : (
-                    <div className="p-4 bg-gradient-to-r from-orange-50 to-rose-50 rounded-xl border border-gray-100">
-                      <p className="text-gray-900 font-medium">{user.name}</p>
+                    <div className="p-4 bg-gray-800/50 border border-gray-700 rounded-xl">
+                      <p className="text-white font-medium">{user.name}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                    <Mail className="w-4 h-4 text-orange-500" />
+                  <label className="flex items-center gap-2 text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">
+                    <Mail className="w-4 h-4 text-purple-400" />
                     Email Address
                   </label>
-                  <div className="p-4 bg-gradient-to-r from-orange-50 to-rose-50 rounded-xl border border-gray-100">
-                    <p className="text-gray-900 font-medium">{user.email}</p>
+                  <div className="p-4 bg-gray-800/50 border border-gray-700 rounded-xl">
+                    <p className="text-white font-medium">{user.email}</p>
                     <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
                   </div>
                 </div>
 
                 {/* Phone */}
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                    <Phone className="w-4 h-4 text-orange-500" />
+                  <label className="flex items-center gap-2 text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">
+                    <Phone className="w-4 h-4 text-purple-400" />
                     Phone Number
                   </label>
                   {isEditing ? (
@@ -436,20 +458,20 @@ const ProfilePage = () => {
                       type="tel"
                       value={editedData.phone}
                       onChange={(e) => setEditedData({ ...editedData, phone: e.target.value })}
-                      className="w-full p-4 bg-gray-50 rounded-xl border border-gray-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                      className="w-full p-4 bg-black/50 border border-gray-700 text-white rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 outline-none transition-all"
                       placeholder="+91 98765 43210"
                     />
                   ) : (
-                    <div className="p-4 bg-gradient-to-r from-orange-50 to-rose-50 rounded-xl border border-gray-100">
-                      <p className="text-gray-900 font-medium">{user.phone || 'Not provided'}</p>
+                    <div className="p-4 bg-gray-800/50 border border-gray-700 rounded-xl">
+                      <p className="text-white font-medium">{user.phone || 'Not provided'}</p>
                     </div>
                   )}
                 </div>
 
                 {/* Address */}
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                    <MapPin className="w-4 h-4 text-orange-500" />
+                  <label className="flex items-center gap-2 text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">
+                    <MapPin className="w-4 h-4 text-purple-400" />
                     Saved Addresses
                   </label>
                   <div className="space-y-3">
@@ -457,32 +479,32 @@ const ProfilePage = () => {
                       addresses.slice(0, 2).map((address) => (
                         <div 
                           key={address.id}
-                          className="p-4 bg-gradient-to-r from-orange-50 to-rose-50 rounded-xl border border-gray-100"
+                          className="p-4 bg-gray-800/50 border border-gray-700 rounded-xl"
                         >
                           <div className="flex items-center justify-between mb-2">
-                            <p className="text-gray-900 font-medium">{address.full_name}</p>
+                            <p className="text-white font-medium">{address.full_name}</p>
                             {address.label && (
-                              <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">
+                              <span className="px-2 py-1 bg-purple-900/30 border border-purple-700/50 text-purple-400 text-xs rounded-full">
                                 {address.label}
                               </span>
                             )}
                           </div>
-                          <p className="text-gray-700 text-sm">
+                          <p className="text-gray-300 text-sm">
                             {address.address_line_1}
                             {address.address_line_2 && `, ${address.address_line_2}`}
                           </p>
-                          <p className="text-gray-600 text-sm mt-1">
+                          <p className="text-gray-400 text-sm mt-1">
                             {address.city}, {address.state} - {address.postal_code}
                           </p>
                           <p className="text-gray-500 text-xs mt-1">{address.phone}</p>
                         </div>
                       ))
                     ) : (
-                      <div className="p-4 bg-gradient-to-r from-orange-50 to-rose-50 rounded-xl border border-gray-100">
+                      <div className="p-4 bg-gray-800/50 border border-gray-700 rounded-xl">
                         <p className="text-gray-500 text-sm">No saved addresses</p>
                         <button
                           onClick={() => router.push('/profile/addresses')}
-                          className="text-orange-600 text-sm font-medium mt-2 hover:underline"
+                          className="text-purple-400 text-sm font-medium mt-2 hover:text-purple-300 transition-colors"
                         >
                           Add your first address →
                         </button>
@@ -491,7 +513,7 @@ const ProfilePage = () => {
                     {addresses.length > 2 && (
                       <button
                         onClick={() => router.push('/profile/addresses')}
-                        className="text-orange-600 text-sm font-medium hover:underline"
+                        className="text-purple-400 text-sm font-medium hover:text-purple-300 transition-colors"
                       >
                         View all {addresses.length} addresses →
                       </button>
@@ -502,8 +524,8 @@ const ProfilePage = () => {
 
               {/* Account Provider Info */}
               {user.provider && (
-                <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                  <p className="text-sm text-blue-800">
+                <div className="mt-6 p-4 bg-purple-900/20 border border-purple-700/30 rounded-xl">
+                  <p className="text-sm text-purple-300">
                     <strong>Account Type:</strong> Signed in with {user.provider.charAt(0).toUpperCase() + user.provider.slice(1)}
                   </p>
                 </div>

@@ -89,29 +89,35 @@ const ResetPasswordContent = () => {
 
   if (!validToken) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-gradient-to-tr from-gray-900/30 to-purple-900/20 rounded-full blur-3xl"></div>
+        </div>
+
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full"
+          className="max-w-md w-full relative z-10"
         >
-          <div className="bg-white rounded-2xl shadow-2xl p-8 text-center">
-            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <AlertCircle className="w-12 h-12 text-red-600" />
+          <div className="bg-gray-900/50 backdrop-blur-xl border border-gray-800 rounded-2xl shadow-2xl p-8 text-center">
+            <div className="w-20 h-20 bg-red-900/30 border border-red-700/50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="w-12 h-12 text-red-400" />
             </div>
 
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl font-bold text-white tracking-wider mb-4">
               Invalid or Expired Link
             </h1>
 
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-400 mb-6">
               This password reset link is invalid or has expired. 
               Please request a new one.
             </p>
 
             <Link
               href="/forgot-password"
-              className="inline-block w-full bg-gradient-to-r from-orange-500 to-rose-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+              className="inline-block w-full bg-white text-black py-4 font-bold text-sm tracking-[0.2em] uppercase hover:bg-gray-200 transition-all duration-200 rounded-xl shadow-lg"
             >
               Request New Link
             </Link>
@@ -123,27 +129,33 @@ const ResetPasswordContent = () => {
 
   if (resetSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-gradient-to-tr from-gray-900/30 to-purple-900/20 rounded-full blur-3xl"></div>
+        </div>
+
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full"
+          className="max-w-md w-full relative z-10"
         >
-          <div className="bg-white rounded-2xl shadow-2xl p-8 text-center">
+          <div className="bg-gray-900/50 backdrop-blur-xl border border-gray-800 rounded-2xl shadow-2xl p-8 text-center">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-              className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6"
+              className="w-20 h-20 bg-green-900/30 border border-green-700/50 rounded-full flex items-center justify-center mx-auto mb-6"
             >
-              <CheckCircle className="w-12 h-12 text-green-600" />
+              <CheckCircle className="w-12 h-12 text-green-400" />
             </motion.div>
 
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl font-bold text-white tracking-wider mb-4">
               Password Reset Successful!
             </h1>
 
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-400 mb-6">
               Your password has been successfully reset. 
               You can now log in with your new password.
             </p>
@@ -152,12 +164,12 @@ const ResetPasswordContent = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => router.push('/login')}
-              className="w-full bg-gradient-to-r from-orange-500 to-rose-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+              className="w-full bg-white text-black py-4 font-bold text-sm tracking-[0.2em] uppercase hover:bg-gray-200 transition-all duration-200 rounded-xl shadow-lg"
             >
               Go to Login
             </motion.button>
 
-            <p className="text-sm text-gray-500 mt-4">
+            <p className="text-sm text-gray-500 mt-4 tracking-wide">
               Redirecting automatically in 3 seconds...
             </p>
           </div>
@@ -167,27 +179,38 @@ const ResetPasswordContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-gradient-to-br from-purple-900/20 to-pink-900/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-gradient-to-tr from-gray-900/30 to-purple-900/20 rounded-full blur-3xl"></div>
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-md w-full"
+        className="max-w-md w-full relative z-10"
       >
         <div className="text-center mb-8">
+          <Link href="/" className="inline-flex items-center gap-2 mb-6">
+            <span className="text-5xl font-serif text-white">𝕸</span>
+            <span className="text-2xl font-bold tracking-[0.2em] text-white font-serif">ORVILN</span>
+          </Link>
+
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            className="w-16 h-16 bg-gradient-to-br from-orange-500 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-4"
+            className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
           >
             <Lock className="w-8 h-8 text-white" />
           </motion.div>
 
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-white tracking-wider mb-2">
             Reset Password
           </h1>
-          <p className="text-gray-600">
+          <p className="text-gray-400 tracking-wide">
             Enter your new password below
           </p>
         </div>
@@ -196,21 +219,21 @@ const ResetPasswordContent = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white rounded-2xl shadow-2xl p-8"
+          className="bg-gray-900/50 backdrop-blur-xl border border-gray-800 rounded-2xl shadow-2xl p-8"
         >
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* New Password */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">
                 New Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                  className="w-full pl-12 pr-12 py-3.5 bg-black/50 border border-gray-700 text-white rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 outline-none transition-all placeholder:text-gray-600 tracking-wide"
                   placeholder="Enter new password"
                   disabled={loading}
                   required
@@ -218,7 +241,7 @@ const ResetPasswordContent = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -230,9 +253,9 @@ const ResetPasswordContent = () => {
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
-                className="bg-gray-50 rounded-xl p-4 space-y-2"
+                className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 space-y-2"
               >
-                <p className="text-sm font-semibold text-gray-700 mb-2">Password must contain:</p>
+                <p className="text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">Password must contain:</p>
                 <PasswordRequirement met={passwordStrength.hasMinLength} text="At least 8 characters" />
                 <PasswordRequirement met={passwordStrength.hasUpperCase} text="One uppercase letter" />
                 <PasswordRequirement met={passwordStrength.hasLowerCase} text="One lowercase letter" />
@@ -243,16 +266,16 @@ const ResetPasswordContent = () => {
 
             {/* Confirm Password */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
+              <label className="block text-xs font-semibold text-gray-400 mb-2 tracking-wider uppercase">
                 Confirm Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                 <input
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all"
+                  className="w-full pl-12 pr-12 py-3.5 bg-black/50 border border-gray-700 text-white rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 outline-none transition-all placeholder:text-gray-600 tracking-wide"
                   placeholder="Confirm new password"
                   disabled={loading}
                   required
@@ -260,13 +283,13 @@ const ResetPasswordContent = () => {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition-colors"
                 >
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
               {confirmPassword && password !== confirmPassword && (
-                <p className="text-red-500 text-sm mt-2">Passwords do not match</p>
+                <p className="text-red-400 text-sm mt-2">Passwords do not match</p>
               )}
             </div>
 
@@ -275,23 +298,23 @@ const ResetPasswordContent = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               disabled={loading || password !== confirmPassword || !Object.values(passwordStrength).every((v) => v)}
-              className="w-full bg-gradient-to-r from-orange-500 to-rose-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-white text-black py-4 font-bold text-sm tracking-[0.2em] uppercase hover:bg-gray-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl shadow-lg"
             >
               {loading ? (
                 <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Resetting...
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black mr-2"></div>
+                  RESETTING...
                 </div>
               ) : (
-                'Reset Password'
+                'RESET PASSWORD'
               )}
             </motion.button>
           </form>
         </motion.div>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="text-center text-sm text-gray-500 mt-6 tracking-wide">
           Remember your password?{' '}
-          <Link href="/login" className="text-orange-600 hover:text-orange-700 font-semibold">
+          <Link href="/login" className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-300 hover:to-pink-300 font-semibold">
             Log in
           </Link>
         </p>
@@ -302,10 +325,10 @@ const ResetPasswordContent = () => {
 
 const PasswordRequirement = ({ met, text }: { met: boolean; text: string }) => (
   <div className="flex items-center space-x-2">
-    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${met ? 'bg-green-500' : 'bg-gray-300'}`}>
+    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${met ? 'bg-green-500' : 'bg-gray-600'}`}>
       {met && <CheckCircle className="w-3 h-3 text-white" />}
     </div>
-    <span className={`text-sm ${met ? 'text-green-700' : 'text-gray-600'}`}>{text}</span>
+    <span className={`text-sm ${met ? 'text-green-400' : 'text-gray-500'}`}>{text}</span>
   </div>
 );
 
@@ -313,8 +336,8 @@ const PasswordRequirement = ({ met, text }: { met: boolean; text: string }) => (
 const ResetPasswordPage = () => {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
       </div>
     }>
       <ResetPasswordContent />

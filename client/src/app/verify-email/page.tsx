@@ -45,14 +45,19 @@ const VerifyEmailContent = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Gradient Orbs */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-600/20 rounded-full blur-3xl" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-3xl" />
+
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
-        className="max-w-md w-full"
+        className="max-w-md w-full relative z-10"
       >
-        <div className="bg-white rounded-2xl shadow-2xl p-8 text-center">
+        <div className="bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl p-8 text-center border border-gray-800">
           {/* Animated Mail Icon */}
           <motion.div
             initial={{ scale: 0 }}
@@ -60,8 +65,8 @@ const VerifyEmailContent = () => {
             transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
             className="relative mx-auto mb-6"
           >
-            <div className="w-24 h-24 bg-gradient-to-br from-orange-100 to-rose-100 rounded-full flex items-center justify-center mx-auto">
-              <Mail className="w-12 h-12 text-orange-600" />
+            <div className="w-24 h-24 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center mx-auto">
+              <Mail className="w-12 h-12 text-white" />
             </div>
             <motion.div
               animate={{
@@ -73,29 +78,29 @@ const VerifyEmailContent = () => {
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
-              className="absolute inset-0 w-24 h-24 bg-orange-400 rounded-full opacity-20 mx-auto"
+              className="absolute inset-0 w-24 h-24 bg-purple-400 rounded-full opacity-20 mx-auto"
             />
           </motion.div>
 
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <h1 className="text-3xl font-bold text-white mb-4">
             Check Your Email
           </h1>
 
           <div className="mb-6">
-            <p className="text-gray-600 mb-2">
+            <p className="text-gray-400 mb-2">
               We've sent a verification link to:
             </p>
-            <p className="text-lg font-semibold text-orange-600 break-all">
+            <p className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 break-all">
               {email || 'your email address'}
             </p>
           </div>
 
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-6">
+          <div className="bg-purple-900/30 border border-purple-700/50 rounded-xl p-4 mb-6">
             <div className="flex items-start space-x-3 text-left">
-              <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-blue-800">
+              <CheckCircle className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-purple-200">
                 <p className="font-semibold mb-1">Next Steps:</p>
-                <ol className="list-decimal list-inside space-y-1 ml-2">
+                <ol className="list-decimal list-inside space-y-1 ml-2 text-purple-300">
                   <li>Open your email inbox</li>
                   <li>Click the verification link</li>
                   <li>You'll be redirected to login</li>
@@ -104,8 +109,8 @@ const VerifyEmailContent = () => {
             </div>
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
-            <p className="text-sm text-amber-800">
+          <div className="bg-amber-900/20 border border-amber-700/50 rounded-xl p-4 mb-6">
+            <p className="text-sm text-amber-300">
               <strong>⏱️ Important:</strong> The verification link will expire in <strong>1 hour</strong>. 
               If you don't see the email, check your spam folder.
             </p>
@@ -117,7 +122,7 @@ const VerifyEmailContent = () => {
               whileTap={{ scale: 0.98 }}
               onClick={handleResendEmail}
               disabled={resending}
-              className="w-full bg-gradient-to-r from-orange-500 to-rose-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              className="w-full bg-white text-black py-3 rounded-xl font-bold uppercase tracking-wider hover:bg-gray-100 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {resending ? (
                 <>
@@ -134,7 +139,7 @@ const VerifyEmailContent = () => {
 
             <Link
               href="/login"
-              className="flex items-center justify-center text-gray-600 hover:text-orange-600 transition-colors group py-2"
+              className="flex items-center justify-center text-gray-400 hover:text-white transition-colors group py-2"
             >
               <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
               Back to Login
@@ -144,7 +149,7 @@ const VerifyEmailContent = () => {
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Wrong email address?{' '}
-          <Link href="/signup" className="text-orange-600 hover:text-orange-700 font-semibold">
+          <Link href="/signup" className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 hover:from-purple-300 hover:to-pink-300 font-semibold">
             Sign up again
           </Link>
         </p>
@@ -157,8 +162,8 @@ const VerifyEmailContent = () => {
 const VerifyEmailPage = () => {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-orange-50 to-amber-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
       </div>
     }>
       <VerifyEmailContent />

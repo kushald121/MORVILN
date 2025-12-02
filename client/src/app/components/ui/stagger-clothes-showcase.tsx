@@ -276,7 +276,7 @@ export const StaggerClothingShowcase: React.FC = () => {
   const [cardSize, setCardSize] = useState(340);
   const [clothingList, setClothingList] = useState(clothingItems);
   const [isPaused, setIsPaused] = useState(false);
-  const { theme } = useTheme();
+  
 
   const handleMove = useCallback((steps: number) => {
     setClothingList(currentList => {
@@ -400,3 +400,4 @@ export const StaggerClothingShowcase: React.FC = () => {
     </div>
   );
 };
+

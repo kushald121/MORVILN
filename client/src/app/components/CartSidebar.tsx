@@ -1,264 +1,235 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Minus, Plus, X, ShoppingBag, Flame, ChevronRight, ChevronLeft } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { X, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 import Image from 'next/image';
-import { useCart } from '../contexts/CartContext'; // Adjust path as needed
-import { PaymentService } from "@/app/services/payment.service"; // Adjust path as needed
+import { useCart } from '../contexts/CartContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// --- Helper for the Countdown Timer ---
-const formatTime = (seconds: number) => {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `0${m}:${s < 10 ? '0' : ''}${s}`;
-};
-
-const CartSidebar = () => {
-  // Assuming your useCart context now exposes an isOpen state. 
-  // If not, see the "Setup" instructions below.
-  const { 
-    state, 
-    removeFromCart, 
-    updateCartQuantity, 
-    isCartOpen, // You need to add this to your context
-    closeCart,  // You need to add this to your context
-    cartTotal 
+const CartSidebar: React.FC = () => {
+  const {
+    state,
+    isCartOpen,
+    closeCart,
+    removeFromCart,
+    updateCartQuantity,
+    getCartTotal,
+    getCartItemCount,
   } = useCart();
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(589); // 9:49 minutes in seconds
-  const [noteOpen, setNoteOpen] = useState(false);
-
-  // Countdown Logic
+  // Prevent body scroll when cart is open
   useEffect(() => {
-    if (!isCartOpen) return;
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
+    if (isCartOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [isCartOpen]);
 
-  // Derived State
-  const subtotal = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  // Matching the image: Only showing Total, assuming tax/shipping calculated at checkout
-  const total = subtotal; 
-
-  // --- Payment Logic (Adapted from your code) ---
-  const handleCheckout = async () => {
-    setIsLoading(true);
-    
-    // 1. Prepare Data
-    const amountInPaise = PaymentService.convertToPaise(total);
-    const orderData = { items: state.items, total };
-    const userInfo = { name: "Guest", email: "guest@example.com" }; // Replace with real auth data
-
-    try {
-      // 2. Create Order
-      const { orderId } = await PaymentService.createOrder(amountInPaise, orderData, userInfo);
-
-      // 3. Razorpay Options
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: amountInPaise,
-        currency: "INR",
-        name: "Genrage", // From your screenshot
-        description: "Purchase",
-        order_id: orderId,
-        handler: function (response: any) {
-          alert("Payment successful! ID: " + response.razorpay_payment_id);
-          // clearCart(); // Uncomment if you want to clear cart on success
-          closeCart();
-        },
-        prefill: { name: userInfo.name, email: userInfo.email },
-        theme: { color: "#000000" }, // Black theme to match image
-      };
-
-      // 4. Load Script & Open
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.async = true;
-      script.onload = () => {
-        const rzp = new (window as any).Razorpay(options);
-        rzp.open();
-      };
-      document.body.appendChild(script);
-
-    } catch (error) {
-      console.error("Payment Error:", error);
-      alert("Something went wrong with checkout.");
-    } finally {
-      setIsLoading(false);
+  const handleQuantityChange = (id: string, currentQuantity: number, change: number) => {
+    const newQuantity = currentQuantity + change;
+    if (newQuantity > 0) {
+      updateCartQuantity(id, newQuantity);
     }
   };
 
+  const cartTotal = getCartTotal();
+  const itemCount = getCartItemCount();
+
   return (
-    <AnimatePresence>
-      {isCartOpen && (
-        <>
-          {/* Backdrop */}
+    <>
+      {/* Backdrop */}
+      <AnimatePresence>
+        {isCartOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
             onClick={closeCart}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
           />
+        )}
+      </AnimatePresence>
 
-          {/* Sidebar Drawer */}
+      {/* Sidebar */}
+      <AnimatePresence>
+        {isCartOpen && (
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-0 right-0 h-full w-[85%] md:w-[550px] bg-white z-50 shadow-2xl flex flex-col"
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="fixed right-0 top-0 h-full w-full sm:w-[450px] bg-background border-l border-border z-50 flex flex-col shadow-2xl"
           >
-            
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <h2 className="text-xl font-light tracking-widest text-black">CART</h2>
-              <button 
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <div className="flex items-center gap-2">
+                <ShoppingBag size={24} className="text-foreground" />
+                <h2 className="text-xl font-bold text-foreground">
+                  Shopping Cart
+                  {itemCount > 0 && (
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      ({itemCount} {itemCount === 1 ? 'item' : 'items'})
+                    </span>
+                  )}
+                </h2>
+              </div>
+              <button
                 onClick={closeCart}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 hover:bg-accent rounded-full transition-colors"
+                aria-label="Close cart"
               >
-                <X className="w-5 h-5 text-gray-500" />
-            
+                <X size={24} className="text-foreground" />
               </button>
             </div>
 
-            <br className="text-black"/>
-
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto">
+            {/* Cart Items */}
+            <div className="flex-1 overflow-y-auto p-6">
               {state.items.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center p-8 text-center">
-                  <ShoppingBag className="w-12 h-12 text-gray-300 mb-4" />
-                  <p className="text-gray-500">Your cart is empty.</p>
-                  <button 
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <ShoppingBag size={64} className="text-muted-foreground mb-4 opacity-50" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                    Your cart is empty
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    Add some products to get started!
+                  </p>
+                  <button
                     onClick={closeCart}
-                    className="mt-4 text-sm font-bold underline decoration-1 underline-offset-4"
+                    className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-semibold"
                   >
-                    START SHOPPING
+                    Continue Shopping
                   </button>
                 </div>
               ) : (
-                <>
-                  {/* Cart Items List */}
-                  <div className="p-6 space-y-8">
-                    {state.items.map((item) => (
-                      <div key={item.id} className="flex gap-4">
-                        {/* Image */}
-                        <div className="w-24 h-32 relative bg-gray-100 flex-shrink-0">
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            fill
-                            className="object-cover"
-                          />
+                <div className="space-y-4">
+                  {state.items.map((item) => (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -100 }}
+                      className="flex gap-4 p-4 bg-card rounded-lg border border-border hover:shadow-md transition-shadow"
+                    >
+                      {/* Product Image */}
+                      <div className="relative w-20 h-20 flex-shrink-0 bg-muted rounded-md overflow-hidden">
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          fill
+                          className="object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=250&fit=crop&crop=center';
+                          }}
+                        />
+                      </div>
+
+                      {/* Product Details */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground text-sm mb-1 truncate">
+                          {item.name}
+                        </h3>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                          {item.size && <span>Size: {item.size}</span>}
+                          {item.color && item.color !== 'Default' && (
+                            <>
+                              <span>•</span>
+                              <span>Color: {item.color}</span>
+                            </>
+                          )}
                         </div>
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-primary">
+                            ₹{Math.round(item.price * item.quantity)}
+                          </span>
 
-                        {/* Details */}
-                        <div className="flex-1 flex flex-col justify-between py-1">
-                          <div>
-                            <div className="flex justify-between items-start">
-                              <h3 className="text-sm font-medium uppercase tracking-wide text-gray-900 w-[80%] leading-relaxed">
-                                {item.name}
-                              </h3>
-                              <p className="text-sm text-gray-600">
-                                RS. {item.price.toFixed(2)}
-                              </p>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1 uppercase tracking-wider">
-                              {item.size} / {item.color}
-                            </p>
-                          </div>
-
-                          {/* Controls */}
-                          <div className="flex items-center justify-between mt-4">
-                            <div className="flex items-center border border-gray-500">
-                              <button 
-                                onClick={() => updateCartQuantity(item.id, Math.max(0, item.quantity - 1))}
-                                className="p-2 hover:bg-gray-50"
-                              >
-                                <Minus className="w-3 h-3 text-black" />
-                              </button>
-                              <span className="w-8 text-center text-sm font-medium text-black">
-                                {item.quantity}
-                              </span>
-                              <button 
-                                onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
-                                className="p-2 hover:bg-gray-50"
-                              >
-                                <Plus className="w-3 h-3 text-black" />
-                              </button>
-                            </div>
-
+                          {/* Quantity Controls */}
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleQuantityChange(item.id, item.quantity, -1)}
+                              className="p-1 hover:bg-accent rounded transition-colors"
+                              aria-label="Decrease quantity"
+                            >
+                              <Minus size={16} />
+                            </button>
+                            <span className="w-8 text-center font-semibold">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => handleQuantityChange(item.id, item.quantity, 1)}
+                              className="p-1 hover:bg-accent rounded transition-colors"
+                              aria-label="Increase quantity"
+                            >
+                              <Plus size={16} />
+                            </button>
                             <button
                               onClick={() => removeFromCart(item.id)}
-                              className="text-xs text-gray-400 hover:text-black underline decoration-1 underline-offset-2 transition-colors"
+                              className="p-1 ml-2 hover:bg-destructive/10 text-destructive rounded transition-colors"
+                              aria-label="Remove item"
                             >
-                              Remove
+                              <Trash2 size={16} />
                             </button>
                           </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-
-                  {/* "Don't Miss Out" Section (Cross-sell Mockup) */}
-                   </>
+                    </motion.div>
+                  ))}
+                </div>
               )}
             </div>
 
-            {/* Footer Section */}
+            {/* Footer with Total and Checkout */}
             {state.items.length > 0 && (
-              <div className="border-t border-gray-100 bg-white">
-                
-                {/* Urgency Banner */}
-                <div className="bg-[#FEF9C3] px-6 py-3 flex items-start gap-3">
-                  <Flame className="w-5 h-5 text-orange-500 fill-orange-500 animate-pulse flex-shrink-0" />
-                  <p className="text-xs text-gray-800 leading-relaxed">
-                    An item in your cart is in high demand.<br/>
-                    Your cart is reserved for <span className="font-bold text-red-600">{formatTime(timeLeft)} minutes!</span>
-                  </p>
+              <div className="border-t border-border p-6 space-y-4 bg-card">
+                {/* Subtotal */}
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="font-semibold text-foreground">
+                    ₹{Math.round(cartTotal)}
+                  </span>
                 </div>
 
-                <div className="p-6 space-y-4">
-                  {/* Order Note Toggle */}
-                  <div>
-                    {!noteOpen ? (
-                      <button 
-                        onClick={() => setNoteOpen(true)}
-                        className="text-xs text-gray-500 underline decoration-1 underline-offset-2"
-                      >
-                        Add order note
-                      </button>
-                    ) : (
-                      <textarea 
-                        className="w-full text-xs p-3 border border-gray-200 outline-none focus:border-black transition-colors resize-none h-20 bg-gray-50 text-black"
-                        placeholder="Special instructions for seller..."
-                      />
-                    )}
-                  </div>
-
-                  <p className="text-xs text-gray-400 text-center">
-                    Taxes and shipping calculated at checkout
-                  </p>
-
-                  <button
-                    onClick={handleCheckout}
-                    disabled={isLoading}
-                    className="w-full bg-black hover:bg-zinc-800 text-white py-4 px-6 text-sm font-bold tracking-widest uppercase transition-all active:scale-[0.99] flex items-center justify-center gap-2"
-                  >
-                    {isLoading ? 'PROCESSING...' : `CHECKOUT • RS. ${total.toLocaleString()}`}
-                  </button>
+                {/* Shipping */}
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Shipping</span>
+                  <span className="text-green-600 font-semibold">FREE</span>
                 </div>
+
+                {/* Total */}
+                <div className="flex items-center justify-between text-lg font-bold pt-4 border-t border-border">
+                  <span className="text-foreground">Total</span>
+                  <span className="text-primary">₹{Math.round(cartTotal)}</span>
+                </div>
+
+                {/* Checkout Button */}
+                <button
+                  onClick={() => {
+                    closeCart();
+                    window.location.href = '/checkout';
+                  }}
+                  className="w-full py-4 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-bold text-lg shadow-lg hover:shadow-xl"
+                >
+                  Proceed to Checkout
+                </button>
+
+                {/* Continue Shopping */}
+                <button
+                  onClick={closeCart}
+                  className="w-full py-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-accent transition-colors font-semibold"
+                >
+                  Continue Shopping
+                </button>
               </div>
             )}
           </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 

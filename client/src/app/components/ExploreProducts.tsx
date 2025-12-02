@@ -6,13 +6,13 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ShoppingCart, Heart, Eye,  } from "lucide-react";
 import Image from "next/image";
-import { useTheme } from "next-themes";
+
 // import SplashCursor from "./ui/splash-cursor";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const ExploreProducts = () => {
-  const { theme, resolvedTheme } = useTheme();
+  
   const [mounted, setMounted] = useState(false);
 
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -340,3 +340,4 @@ const ExploreProducts = () => {
 };
 
 export default ExploreProducts;
+

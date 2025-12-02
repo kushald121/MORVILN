@@ -4,7 +4,7 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import CartSidebar from "@/app/components/CartSidebar";
-import { ThemeProvider } from "./providers/theme.provider";
+
 import { CartProvider } from "./contexts/CartContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ToastProvider } from "./contexts/ToastContext";
@@ -74,6 +74,15 @@ export const metadata: Metadata = {
   verification: {
     google: "google-site-verification-code",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "MORVILN",
+  },
+  other: {
+    "msapplication-TileColor": "#0f172a",
+    "msapplication-config": "/browserconfig.xml",
+  },
 };
 
 export default function RootLayout({
@@ -83,64 +92,24 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                const theme = localStorage.getItem('theme');
-                if (theme === 'light' || (!theme && window.matchMedia('(prefers-color-scheme: light)').matches)) {
-                  document.documentElement.classList.remove('dark');
-                } else {
-                  document.documentElement.classList.add('dark');
-                }
-              } catch (e) {}
-            `,
-          }}
-        />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground overflow-x-hidden`}
+        suppressHydrationWarning
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange={false}
-        >
-          <ToastProvider>
-            <AuthProvider>
-              <CartProvider>
-                <div className="relative min-h-screen flex flex-col">
-                  <Navbar />
-                  <main className="flex-1 max-w-full overflow-x-hidden pt-16 lg:pt-16 pb-14 lg:pb-0">
-                    {children}
-                  </main>
-                  <CartSidebar />
-                  <Footer />
-                </div>
-              </CartProvider>
-            </AuthProvider>
-          </ToastProvider>
-        </ThemeProvider>
-
-        {/* Performance optimization: Preload critical resources */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://images.unsplash.com" />
-
-        {/* Theme color for mobile browsers - Dynamic theme support */}
-        <meta name="theme-color" content="#0f172a" />
-        <meta name="theme-color" content="#ffffff" />
-
-        {/* Apple specific meta tags */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="MORVILN" />
-
-        {/* Microsoft specific meta tags */}
-        <meta name="msapplication-TileColor" content="#0f172a" />
-        <meta name="msapplication-config" content="/browserconfig.xml" />
+        <ToastProvider>
+          <AuthProvider>
+            <CartProvider>
+              <div className="relative min-h-screen flex flex-col">
+                <Navbar />
+                <main className="flex-1 max-w-full overflow-x-hidden pt-16 lg:pt-16 pb-14 lg:pb-0">
+                  {children}
+                </main>
+                <CartSidebar />
+                <Footer />
+              </div>
+            </CartProvider>
+          </AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );

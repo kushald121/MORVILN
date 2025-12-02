@@ -16,7 +16,7 @@ import {
 import Image from "next/image";
 import { StaggerClothingShowcase } from "./ui/stagger-clothes-showcase";
 import { SparklesText } from "./ui/sparkels";
-import { useTheme } from "next-themes";
+
 
 // import SplashCursor from "./ui/splash-cursor";
 
@@ -39,7 +39,7 @@ const throttleRAF = <T extends unknown[]>(func: (...args: T) => void) => {
 export default function HeroPage() {
   const heroRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
-  const { theme, resolvedTheme } = useTheme();
+  
   const [mounted, setMounted] = useState(false);
 
   const mouseX = useMotionValue(0);
@@ -553,3 +553,4 @@ export default function HeroPage() {
     </>
   );
 }
+

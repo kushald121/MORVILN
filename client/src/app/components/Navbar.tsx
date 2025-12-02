@@ -1,6 +1,8 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { Search, ShoppingBag, User, Menu, X, ChevronRight } from 'lucide-react';
+import { useCart } from '../contexts/CartContext';
+import CartSidebar from './CartSidebar';
 
 // --- Type Definitions ---
 
@@ -128,6 +130,8 @@ const Navbar: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { toggleCart, getCartItemCount } = useCart();
+  const cartItemCount = getCartItemCount();
 
   // Wrapper handlers for the entire header
   const handleMouseEnter = () => {
@@ -228,10 +232,18 @@ const Navbar: React.FC = () => {
             <Search size={26} strokeWidth={1.5} />
           </a>
 
-          <a href="/cart" className="relative hover:opacity-70 transition-opacity hover:scale-110 duration-200">
+          <button 
+            onClick={toggleCart}
+            className="relative hover:opacity-70 transition-opacity hover:scale-110 duration-200"
+            aria-label="Open shopping cart"
+          >
             <ShoppingBag size={26} strokeWidth={1.5} />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-600 rounded-full border border-black"></span>
-          </a>
+            {cartItemCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-600 rounded-full border border-black flex items-center justify-center px-1">
+                <span className="text-white text-xs font-bold">{cartItemCount}</span>
+              </span>
+            )}
+          </button>
 
           {/* Mobile Menu Toggle */}
           <button 
@@ -248,6 +260,9 @@ const Navbar: React.FC = () => {
         isOpen={isMobileMenuOpen} 
         onClose={() => setIsMobileMenuOpen(false)} 
       />
+
+      {/* Cart Sidebar */}
+      <CartSidebar />
     </>
   );
 };

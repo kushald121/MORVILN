@@ -234,6 +234,20 @@ CREATE TABLE IF NOT EXISTS product_reviews (
     UNIQUE(product_id, user_id)
 );
 
+-- 15. Hero Images table for homepage hero section
+CREATE TABLE IF NOT EXISTS hero_images (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    title VARCHAR(255),
+    subtitle VARCHAR(255),
+    link_url TEXT,
+    media_url TEXT NOT NULL,
+    cloudinary_public_id VARCHAR(255),
+    is_active BOOLEAN DEFAULT TRUE,
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Insert initial categories
 INSERT INTO categories (id, name, slug, description, sort_order) VALUES
 (gen_random_uuid(), 'T-Shirts', 't-shirts', 'Comfortable and stylish t-shirts', 1),
@@ -316,6 +330,7 @@ CREATE TRIGGER update_product_variants_updated_at BEFORE UPDATE ON product_varia
 CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_user_addresses_updated_at BEFORE UPDATE ON user_addresses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_cart_updated_at BEFORE UPDATE ON cart FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_hero_images_updated_at BEFORE UPDATE ON hero_images FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Order number generation
 CREATE OR REPLACE FUNCTION generate_order_number()

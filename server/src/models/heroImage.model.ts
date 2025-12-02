@@ -1,4 +1,4 @@
-import db from "../config/database";
+import supabase, { supabaseAdmin } from "../config/supabaseclient";
 
 export interface HeroImage {
   id: string;
@@ -13,8 +13,14 @@ export interface HeroImage {
   updated_at: string;
 }
 
+const TABLE_NAME = "hero_images";
+
 export const HeroImageModel = {
   async create(payload: Partial<HeroImage>): Promise<HeroImage> {
+    if (!supabaseAdmin) {
+      throw new Error("Database not configured");
+    }
+
     const {
       title = null,
       subtitle = null,
@@ -25,62 +31,135 @@ export const HeroImageModel = {
       sort_order = 0,
     } = payload;
 
-    const { rows } = await db.query<HeroImage>(
-      `INSERT INTO hero_images (title, subtitle, link_url, media_url, cloudinary_public_id, is_active, sort_order)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING *`,
-      [title, subtitle, link_url, media_url, cloudinary_public_id, is_active, sort_order]
-    );
-    return rows[0];
+    if (!media_url) {
+      throw new Error("media_url is required");
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from(TABLE_NAME)
+      .insert({
+        title,
+        subtitle,
+        link_url,
+        media_url,
+        cloudinary_public_id,
+        is_active,
+        sort_order,
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      console.error("Error creating hero image:", error);
+      throw new Error(`Failed to create hero image: ${error.message}`);
+    }
+
+    return data as HeroImage;
   },
 
   async findAll(includeInactive = true): Promise<HeroImage[]> {
-    const where = includeInactive ? "" : "WHERE is_active = TRUE";
-    const { rows } = await db.query<HeroImage>(
-      `SELECT * FROM hero_images ${where} ORDER BY sort_order ASC, created_at ASC`
-    );
-    return rows;
+    if (!supabase) {
+      return [];
+    }
+
+    let query = supabase.from(TABLE_NAME).select("*");
+
+    if (!includeInactive) {
+      query = query.eq("is_active", true);
+    }
+
+    query = query.order("sort_order", { ascending: true }).order("created_at", { ascending: true });
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Error fetching hero images:", error);
+      throw new Error(`Failed to fetch hero images: ${error.message}`);
+    }
+
+    return (data || []) as HeroImage[];
   },
 
   async findActiveOrdered(): Promise<HeroImage[]> {
-    const { rows } = await db.query<HeroImage>(
-      `SELECT * FROM hero_images WHERE is_active = TRUE ORDER BY sort_order ASC, created_at ASC`
-    );
-    return rows;
+    if (!supabase) {
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .from(TABLE_NAME)
+      .select("*")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Error fetching active hero images:", error);
+      throw new Error(`Failed to fetch active hero images: ${error.message}`);
+    }
+
+    return (data || []) as HeroImage[];
   },
 
   async findById(id: string): Promise<HeroImage | null> {
-    const { rows } = await db.query<HeroImage>(
-      `SELECT * FROM hero_images WHERE id = $1 LIMIT 1`,
-      [id]
-    );
-    return rows[0] || null;
+    if (!supabase) {
+      return null;
+    }
+
+    const { data, error } = await supabase
+      .from(TABLE_NAME)
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        // No rows returned
+        return null;
+      }
+      console.error("Error fetching hero image by id:", error);
+      throw new Error(`Failed to fetch hero image: ${error.message}`);
+    }
+
+    return (data as HeroImage) || null;
   },
 
   async update(id: string, payload: Partial<HeroImage>): Promise<HeroImage | null> {
-    // Build dynamic update
-    const fields: string[] = [];
-    const values: any[] = [];
-    let idx = 1;
-
-    for (const [key, value] of Object.entries(payload)) {
-      fields.push(`${key} = $${idx++}`);
-      values.push(value);
+    if (!supabaseAdmin) {
+      throw new Error("Database not configured");
     }
-    if (fields.length === 0) {
-      const current = await this.findById(id);
-      return current;
-    }
-    values.push(id);
 
-    const { rows } = await db.query<HeroImage>(
-      `UPDATE hero_images SET ${fields.join(", ")} WHERE id = $${idx} RETURNING *`,
-      values
-    );
-    return rows[0] || null;
+    if (!payload || Object.keys(payload).length === 0) {
+      return await this.findById(id);
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from(TABLE_NAME)
+      .update(payload)
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        return null;
+      }
+      console.error("Error updating hero image:", error);
+      throw new Error(`Failed to update hero image: ${error.message}`);
+    }
+
+    return (data as HeroImage) || null;
   },
 
   async delete(id: string): Promise<void> {
-    await db.query(`DELETE FROM hero_images WHERE id = $1`, [id]);
-  }
+    if (!supabaseAdmin) {
+      throw new Error("Database not configured");
+    }
+
+    const { error } = await supabaseAdmin.from(TABLE_NAME).delete().eq("id", id);
+
+    if (error) {
+      console.error("Error deleting hero image:", error);
+      throw new Error(`Failed to delete hero image: ${error.message}`);
+    }
+  },
 };

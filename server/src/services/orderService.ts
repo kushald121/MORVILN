@@ -1,5 +1,4 @@
-<<<<<<< HEAD
-import emailService from "./email.service"
+import emailService from "./email.service";
 
 // Define the interface for order email data
 interface OrderEmailData {
@@ -37,9 +36,6 @@ interface OrderEmailData {
     phone: string;
   };
 }
-=======
-import { EmailService, OrderEmailData } from './emailService';
->>>>>>> f3387b1 (fix: saving all local changes before merge)
 
 export class OrderService {
   static async confirmOrderAfterPayment(orderId: string, paymentData: any) {
@@ -139,7 +135,6 @@ export class OrderService {
 
   private static async sendOrderEmailsAsync(emailData: OrderEmailData) {
     try {
-<<<<<<< HEAD
       // Send order confirmation email
       await emailService.sendOrderConfirmation(
         emailData.customer.email,
@@ -156,9 +151,6 @@ export class OrderService {
           shippingAddress: `${emailData.shippingAddress.address_line_1}\n${emailData.shippingAddress.city}, ${emailData.shippingAddress.state} ${emailData.shippingAddress.postal_code}\n${emailData.shippingAddress.country}`
         }
       );
-=======
-      await EmailService.sendOrderEmails(emailData);
->>>>>>> f3387b1 (fix: saving all local changes before merge)
     } catch (error) {
       console.error('Failed to send order emails:', error);
       // Don't throw error here to not affect order confirmation flow

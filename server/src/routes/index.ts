@@ -15,6 +15,7 @@ import cartRoutes from './cart.routes';
 import userRoutes from './user.routes';
 import emailRoutes from "./emailRoutes";
 import productDetailRoutes from './product.routes';
+import heroRoutes from './hero.routes';
 
 const router = Router();
 
@@ -37,6 +38,7 @@ router.use('/favorites', favoritesRoutes);
 router.use('/cart', cartRoutes);
 router.use('/user', userRoutes); // User routes (addresses, profile, etc.)
 router.use('/email', emailRoutes);
+router.use('/', heroRoutes);
 console.log('✅ Auth routes loaded');
 console.log('✅ Payment routes loaded');
 console.log('✅ Gmail Email routes loaded');

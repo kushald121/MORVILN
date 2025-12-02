@@ -75,7 +75,6 @@ const ExploreProducts = () => {
     return null;
   }
 
-  const currentTheme = theme || resolvedTheme || 'dark';
 
   const categories = [
     'Accessories',
@@ -163,12 +162,12 @@ const ExploreProducts = () => {
   ];
 
   return (
-    <div className={`min-h-screen ${currentTheme === 'light' ? 'bg-white' : 'bg-background'}`}>
+    <div className={`min-h-screen `}>
       {/* <SplashCursor /> */}
       {/* Payment Security Banner */}
-      <div className={`${currentTheme === 'light' ? 'bg-gray-50 text-gray-900' : 'bg-card text-card-foreground'} py-8`}>
+      <div className={` py-8`}>
         <div className="container mx-auto px-4 flex items-center justify-center space-x-6">
-          <span className={`text-sm font-bold ${currentTheme === 'light' ? 'text-gray-700' : 'text-foreground'}`}>Pay securely with</span>
+          <span className={`text-sm font-bold `}>Pay securely with</span>
           <div className="flex space-x-4">
             <div className="w-8 h-6 bg-blue-600 rounded flex items-center justify-center text-xs font-bold text-white">P</div>
             <div className="w-8 h-6 bg-red-600 rounded flex items-center justify-center text-xs font-bold text-white">M</div>
@@ -179,7 +178,7 @@ const ExploreProducts = () => {
       </div>
 
       {/* Anniversary Sale Banner */}
-      <div className={`${currentTheme === 'light' ? 'bg-blue-500 text-white' : 'bg-gradient-to-r from-slate-800 to-slate-900 text-white'} py-8 relative overflow-hidden`}>
+      <div className={` py-8 relative overflow-hidden`}>
         <div className="container mx-auto px-4 text-center relative z-10">
           <h1 className="text-4xl font-bold mb-2">🏷️ Anniversary Sale 🏷️</h1>
           <h2 className="text-3xl font-bold">EXPLORE THE PRODUCTS</h2>
@@ -187,17 +186,14 @@ const ExploreProducts = () => {
       </div>
 
       {/* Categories */}
-      <div className={`${currentTheme === 'light' ? 'bg-gray-50' : 'bg-muted/30'} py-6`}>
+      <div className={` py-6`}>
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap gap-3 justify-center">
             {categories.map((category, index) => (
               <motion.button
                 key={index}
-                className={`category-button px-4 py-2 rounded-full border-2 transition-colors ${
-                  currentTheme === 'light'
-                    ? `border-gray-300 hover:border-blue-500 hover:bg-blue-50 ${index === 0 ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700'}`
-                    : `border-border hover:border-primary hover:bg-accent ${index === 0 ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-foreground'}`
-                }`}
+                className={`category-button px-4 py-2 rounded-full border-2 transition-colors 
+                `}
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
                 initial={{ opacity: 0, y: 20 }}
@@ -217,11 +213,7 @@ const ExploreProducts = () => {
           {products.map((product, index) => (
             <motion.div
               key={product.id}
-              className={`explore-product-card rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow border group cursor-pointer ${
-                currentTheme === 'light'
-                  ? 'bg-white border-gray-200 hover:shadow-xl'
-                  : 'bg-card border-border hover:shadow-lg'
-              }`}
+              className={`explore-product-card rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow border group cursor-pointer `}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
@@ -291,7 +283,7 @@ const ExploreProducts = () => {
 
               <div className="p-4">
                 <motion.h3
-                  className={`text-sm font-medium mb-2 line-clamp-2 ${currentTheme === 'light' ? 'text-gray-900' : 'text-foreground'}`}
+                  className={`text-sm font-medium mb-2 line-clamp-2 `}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: index * 0.1 + 0.2 }}
@@ -301,12 +293,12 @@ const ExploreProducts = () => {
 
                 <div className="flex items-center space-x-2 mb-3">
                   {product.originalPrice && (
-                    <span className={`text-sm line-through ${currentTheme === 'light' ? 'text-gray-500' : 'text-muted-foreground'}`}>
+                    <span className={`text-sm line-through `}>
                       {product.originalPrice}
                     </span>
                   )}
                   <motion.span
-                    className={`font-bold ${product.originalPrice ? (currentTheme === 'light' ? 'text-blue-600' : 'text-primary') : (currentTheme === 'light' ? 'text-gray-900' : 'text-foreground')}`}
+                    className={`font-bold `}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 + 0.3 }}
@@ -316,11 +308,7 @@ const ExploreProducts = () => {
                 </div>
 
                 <motion.button
-                  className={`w-full py-2 px-4 rounded transition-colors flex items-center justify-center gap-2 ${
-                    currentTheme === 'light'
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'bg-primary text-primary-foreground hover:bg-primary/90'
-                  }`}
+                  className={`w-full py-2 px-4 rounded transition-colors flex items-center justify-center gap-2 `}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   initial={{ opacity: 0, y: 10 }}

@@ -1,8 +1,10 @@
 "use client"
 import React, { useState, useEffect } from 'react';
 import { Search, ShoppingBag, User, Menu, X, ChevronRight } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '../contexts/CartContext';
 import CartSidebar from './CartSidebar';
+import { ProductService, Product } from '../services/productService';
 
 // --- Type Definitions ---
 
@@ -130,6 +132,14 @@ const Navbar: React.FC = () => {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+
+  const router = useRouter();
+  const pathname = usePathname();
   const { toggleCart, getCartItemCount } = useCart();
   const cartItemCount = getCartItemCount();
 
@@ -143,21 +153,66 @@ const Navbar: React.FC = () => {
     setActiveMenu(null);
   };
 
+  // Detect if we're on the hero/home page
+  const isHomePage = pathname === "/";
+
   // Determine if we should show the solid black background
-  // Show if: Hovered OR Mobile Menu Open
-  const showBackground = isHovered || isMobileMenuOpen;
+  // Home page: always transparent (over hero), solid only when mobile menu is open
+  // Other pages: always solid for stability and readability
+  const showBackground = !isHomePage || isMobileMenuOpen;
+
+  // Search handler with debounce-like behavior (simple)
+  useEffect(() => {
+    if (!isSearchOpen || searchQuery.trim().length < 2) {
+      setSearchResults([]);
+      setSearchError(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const performSearch = async () => {
+      try {
+        setIsSearching(true);
+        setSearchError(null);
+        const results = await ProductService.searchProducts(searchQuery.trim(), 8);
+        if (!cancelled) {
+          setSearchResults(results);
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          setSearchError(err.message || "Failed to search products");
+          setSearchResults([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsSearching(false);
+        }
+      }
+    };
+
+    const timeoutId = setTimeout(performSearch, 250);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [isSearchOpen, searchQuery]);
 
   return (
     <>
       <header 
         className={`
-          fixed top-0 left-0 w-full z-40
-          flex justify-between items-start 
+          fixed top-0 left-0 w-full z-40 relative
+          flex items-center justify-start
           px-6 lg:px-12 
           pt-6 pb-4 md:pt-8 md:pb-6
           text-white 
           transition-colors duration-500 ease-in-out
-          ${showBackground ? 'bg-black shadow-xl' : 'bg-transparent'}
+          ${showBackground 
+            ? 'bg-black/95 shadow-xl'
+            : 'bg-transparent'
+          }
         `}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
@@ -187,8 +242,8 @@ const Navbar: React.FC = () => {
         </a>
 
         {/* CENTER NAVLINKS (Desktop) */}
-        {/* Increased text size and tracking */}
-        <nav className="hidden md:flex items-center space-x-10 lg:space-x-16 pt-2">
+        {/* Slightly larger text, aligned closer to the logo */}
+        <nav className="hidden md:flex items-center space-x-8 lg:space-x-12 pt-1 ml-6">
           {NAV_LINKS.map((link) => (
             <div
               key={link.id}
@@ -223,14 +278,19 @@ const Navbar: React.FC = () => {
         </nav>
 
         {/* RIGHT ICONS */}
-        <div className="flex items-center space-x-6 md:space-x-8 pt-2">
+        <div className="ml-auto flex items-center space-x-6 md:space-x-8 pt-2">
           <a href="/profile" className="hidden md:block hover:opacity-70 transition-opacity hover:scale-110 duration-200">
             <User size={26} strokeWidth={1.5} />
           </a>
 
-          <a href="/search" className="hover:opacity-70 transition-opacity hover:scale-110 duration-200">
+          <button
+            type="button"
+            onClick={() => setIsSearchOpen((prev) => !prev)}
+            className="hover:opacity-70 transition-opacity hover:scale-110 duration-200"
+            aria-label="Search products"
+          >
             <Search size={26} strokeWidth={1.5} />
-          </a>
+          </button>
 
           <button 
             onClick={toggleCart}
@@ -253,6 +313,72 @@ const Navbar: React.FC = () => {
             <Menu size={28} strokeWidth={1.5} />
           </button>
         </div>
+
+        {/* Search bar overlay attached to navbar */}
+        {isSearchOpen && (
+          <div className="absolute left-0 top-full w-full z-30 bg-black/95 border-b border-gray-800">
+            <div className="max-w-[1400px] mx-auto px-6 lg:px-12 py-4 flex items-center gap-4">
+              <Search className="w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                autoFocus
+                placeholder="SEARCH FOR..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 bg-transparent outline-none text-sm tracking-[0.25em] uppercase text-white placeholder:text-gray-500"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="text-gray-400 hover:text-white text-sm tracking-[0.25em] uppercase"
+                >
+                  X
+                </button>
+              )}
+            </div>
+
+            {/* Suggestions dropdown */}
+            {(searchQuery.trim().length >= 2 || isSearching || searchError) && (
+              <div className="max-w-[1400px] mx-auto px-6 lg:px-12 pb-4">
+                <div className="border-t border-gray-800 pt-3">
+                  {isSearching && (
+                    <p className="text-xs text-gray-500 tracking-[0.2em] uppercase">Searching...</p>
+                  )}
+                  {searchError && (
+                    <p className="text-xs text-red-500 tracking-[0.2em] uppercase">{searchError}</p>
+                  )}
+                  {!isSearching && !searchError && searchResults.length === 0 && searchQuery.trim().length >= 2 && (
+                    <p className="text-xs text-gray-500 tracking-[0.2em] uppercase">No products found</p>
+                  )}
+                  {!isSearching && searchResults.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2 pb-3">
+                      {searchResults.map((product) => (
+                        <button
+                          key={product.id}
+                          type="button"
+                          onClick={() => {
+                            setIsSearchOpen(false);
+                            setSearchQuery("");
+                            router.push(`/productpage?id=${product.id}`);
+                          }}
+                          className="flex flex-col items-start text-left hover:bg-gray-900/60 px-3 py-2 transition-colors"
+                        >
+                          <span className="text-xs text-gray-400 tracking-[0.25em] uppercase">
+                            Product
+                          </span>
+                          <span className="text-sm text-white tracking-[0.12em] uppercase line-clamp-1">
+                            {product.name}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </header>
 
       {/* Mobile Menu Overlay */}

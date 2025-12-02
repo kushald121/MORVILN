@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ShoppingCart, ChevronDown, ChevronUp } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useRouter } from 'next/navigation';
-import { LoaderThree } from '@/app/components/ui/loader';
+import { LoaderThreeDemo } from '@/app/components/LoaderThreeDemo';
 import { ProductService, Product, Category, ProductFilters } from '../services/productService';
 
 const AllProducts = () => {
@@ -180,7 +180,7 @@ const AllProducts = () => {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
-          <LoaderThree size="lg" />
+          <LoaderThreeDemo />
           <p className="mt-4 text-lg">Loading products...</p>
         </div>
       </div>
@@ -205,8 +205,8 @@ const AllProducts = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="max-w-[1600px] mx-auto px-4 py-8">
+    <div className="min-h-screen bg-black text-white pt-24 md:pt-28">
+      <div className="max-w-[1600px] mx-auto px-4 pb-16">
         <div className="flex flex-col lg:flex-row lg:gap-8">
           {/* Mobile Filter Toggle */}
           <button
@@ -225,7 +225,7 @@ const AllProducts = () => {
                 <label className="block text-sm font-semibold uppercase tracking-wider mb-2 text-[#A6A6A6]">Category</label>
                 {isCategoriesLoading ? (
                   <div className="flex justify-center py-4">
-                    <LoaderThree size="sm" />
+                    <LoaderThreeDemo />
                   </div>
                 ) : (
                   <select
@@ -308,7 +308,7 @@ const AllProducts = () => {
                       {products.length} Products
                     </p>
                     {isProductsLoading && (
-                      <div className="mt-2"><LoaderThree size="sm" /></div>
+                      <div className="mt-2"><LoaderThreeDemo /></div>
                     )}
                   </div>
                 </div>
@@ -342,7 +342,7 @@ const AllProducts = () => {
             <AnimatePresence mode="wait">
               <motion.div
                 key={products.length}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                className="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-16"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
@@ -422,7 +422,7 @@ const AllProducts = () => {
                           {product.name}
                         </h3>
                         <div className="flex items-center justify-center gap-2">
-                          <span className="text-red-500 font-bold text-base">
+                          <span className="text-red-800 font-bold text-base">
                             ₹{Math.round(product.base_price)}
                           </span>
                           {product.compare_at_price && (

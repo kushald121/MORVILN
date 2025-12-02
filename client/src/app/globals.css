@@ -114,6 +114,18 @@ body {
   font-feature-settings: "rlig" 1, "calt" 1;
 }
 
+/* Admin panel: force dark text inside form controls so they are readable on light cards */
+.admin-page input,
+.admin-page textarea,
+.admin-page select {
+  color: #0f172a; /* slate-900 */
+}
+
+.admin-page input::placeholder,
+.admin-page textarea::placeholder {
+  color: #6b7280; /* gray-500 */
+}
+
 /* Dark theme specific enhancements */
 .dark {
   color-scheme: dark;

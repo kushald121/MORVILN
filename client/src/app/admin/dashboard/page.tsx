@@ -63,7 +63,7 @@ const AdminDashboard = () => {
               animate="visible"
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <Link href="/admin/add-product" className="block bg-white rounded-xl shadow-md p-6 hover:scale-105 transform transition duration-300 cursor-pointer h-full">
+              <Link href="/admin/add-product" className="block bg-white rounded-xl shadow-md p-6 hover:scale-105 transform transition duration-300 cursor-pointer h-full text-black">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
                     <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,7 +83,7 @@ const AdminDashboard = () => {
               animate="visible"
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <Link href="/admin/update-product" className="block bg-white rounded-xl shadow-md p-6 hover:scale-105 transform transition duration-300 cursor-pointer h-full">
+              <Link href="/admin/update-product" className="block bg-white rounded-xl shadow-md p-6 hover:scale-105 transform transition duration-300 cursor-pointer h-full text-black">
                 <div className="flex flex-col items-center text-center">
                   <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
                     <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,6 +135,29 @@ const AdminDashboard = () => {
                 </div>
               </Link>
             </motion.div>
+
+
+            {/* Add Hero Banner Card */}
+            <motion.div
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <Link href="/admin/hero" className="block bg-white rounded-xl shadow-md p-6 hover:scale-105 transform transition duration-300 cursor-pointer h-full text-black">
+                <div className="flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                    <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-semibold mb-2">Manage Hero Banners</h2>
+                  <p className="text-gray-600">Add, edit, and delete hero banners</p>
+                </div>
+              </Link>
+            </motion.div>
+
+            
           </div>
 
           {/* Statistics Section */}

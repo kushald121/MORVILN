@@ -53,7 +53,7 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="admin-page min-h-screen flex flex-col">
       {/* Navigation */}
       {/* <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

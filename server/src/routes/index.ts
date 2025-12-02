@@ -38,7 +38,7 @@ router.use('/favorites', favoritesRoutes);
 router.use('/cart', cartRoutes);
 router.use('/user', userRoutes); // User routes (addresses, profile, etc.)
 router.use('/email', emailRoutes);
-router.use('/', heroRoutes);
+router.use('/hero', heroRoutes);
 console.log('✅ Auth routes loaded');
 console.log('✅ Payment routes loaded');
 console.log('✅ Gmail Email routes loaded');

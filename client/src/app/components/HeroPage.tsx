@@ -1,14 +1,28 @@
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+
+interface HeroImage {
+  _id: string;
+  id: string;
+  title: string;
+  subtitle?: string;
+  description?: string;
+  imageUrl: string;
+  image_url?: string;
+  ctaText?: string;
+  cta_text?: string;
+  ctaLink?: string;
+  cta_link?: string;
+  isActive: boolean;
+  sortOrder: number;
+}
 
 const HeroSection = () => {
-  const [heroImages, setHeroImages] = useState([]);
+  const [heroImages, setHeroImages] = useState<HeroImage[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  const DISPLAY_DURATION = 2000; // 2 seconds display
-  const TRANSITION_DURATION = 1000; // 1 second transition
+  const DISPLAY_DURATION = 5000; // 5 seconds display
 
   useEffect(() => {
     fetchHeroImages();
@@ -16,9 +30,13 @@ const HeroSection = () => {
 
   const fetchHeroImages = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/hero-images`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/hero`);
       const data = await response.json();
-      setHeroImages(data.images || []);
+      if (data.success && data.images && data.images.length > 0) {
+        setHeroImages(data.images);
+      } else {
+        setHeroImages([]);
+      }
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching hero images:', error);
@@ -26,36 +44,16 @@ const HeroSection = () => {
     }
   };
 
-  useEffect(() => {
-    if (heroImages.length === 0) return;
-
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          return 0;
-        }
-        return prev + (100 / (DISPLAY_DURATION / 50));
-      });
-    }, 50);
-
-    return () => clearInterval(progressInterval);
-  }, [currentIndex, heroImages.length]);
-
+  // Auto-advance slides
   useEffect(() => {
     if (heroImages.length <= 1) return;
 
-    const timer = setTimeout(() => {
-      setIsTransitioning(true);
-      setProgress(0);
-
-      setTimeout(() => {
-        setCurrentIndex((prev) => (prev + 1) % heroImages.length);
-        setIsTransitioning(false);
-      }, TRANSITION_DURATION);
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % heroImages.length);
     }, DISPLAY_DURATION);
 
-    return () => clearTimeout(timer);
-  }, [currentIndex, heroImages.length]);
+    return () => clearInterval(timer);
+  }, [heroImages.length]);
 
   if (isLoading) {
     return (
@@ -81,96 +79,79 @@ const HeroSection = () => {
   }
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div className="relative w-full h-screen overflow-hidden bg-black">
       {/* Hero Images */}
-      {heroImages.map((image, index) => (
-        <div
-          key={image._id}
-          className={`absolute inset-0 transition-opacity duration-1000 ${
-            index === currentIndex && !isTransitioning
-              ? 'opacity-100'
-              : index === currentIndex && isTransitioning
-              ? 'opacity-0'
-              : 'opacity-0'
-          }`}
-        >
-          <img
-            src={image.imageUrl}
-            alt={image.title || `Hero ${index + 1}`}
-            className="w-full h-full object-cover"
-          />
-          
-          {/* Overlay Content */}
-          <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-            <div className="text-center text-white px-4">
-              <h1 className="text-5xl md:text-7xl font-bold mb-4 tracking-tight">
-                {image.title || 'BLACK FRIDAY'}
-              </h1>
-              <h2 className="text-3xl md:text-5xl font-bold mb-6">
-                {image.subtitle || 'SALE!!!'}
-              </h2>
-              {image.description && (
-                <p className="text-xl md:text-2xl mb-8">{image.description}</p>
-              )}
-              <button className="px-8 py-3 bg-white text-black font-semibold text-lg hover:bg-gray-200 transition-colors border-2 border-white hover:scale-105 transform duration-200">
-                {image.ctaText || 'SHOP NOW'}
-              </button>
+      {heroImages.map((image, index) => {
+        // Handle both camelCase and snake_case field names
+        const imgUrl = image.imageUrl || image.image_url || '';
+        const ctaText = image.ctaText || image.cta_text || 'SHOP NOW';
+        const ctaLink = image.ctaLink || image.cta_link || '/allproducts';
+        
+        return (
+          <div
+            key={image.id || image._id || index}
+            className={`absolute inset-0 transition-opacity duration-1000 ${
+              index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+            }`}
+          >
+            {/* Background Image using img tag for better loading */}
+            <img
+              src={imgUrl}
+              alt={image.title || `Hero ${index + 1}`}
+              className="absolute inset-0 w-full h-full object-cover"
+              onError={(e) => {
+                console.error('Image failed to load:', imgUrl);
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+            
+            {/* Overlay Content */}
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center z-20">
+              <div className="text-center text-white px-4">
+                {image.title && (
+                  <h1 className="text-5xl md:text-7xl font-bold mb-4 tracking-tight drop-shadow-lg">
+                    {image.title}
+                  </h1>
+                )}
+                {(image.subtitle || image.description) && (
+                  <h2 className="text-2xl md:text-4xl font-semibold mb-6 drop-shadow-md">
+                    {image.subtitle || image.description}
+                  </h2>
+                )}
+                <Link 
+                  href={ctaLink}
+                  className="inline-block px-8 py-3 bg-white text-black font-semibold text-lg hover:bg-gray-200 transition-all duration-200 hover:scale-105"
+                >
+                  {ctaText}
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
-      {/* Progress Loader - Bottom Right */}
+      {/* Slide Counter - Bottom Right */}
       {heroImages.length > 1 && (
         <div className="absolute bottom-8 right-8 z-50">
-          <div className="relative w-12 h-12">
-            {/* Background Circle */}
-            <svg className="w-12 h-12 transform -rotate-90">
-              <circle
-                cx="24"
-                cy="24"
-                r="20"
-                stroke="rgba(255, 255, 255, 0.3)"
-                strokeWidth="3"
-                fill="none"
-              />
-              {/* Progress Circle */}
-              <circle
-                cx="24"
-                cy="24"
-                r="20"
-                stroke="white"
-                strokeWidth="3"
-                fill="none"
-                strokeDasharray={`${2 * Math.PI * 20}`}
-                strokeDashoffset={`${2 * Math.PI * 20 * (1 - progress / 100)}`}
-                className="transition-all duration-50 ease-linear"
-              />
-            </svg>
-            {/* Center Text */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-white text-xs font-semibold">
-                {currentIndex + 1}/{heroImages.length}
-              </span>
-            </div>
+          <div className="bg-black/50 backdrop-blur-sm px-4 py-2 rounded-full">
+            <span className="text-white text-sm font-semibold">
+              {currentIndex + 1} / {heroImages.length}
+            </span>
           </div>
         </div>
       )}
 
       {/* Navigation Dots - Bottom Center */}
       {heroImages.length > 1 && (
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2 z-40">
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2 z-50">
           {heroImages.map((_, index) => (
             <button
               key={index}
-              onClick={() => {
-                setCurrentIndex(index);
-                setProgress(0);
-              }}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              onClick={() => setCurrentIndex(index)}
+              className={`h-2 rounded-full transition-all duration-300 ${
                 index === currentIndex
                   ? 'bg-white w-8'
-                  : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                  : 'bg-white/50 hover:bg-white/75 w-2'
               }`}
               aria-label={`Go to slide ${index + 1}`}
             />

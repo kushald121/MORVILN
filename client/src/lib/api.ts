@@ -21,9 +21,19 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('userToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+      const url = config.url || '';
+      
+      // For admin routes, use adminToken; for regular routes, use userToken
+      if (url.includes('/admin')) {
+        const adminToken = localStorage.getItem('adminToken');
+        if (adminToken) {
+          config.headers.Authorization = `Bearer ${adminToken}`;
+        }
+      } else {
+        const token = localStorage.getItem('userToken');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
       }
     }
     return config;

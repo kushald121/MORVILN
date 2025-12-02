@@ -3,25 +3,60 @@ import supabase from '../config/database';
 import ImageService from '../services/image.service';
 
 export class HeroController {
-  // Get all hero images
+  // Get all hero images (public - only active ones)
   static async getHeroImages(req: Request, res: Response) {
     try {
-      const { data, error } = await supabase
+      // Check if this is an admin request (has all query param)
+      const includeAll = req.query.all === 'true';
+      
+      let query = supabase
         .from('hero_images')
         .select('*')
         .order('sort_order', { ascending: true });
+      
+      // For public requests, only show active images
+      if (!includeAll) {
+        query = query.eq('is_active', true);
+      }
+      
+      const { data, error } = await query;
 
       if (error) throw error;
 
+      // Map database fields to frontend-friendly format
+      const images = (data || []).map((img: any) => ({
+        _id: img.id,
+        id: img.id,
+        title: img.title,
+        subtitle: img.description, // Map description to subtitle for frontend
+        description: img.description,
+        imageUrl: img.image_url,
+        image_url: img.image_url,
+        ctaText: img.cta_text,
+        cta_text: img.cta_text,
+        ctaLink: img.cta_link,
+        cta_link: img.cta_link,
+        cloudinary_public_id: img.cloudinary_public_id,
+        isActive: img.is_active,
+        is_active: img.is_active,
+        sortOrder: img.sort_order,
+        sort_order: img.sort_order,
+        createdAt: img.created_at,
+        updatedAt: img.updated_at
+      }));
+
       return res.status(200).json({
         success: true,
-        data: data || [],
+        images, // For frontend compatibility
+        data: images, // Also include as data
         message: 'Hero images fetched successfully'
       });
     } catch (error: any) {
       console.error('Error fetching hero images:', error);
       return res.status(500).json({
         success: false,
+        images: [],
+        data: [],
         message: error.message || 'Failed to fetch hero images'
       });
     }

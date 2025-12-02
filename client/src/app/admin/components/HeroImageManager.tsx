@@ -25,7 +25,8 @@ const HeroImageManager: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-      const images = await HeroService.getHeroImages();
+      // Use admin method to get all images including inactive
+      const images = await HeroService.getAdminHeroImages();
       setHeroImages(images);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch hero images');

@@ -32,7 +32,7 @@ const mapHeroResponse = (data: any): HeroImage => {
 };
 
 export class HeroService {
-    // Get all hero images (public)
+    // Get all hero images (public - only active ones)
     static async getHeroImages(): Promise<HeroImage[]> {
         try {
             const response = await apiClient.get('/hero');
@@ -41,7 +41,27 @@ export class HeroService {
                 throw new Error(response.data.message || 'Failed to fetch hero images');
             }
 
-            return response.data.data.map(mapHeroResponse);
+            // Handle both data array and images array in response
+            const images = response.data.data || response.data.images || [];
+            return images.map(mapHeroResponse);
+        } catch (error: any) {
+            console.error('Error fetching hero images:', error);
+            throw new Error(error.response?.data?.message || 'Failed to fetch hero images');
+        }
+    }
+
+    // Get all hero images for admin (including inactive)
+    static async getAdminHeroImages(): Promise<HeroImage[]> {
+        try {
+            const response = await apiClient.get('/hero?all=true');
+
+            if (!response.data.success) {
+                throw new Error(response.data.message || 'Failed to fetch hero images');
+            }
+
+            // Handle both data array and images array in response
+            const images = response.data.data || response.data.images || [];
+            return images.map(mapHeroResponse);
         } catch (error: any) {
             console.error('Error fetching hero images:', error);
             throw new Error(error.response?.data?.message || 'Failed to fetch hero images');

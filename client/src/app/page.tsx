@@ -5,6 +5,7 @@ import ExploreProducts from "./components/ExploreProducts";
 import Footer from "./components/Footer";
 import VideoSection from "./components/VideoSection";
 import { useCart } from "./contexts/CartContext";
+import CategoryBanner from "./components/CategoryBanner";
 
 export default function Home() {
 
@@ -12,6 +13,7 @@ export default function Home() {
   return (
     <>
       <HeroPage/>
+      <CategoryBanner/>
       <Productspreiview/> 
       <VideoSection/>
     </>

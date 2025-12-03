@@ -71,6 +71,7 @@ const DropdownMenu: React.FC<{ items: NavLink[]; visible: boolean }> = ({ items,
 // USER MENU COMPONENT (Desktop)
 // -------------------------------------------------------
 
+
 const UserMenu: React.FC<{
   isAuthenticated: boolean;
   user: any;
@@ -285,6 +286,8 @@ const Navbar: React.FC = () => {
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [hasScrolled, setHasScrolled] = useState(false);
+  const [isNavHovered, setIsNavHovered] = useState(false);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -292,25 +295,45 @@ const Navbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const cartItemCount = getCartItemCount();
 
+  // Handle scroll effect - add black background when scrolled
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      setHasScrolled(scrollPosition > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Wrapper handlers for the entire header
   const handleMouseEnter = () => {
     setIsHovered(true);
+    setIsNavHovered(true);
   };
 
   const handleMouseLeave = () => {
     setIsHovered(false);
     setActiveMenu(null);
+    setIsNavHovered(false);
   };
 
-  // Detect if we're on the hero/home page
-  const isHomePage = pathname === "/";
-
   // Determine if we should show the solid black background
-  // Home page: always transparent (over hero), solid only when mobile menu is open
-  // Other pages: always solid for stability and readability
-  const showBackground = !isHomePage || isMobileMenuOpen;
+  // Transparent by default, black when:
+  // 1. Scrolled down
+  // 2. Mobile menu is open
+  // 3. Navbar is hovered (desktop)
+  // 4. Search is open
+  // 5. Not on home page (for consistency)
+  const isHomePage = pathname === "/";
+  const showBackground = 
+    !isHomePage || 
+    hasScrolled || 
+    isMobileMenuOpen || 
+    isSearchOpen ||
+    (isNavHovered && !isMobileMenuOpen);
 
-  // Search handler with debounce-like behavior (simple)
+  // Search handler
   useEffect(() => {
     if (!isSearchOpen || searchQuery.trim().length < 2) {
       setSearchResults([]);
@@ -350,16 +373,31 @@ const Navbar: React.FC = () => {
 
   return (
     <>
+      {/* Add this div for the expanded background */}
+    <div 
+      className={`
+        fixed top-0 left-0 w-full z-40
+        transition-all duration-300 ease-in-out
+        pointer-events-none
+        ${isNavHovered 
+          ? 'h-20 bg-gradient-to-b from-black/90 to-transparent' 
+          : 'h-0 bg-transparent'
+        }
+      `}
+      />
+
+
+
       <header
         className={`
-          fixed top-0 left-0 w-full z-40 relative
+          fixed top-13 left-0 w-full z-40 relative
           flex items-center justify-start
           px-6 lg:px-12 
-          pt-6 pb-4 md:pt-8 md:pb-6
+          py-2 md:py-3
           text-white 
-          transition-colors duration-500 ease-in-out
+          transition-all duration-300 ease-in-out
           ${showBackground
-            ? 'bg-black/95 shadow-xl'
+            ? 'bg-black shadow-lg'
             : 'bg-transparent'
           }
         `}
@@ -369,10 +407,10 @@ const Navbar: React.FC = () => {
         {/* LEFT LOGO */}
         <a
           href="/"
-          className="group relative z-20 flex items-center h-10 w-[280px] overflow-hidden"
+          className="group relative z-20 flex items-center h-8 md:h-10 w-[280px] overflow-hidden"
         >
           {/* The M Icon */}
-          <span className="font-serif text-5xl md:text-6xl leading-none z-10 pr-6 drop-shadow-lg relative">
+          <span className="font-serif text-4xl md:text-5xl leading-none z-10 pr-6 drop-shadow-lg relative">
             𝕸
           </span>
 
@@ -384,15 +422,14 @@ const Navbar: React.FC = () => {
               ${isHovered ? 'translate-x-0 opacity-100' : '-translate-x-8 opacity-0'}
             `}
           >
-            <span className="text-2xl md:text-3xl font-bold tracking-[0.2em] whitespace-nowrap font-serif uppercase inline-block text-white">
+            <span className="text-xl md:text-2xl font-bold tracking-[0.2em] whitespace-nowrap font-serif uppercase inline-block text-white">
               ORVILN
             </span>
           </div>
         </a>
 
         {/* CENTER NAVLINKS (Desktop) */}
-        {/* Slightly larger text, aligned closer to the logo */}
-        <nav className="hidden md:flex items-center space-x-8 lg:space-x-12 pt-1 ml-6">
+        <nav className="hidden md:flex items-center space-x-8 lg:space-x-12 ml-6">
           {NAV_LINKS.map((link) => (
             <div
               key={link.id}
@@ -403,7 +440,7 @@ const Navbar: React.FC = () => {
               <a
                 href={link.href}
                 className={`
-                  relative text-sm lg:text-base font-bold tracking-[0.15em] py-4 block transition-colors duration-300
+                  relative text-sm lg:text-base font-bold tracking-[0.15em] py-2 block transition-colors duration-300
                   ${link.highlight
                     ? 'bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent'
                     : 'text-white hover:text-gray-300'
@@ -412,7 +449,7 @@ const Navbar: React.FC = () => {
               >
                 {link.label}
                 {!link.highlight && (
-                  <span className="absolute bottom-2 left-0 h-[1px] bg-white w-0 group-hover:w-full transition-all duration-300 ease-out" />
+                  <span className="absolute bottom-0 left-0 h-[1px] bg-white w-0 group-hover:w-full transition-all duration-300 ease-out" />
                 )}
               </a>
 
@@ -427,7 +464,7 @@ const Navbar: React.FC = () => {
         </nav>
 
         {/* RIGHT ICONS */}
-        <div className="ml-auto flex items-center space-x-6 md:space-x-8 pt-2">
+        <div className="ml-auto flex items-center space-x-6 md:space-x-8">
 
           {/* User Menu (Desktop) */}
           <UserMenu
@@ -443,7 +480,7 @@ const Navbar: React.FC = () => {
             className="hover:opacity-70 transition-opacity hover:scale-110 duration-200"
             aria-label="Search products"
           >
-            <Search size={26} strokeWidth={1.5} />
+            <Search size={24} strokeWidth={1.5} />
           </button>
 
           <button
@@ -451,9 +488,9 @@ const Navbar: React.FC = () => {
             className="relative hover:opacity-70 transition-opacity hover:scale-110 duration-200"
             aria-label="Open shopping cart"
           >
-            <ShoppingBag size={26} strokeWidth={1.5} />
+            <ShoppingBag size={24} strokeWidth={1.5} />
             {cartItemCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-600 rounded-full border border-black flex items-center justify-center px-1">
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-5 bg-red-600 rounded-full border border-black flex items-center justify-center px-1">
                 <span className="text-white text-xs font-bold">{cartItemCount}</span>
               </span>
             )}
@@ -464,13 +501,13 @@ const Navbar: React.FC = () => {
             className="md:hidden ml-2 hover:opacity-70 z-50"
             onClick={() => setIsMobileMenuOpen(true)}
           >
-            <Menu size={28} strokeWidth={1.5} />
+            <Menu size={26} strokeWidth={1.5} />
           </button>
         </div>
 
         {/* Search bar overlay attached to navbar */}
         {isSearchOpen && (
-          <div className="absolute left-0 top-full w-full z-30 bg-black/95 border-b border-gray-800">
+          <div className="absolute left-0 top-full w-full z-30 bg-black border-b border-gray-800 shadow-xl">
             <div className="max-w-[1400px] mx-auto px-6 lg:px-12 py-4 flex items-center gap-4">
               <Search className="w-5 h-5 text-gray-400" />
               <input

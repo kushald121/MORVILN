@@ -21,9 +21,16 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
 
     const decoded = verifyToken(token);
     
-    (req as any).user = decoded;
+    // Map userId to id for consistency with controllers
+    (req as any).user = {
+      id: decoded.userId || decoded.id,
+      userId: decoded.userId || decoded.id,
+      email: decoded.email,
+      name: decoded.name
+    };
     next();
   } catch (error) {
+    console.error('Auth middleware error:', error);
     return res.status(401).json({
       success: false,
       message: 'Invalid token'

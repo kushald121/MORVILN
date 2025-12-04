@@ -73,7 +73,7 @@ const PaymentPage = () => {
 
     try {
       const response = await apiClient.post('/payment/create-order', {
-        amount: Math.round(checkoutData.summary.total * 100), // Amount in paise
+        amount: checkoutData.summary.total, // Amount in rupees (backend converts to paise)
         currency: 'INR',
         receipt: `order_${Date.now()}`,
         notes: {
@@ -97,44 +97,47 @@ const PaymentPage = () => {
     if (!checkoutData) return null;
 
     try {
-      // Prepare order items
-      const orderItems = checkoutData.items.map((item) => ({
+      // Prepare order products in the format expected by backend
+      const orderProducts = checkoutData.items.map((item) => ({
         product_id: item.productId,
+        product_name: item.name,
+        variant_id: item.id,
+        sku: item.id,
+        size: item.size || '',
+        color: item.color || '',
         quantity: item.quantity,
         price: item.price,
-        name: item.name,
-        image: item.image,
-        size: item.size,
-        color: item.color,
+        total: item.price * item.quantity,
       }));
 
-      const response = await apiClient.post('/orders', {
-        items: orderItems,
-        shippingAddress: {
-          fullName: checkoutData.address.full_name,
+      const response = await apiClient.post('/orders/create', {
+        user_id: user?.id,
+        customer_email: user?.email || '',
+        customer_name: checkoutData.address.full_name,
+        customer_phone: checkoutData.address.phone,
+        shipping_address: {
+          full_name: checkoutData.address.full_name,
           phone: checkoutData.address.phone,
-          addressLine1: checkoutData.address.address_line_1,
-          addressLine2: checkoutData.address.address_line_2,
-          landmark: checkoutData.address.landmark,
+          address_line_1: checkoutData.address.address_line_1,
+          address_line_2: checkoutData.address.address_line_2 || '',
+          landmark: checkoutData.address.landmark || '',
           city: checkoutData.address.city,
           state: checkoutData.address.state,
-          postalCode: checkoutData.address.postal_code,
-          country: checkoutData.address.country,
+          postal_code: checkoutData.address.postal_code,
+          country: checkoutData.address.country || 'India',
         },
-        paymentMethod: 'razorpay',
-        paymentDetails: {
-          razorpay_order_id: paymentDetails.razorpay_order_id,
-          razorpay_payment_id: paymentDetails.razorpay_payment_id,
-          razorpay_signature: paymentDetails.razorpay_signature,
-        },
-        subtotal: checkoutData.summary.subtotal,
-        shippingCost: checkoutData.summary.shipping,
-        tax: checkoutData.summary.tax,
-        total: checkoutData.summary.total,
+        products: orderProducts,
+        subtotal_amount: checkoutData.summary.subtotal,
+        shipping_amount: checkoutData.summary.shipping,
+        tax_amount: checkoutData.summary.tax,
+        total_amount: checkoutData.summary.total,
+        payment_method: 'razorpay',
+        payment_gateway: 'razorpay',
+        payment_gateway_id: paymentDetails.razorpay_payment_id,
       });
 
       if (response.data.success) {
-        return response.data.order;
+        return response.data.data;
       } else {
         throw new Error(response.data.message || 'Failed to create order');
       }
@@ -146,7 +149,7 @@ const PaymentPage = () => {
 
   const verifyPayment = async (paymentDetails: any) => {
     try {
-      const response = await apiClient.post('/payment/verify', paymentDetails);
+      const response = await apiClient.post('/payment/verify-payment', paymentDetails);
 
       if (response.data.success) {
         return true;
@@ -250,10 +253,10 @@ const PaymentPage = () => {
 
   if (!checkoutData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin w-16 h-16 border-4 border-slate-200 border-t-slate-700 rounded-full mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Loading payment details...</p>
+          <div className="animate-spin w-16 h-16 border-4 border-gray-700 border-t-white rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-400 font-medium">Loading payment details...</p>
         </div>
       </div>
     );
@@ -269,7 +272,7 @@ const PaymentPage = () => {
       />
 
       <motion.div
-        className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 py-12"
+        className="min-h-screen bg-black text-white py-12 pt-24"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
@@ -282,11 +285,11 @@ const PaymentPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <h1 className="text-4xl md:text-5xl font-light text-slate-800 mb-4 tracking-wide">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-wide">
               Complete Payment
             </h1>
-            <div className="w-24 h-1 bg-gradient-to-r from-slate-400 to-blue-500 mx-auto mb-4 rounded-full"></div>
-            <p className="text-slate-600 text-lg font-light">
+            <div className="w-24 h-1 bg-white mx-auto mb-4"></div>
+            <p className="text-gray-400 text-lg">
               Secure payment powered by Razorpay
             </p>
           </motion.div>
@@ -296,7 +299,7 @@ const PaymentPage = () => {
             whileHover={{ scale: 1.05, x: -5 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => router.back()}
-            className="flex items-center space-x-2 text-slate-600 hover:text-slate-800 mb-8 transition-colors"
+            className="flex items-center space-x-2 text-gray-400 hover:text-white mb-8 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
             <span>Back to Order Summary</span>
@@ -309,7 +312,7 @@ const PaymentPage = () => {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="mb-6 bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl flex items-center space-x-3"
+                className="mb-6 bg-red-500/10 border border-red-500/30 text-red-400 px-6 py-4 rounded-xl flex items-center space-x-3"
               >
                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
                 <span>{error}</span>
@@ -322,27 +325,27 @@ const PaymentPage = () => {
             <div className="lg:col-span-2 space-y-6">
               {/* Payment Method */}
               <motion.div
-                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 p-8"
+                className="bg-gray-900 border border-gray-800 rounded-2xl p-8"
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                <h2 className="text-2xl font-light text-slate-800 mb-6 flex items-center">
-                  <CreditCard className="w-6 h-6 mr-3 text-slate-600" />
+                <h2 className="text-2xl font-semibold text-white mb-6 flex items-center">
+                  <CreditCard className="w-6 h-6 mr-3 text-gray-400" />
                   Payment Method
                 </h2>
 
                 <div className="space-y-4">
                   {/* Razorpay Payment Option */}
-                  <div className="border-2 border-blue-500 bg-blue-50/50 rounded-xl p-6">
+                  <div className="border-2 border-blue-500/50 bg-blue-500/10 rounded-xl p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
                           <CreditCard className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <h3 className="font-medium text-slate-800">Razorpay</h3>
-                          <p className="text-sm text-slate-600">Cards, UPI, Netbanking & More</p>
+                          <h3 className="font-medium text-white">Razorpay</h3>
+                          <p className="text-sm text-gray-400">Cards, UPI, Netbanking & More</p>
                         </div>
                       </div>
                       <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
@@ -351,21 +354,21 @@ const PaymentPage = () => {
                     </div>
 
                     <div className="flex flex-wrap gap-2 mb-4">
-                      <span className="px-3 py-1 bg-white rounded-full text-xs font-medium text-slate-700 border border-slate-200">
+                      <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-medium text-gray-300 border border-gray-700">
                         💳 Credit/Debit Cards
                       </span>
-                      <span className="px-3 py-1 bg-white rounded-full text-xs font-medium text-slate-700 border border-slate-200">
+                      <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-medium text-gray-300 border border-gray-700">
                         📱 UPI
                       </span>
-                      <span className="px-3 py-1 bg-white rounded-full text-xs font-medium text-slate-700 border border-slate-200">
+                      <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-medium text-gray-300 border border-gray-700">
                         🏦 Netbanking
                       </span>
-                      <span className="px-3 py-1 bg-white rounded-full text-xs font-medium text-slate-700 border border-slate-200">
+                      <span className="px-3 py-1 bg-gray-800 rounded-full text-xs font-medium text-gray-300 border border-gray-700">
                         💰 Wallets
                       </span>
                     </div>
 
-                    <div className="flex items-center space-x-2 text-sm text-slate-600">
+                    <div className="flex items-center space-x-2 text-sm text-gray-400">
                       <Lock className="w-4 h-4" />
                       <span>Secure payment with 256-bit SSL encryption</span>
                     </div>
@@ -373,12 +376,12 @@ const PaymentPage = () => {
                 </div>
 
                 {/* Security Features */}
-                <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-xl">
+                <div className="mt-6 p-4 bg-green-500/10 border border-green-500/30 rounded-xl">
                   <div className="flex items-start space-x-3">
-                    <ShieldCheck className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <ShieldCheck className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="font-medium text-green-900 mb-1">100% Secure Payment</h4>
-                      <p className="text-sm text-green-700">
+                      <h4 className="font-medium text-green-400 mb-1">100% Secure Payment</h4>
+                      <p className="text-sm text-green-400/80">
                         Your payment information is encrypted and secure. We never store your card details.
                       </p>
                     </div>
@@ -388,20 +391,20 @@ const PaymentPage = () => {
 
               {/* Delivery Address Review */}
               <motion.div
-                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 p-8"
+                className="bg-gray-900 border border-gray-800 rounded-2xl p-8"
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5 }}
               >
-                <h2 className="text-2xl font-light text-slate-800 mb-6 flex items-center">
-                  <MapPin className="w-6 h-6 mr-3 text-slate-600" />
+                <h2 className="text-2xl font-semibold text-white mb-6 flex items-center">
+                  <MapPin className="w-6 h-6 mr-3 text-gray-400" />
                   Delivery Address
                 </h2>
 
-                <div className="bg-slate-50 rounded-xl p-6">
-                  <p className="font-medium text-slate-800 mb-2">{checkoutData.address.full_name}</p>
-                  <p className="text-slate-600 mb-1">{checkoutData.address.phone}</p>
-                  <p className="text-slate-700 leading-relaxed">
+                <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+                  <p className="font-medium text-white mb-2">{checkoutData.address.full_name}</p>
+                  <p className="text-gray-400 mb-1">{checkoutData.address.phone}</p>
+                  <p className="text-gray-300 leading-relaxed">
                     {checkoutData.address.address_line_1}
                     {checkoutData.address.address_line_2 && `, ${checkoutData.address.address_line_2}`}
                     {checkoutData.address.landmark && `, ${checkoutData.address.landmark}`}
@@ -415,13 +418,13 @@ const PaymentPage = () => {
             {/* Order Summary Sidebar */}
             <div className="lg:col-span-1">
               <motion.div
-                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 p-6 sticky top-24"
+                className="bg-gray-900 border border-gray-800 rounded-2xl p-6 sticky top-24"
                 initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                <h3 className="font-medium text-slate-800 text-lg mb-6 flex items-center">
-                  <Package className="w-5 h-5 mr-2 text-slate-600" />
+                <h3 className="font-medium text-white text-lg mb-6 flex items-center">
+                  <Package className="w-5 h-5 mr-2 text-gray-400" />
                   Order Summary
                 </h3>
 
@@ -435,36 +438,36 @@ const PaymentPage = () => {
                         className="w-16 h-16 object-cover rounded-lg"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-800 truncate">{item.name}</p>
-                        <p className="text-xs text-slate-500">Qty: {item.quantity}</p>
+                        <p className="text-sm font-medium text-white truncate">{item.name}</p>
+                        <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                       </div>
-                      <p className="text-sm font-medium text-slate-800">₹{item.itemTotal}</p>
+                      <p className="text-sm font-medium text-white">₹{Number(item.itemTotal).toFixed(2)}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Price Breakdown */}
-                <div className="border-t border-slate-200 pt-4 space-y-3">
-                  <div className="flex justify-between text-slate-700">
+                <div className="border-t border-gray-700 pt-4 space-y-3">
+                  <div className="flex justify-between text-gray-400">
                     <span>Subtotal</span>
-                    <span className="font-medium">₹{checkoutData.summary.subtotal}</span>
+                    <span className="font-medium text-white">₹{Number(checkoutData.summary.subtotal).toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-slate-700">
+                  <div className="flex justify-between text-gray-400">
                     <span>Shipping</span>
-                    <span className={`font-medium ${checkoutData.summary.shipping === 0 ? 'text-green-600' : ''}`}>
-                      {checkoutData.summary.shipping === 0 ? 'FREE' : `₹${checkoutData.summary.shipping}`}
+                    <span className={`font-medium ${checkoutData.summary.shipping === 0 ? 'text-green-500' : 'text-white'}`}>
+                      {checkoutData.summary.shipping === 0 ? 'FREE' : `₹${Number(checkoutData.summary.shipping).toFixed(2)}`}
                     </span>
                   </div>
                   {checkoutData.summary.tax > 0 && (
-                    <div className="flex justify-between text-slate-700">
+                    <div className="flex justify-between text-gray-400">
                       <span>Tax</span>
-                      <span className="font-medium">₹{checkoutData.summary.tax}</span>
+                      <span className="font-medium text-white">₹{Number(checkoutData.summary.tax).toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="border-t border-slate-200 pt-3">
-                    <div className="flex justify-between text-slate-800 text-xl font-semibold">
+                  <div className="border-t border-gray-700 pt-3">
+                    <div className="flex justify-between text-white text-xl font-bold">
                       <span>Total</span>
-                      <span>₹{checkoutData.summary.total}</span>
+                      <span>₹{Number(checkoutData.summary.total).toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -475,11 +478,11 @@ const PaymentPage = () => {
                   whileTap={{ scale: 0.98 }}
                   onClick={handlePayment}
                   disabled={processingPayment || !razorpayLoaded}
-                  className="w-full mt-8 bg-gradient-to-r from-slate-700 to-slate-800 text-white py-4 rounded-xl font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                  className="w-full mt-8 bg-white text-black py-4 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {processingPayment ? (
                     <div className="flex items-center justify-center space-x-2">
-                      <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                      <div className="animate-spin w-5 h-5 border-2 border-black border-t-transparent rounded-full"></div>
                       <span>Processing...</span>
                     </div>
                   ) : !razorpayLoaded ? (
@@ -487,13 +490,13 @@ const PaymentPage = () => {
                   ) : (
                     <div className="flex items-center justify-center space-x-3">
                       <Lock className="w-5 h-5" />
-                      <span>Pay ₹{checkoutData.summary.total}</span>
+                      <span>Pay ₹{Number(checkoutData.summary.total).toFixed(2)}</span>
                     </div>
                   )}
                 </motion.button>
 
                 {/* Trust Badges */}
-                <div className="mt-6 flex items-center justify-center space-x-4 text-xs text-slate-500">
+                <div className="mt-6 flex items-center justify-center space-x-4 text-xs text-gray-500">
                   <div className="flex items-center space-x-1">
                     <Lock className="w-3 h-3" />
                     <span>Secure</span>
@@ -509,17 +512,17 @@ const PaymentPage = () => {
 
           {/* Terms and Conditions */}
           <motion.div
-            className="mt-8 text-center text-sm text-slate-500"
+            className="mt-8 text-center text-sm text-gray-500"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
           >
             By completing this purchase, you agree to our{' '}
-            <a href="/terms" className="text-slate-700 hover:underline">
+            <a href="/terms" className="text-gray-300 hover:text-white hover:underline">
               Terms & Conditions
             </a>{' '}
             and{' '}
-            <a href="/privacy" className="text-slate-700 hover:underline">
+            <a href="/privacy" className="text-gray-300 hover:text-white hover:underline">
               Privacy Policy
             </a>
           </motion.div>

@@ -5,18 +5,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { useRouter } from 'next/navigation';
-import { Trash2, Edit, MapPin, Home, Briefcase, Plus, X, Check, LocateFixed } from 'lucide-react';
+import { Trash2, MapPin, Home, Briefcase, Plus, X, Check, LocateFixed, ArrowLeft } from 'lucide-react';
 import { AddressService, type Address, type CreateAddressData } from '../../services/address.service';
 
 const AddressPageOptimized = () => {
-  const { user, isAuthenticated, token } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const toast = useToast();
   const router = useRouter();
 
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [showNewAddress, setShowNewAddress] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
 
   // New address form state
   const [newAddress, setNewAddress] = useState<CreateAddressData>({
@@ -34,36 +35,45 @@ const AddressPageOptimized = () => {
   });
 
   useEffect(() => {
-    // Check authentication - use token instead of user object
-    const hasToken = typeof window !== 'undefined' && localStorage.getItem('userToken');
-    
-    if (!hasToken && !isAuthenticated) {
-      toast.warning('Please login to continue with checkout');
-      router.push('/login');
-      return;
-    }
-
-    // Load user data into form if available
-    if (user) {
-      setNewAddress(prev => ({
-        ...prev,
-        full_name: user.name || '',
-        phone: user.phone || '',
-      }));
-    }
-
-    // Check for previously selected address
-    const storedAddress = localStorage.getItem('selectedAddress');
-    if (storedAddress) {
-      try {
-        setSelectedAddress(JSON.parse(storedAddress));
-      } catch (e) {
-        console.error('Failed to parse stored address');
+    const checkAuth = () => {
+      const hasToken = typeof window !== 'undefined' && localStorage.getItem('userToken');
+      
+      if (!hasToken) {
+        toast.warning('Please login to continue with checkout');
+        router.push('/login');
+        return false;
       }
-    }
+      return true;
+    };
 
-    fetchAddresses();
-  }, [isAuthenticated, router, user, toast]);
+    const timer = setTimeout(() => {
+      if (checkAuth()) {
+        setIsAuthChecked(true);
+        
+        if (user) {
+          setNewAddress(prev => ({
+            ...prev,
+            full_name: user.name || '',
+            phone: user.phone || '',
+          }));
+        }
+
+        const storedAddress = localStorage.getItem('selectedAddress');
+        if (storedAddress) {
+          try {
+            setSelectedAddress(JSON.parse(storedAddress));
+          } catch (e) {
+            console.error('Failed to parse stored address');
+          }
+        }
+
+        fetchAddresses();
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const fetchAddresses = async () => {
     try {
@@ -71,13 +81,21 @@ const AddressPageOptimized = () => {
       const fetchedAddresses = await AddressService.getAddresses();
       setAddresses(fetchedAddresses);
 
-      // Auto-select default address if none is selected
       if (!selectedAddress && fetchedAddresses.length > 0) {
         const defaultAddr = fetchedAddresses.find((addr) => addr.is_default) || fetchedAddresses[0];
         setSelectedAddress(defaultAddr);
       }
     } catch (err: any) {
       const errorMessage = err.message || 'Failed to load addresses';
+      
+      if (errorMessage.includes('Unauthorized') || errorMessage.includes('401')) {
+        toast.error('Session expired. Please login again.');
+        localStorage.removeItem('userToken');
+        localStorage.removeItem('userData');
+        router.push('/login');
+        return;
+      }
+      
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -96,7 +114,6 @@ const AddressPageOptimized = () => {
       toast.success('Address added successfully!');
       setShowNewAddress(false);
       
-      // Reset form
       setNewAddress({
         full_name: user?.name || '',
         phone: user?.phone || '',
@@ -149,45 +166,8 @@ const AddressPageOptimized = () => {
       return;
     }
 
-    // Save selected address to localStorage
     localStorage.setItem('selectedAddress', JSON.stringify(selectedAddress));
-    
-    // Navigate to order summary
     router.push('/checkout/order-summary');
-  };
-
-  const getLocationFromBrowser = () => {
-    if (!navigator.geolocation) {
-      toast.error('Geolocation is not supported by your browser');
-      return;
-    }
-
-    setLoading(true);
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          
-          // Use reverse geocoding API (you can use Google Maps API, OpenCage, etc.)
-          // For now, just showing how to get coordinates
-          console.log('Coordinates:', latitude, longitude);
-          
-          toast.info('Location detected! Please fill in address details.');
-          setLoading(false);
-          
-        } catch (err) {
-          console.error('Error getting location details:', err);
-          toast.error('Could not fetch address from location');
-          setLoading(false);
-        }
-      },
-      (error) => {
-        console.error('Geolocation error:', error);
-        toast.warning('Could not get your location. Please enter address manually.');
-        setLoading(false);
-      }
-    );
   };
 
   const getAddressIcon = (label?: string) => {
@@ -202,13 +182,12 @@ const AddressPageOptimized = () => {
     }
   };
 
-  // Show loading state while checking authentication
-  if (loading && addresses.length === 0) {
+  if (!isAuthChecked || (loading && addresses.length === 0)) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin w-16 h-16 border-4 border-slate-200 border-t-slate-700 rounded-full mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Loading addresses...</p>
+          <div className="animate-spin w-16 h-16 border-4 border-gray-700 border-t-white rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-400 font-medium">Loading...</p>
         </div>
       </div>
     );
@@ -216,24 +195,35 @@ const AddressPageOptimized = () => {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 py-12"
+      className="min-h-screen bg-black text-white py-8 pt-24"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8 }}
+      transition={{ duration: 0.5 }}
     >
       <div className="max-w-6xl mx-auto px-4">
+        {/* Back Button */}
+        <motion.button
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span>Back</span>
+        </motion.button>
+
         {/* Header */}
         <motion.div
           className="text-center mb-12"
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <h1 className="text-4xl md:text-5xl font-light text-slate-800 mb-4 tracking-wide">
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-3 tracking-wide">
             Select Delivery Address
           </h1>
-          <div className="w-24 h-1 bg-gradient-to-r from-slate-400 to-blue-500 mx-auto mb-4 rounded-full"></div>
-          <p className="text-slate-600 text-lg font-light">
+          <div className="w-24 h-1 bg-white mx-auto mb-4"></div>
+          <p className="text-gray-400 text-lg">
             Choose where you want your order delivered
           </p>
         </motion.div>
@@ -242,15 +232,15 @@ const AddressPageOptimized = () => {
           {/* Saved Addresses */}
           <div className="lg:col-span-2 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-light text-slate-800">Saved Addresses</h2>
+              <h2 className="text-xl font-semibold text-white">Saved Addresses</h2>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowNewAddress(true)}
-                className="flex items-center space-x-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white px-6 py-3 rounded-xl font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-300"
+                className="flex items-center space-x-2 bg-white text-black px-5 py-2.5 rounded-lg font-medium hover:bg-gray-200 transition-all duration-300"
               >
                 <Plus className="w-4 h-4" />
-                <span>Add New Address</span>
+                <span>Add New</span>
               </motion.button>
             </div>
 
@@ -262,12 +252,12 @@ const AddressPageOptimized = () => {
                   initial={{ opacity: 0, y: 20, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                  transition={{ duration: 0.4 }}
+                  transition={{ duration: 0.3 }}
                   onClick={() => handleSelectAddress(address)}
-                  className={`bg-white/80 backdrop-blur-sm rounded-2xl p-6 border-2 cursor-pointer transition-all duration-300 ${
+                  className={`bg-gray-900 rounded-xl p-5 border-2 cursor-pointer transition-all duration-300 ${
                     selectedAddress?.id === address.id
-                      ? 'border-slate-700 shadow-xl'
-                      : 'border-slate-200 hover:border-slate-400'
+                      ? 'border-white'
+                      : 'border-gray-800 hover:border-gray-600'
                   }`}
                 >
                   <div className="flex items-start justify-between">
@@ -275,30 +265,30 @@ const AddressPageOptimized = () => {
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center ${
                           selectedAddress?.id === address.id
-                            ? 'bg-slate-700 text-white'
-                            : 'bg-slate-100 text-slate-600'
+                            ? 'bg-white text-black'
+                            : 'bg-gray-800 text-gray-400'
                         }`}
                       >
                         {getAddressIcon(address.label)}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-2">
-                          <span className="font-medium text-slate-800 text-lg">
+                          <span className="font-medium text-white text-lg">
                             {address.full_name}
                           </span>
                           {address.label && (
-                            <span className="px-3 py-1 bg-slate-100 text-slate-700 text-xs rounded-full">
+                            <span className="px-2 py-0.5 bg-gray-800 text-gray-400 text-xs rounded">
                               {address.label}
                             </span>
                           )}
                           {address.is_default && (
-                            <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                            <span className="px-2 py-0.5 bg-green-500/20 text-green-500 text-xs rounded">
                               Default
                             </span>
                           )}
                         </div>
-                        <p className="text-slate-600 mb-1">{address.phone}</p>
-                        <p className="text-slate-700 leading-relaxed">
+                        <p className="text-gray-400 mb-1">{address.phone}</p>
+                        <p className="text-gray-500 leading-relaxed text-sm">
                           {address.address_line_1}
                           {address.address_line_2 && `, ${address.address_line_2}`}
                           {address.landmark && `, ${address.landmark}`}
@@ -320,7 +310,7 @@ const AddressPageOptimized = () => {
                           e.stopPropagation();
                           handleDeleteAddress(address.id);
                         }}
-                        className="text-red-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                        className="text-red-500 hover:text-red-400 p-2 hover:bg-red-500/10 rounded-lg transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                       </motion.button>
@@ -334,18 +324,18 @@ const AddressPageOptimized = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 text-center border border-slate-200"
+                className="bg-gray-900 rounded-xl p-12 text-center border border-gray-800"
               >
-                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MapPin className="w-8 h-8 text-slate-400" />
+                <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MapPin className="w-8 h-8 text-gray-500" />
                 </div>
-                <p className="text-slate-500 text-lg font-light mb-4">No saved addresses</p>
-                <p className="text-slate-400 mb-6">Add a new address to continue</p>
+                <p className="text-gray-400 text-lg mb-4">No saved addresses</p>
+                <p className="text-gray-600 mb-6">Add a new address to continue</p>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setShowNewAddress(true)}
-                  className="bg-gradient-to-r from-slate-700 to-slate-800 text-white px-8 py-4 rounded-xl font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-300"
+                  className="bg-white text-black px-8 py-3 rounded-lg font-medium hover:bg-gray-200 transition-all duration-300"
                 >
                   Add Your First Address
                 </motion.button>
@@ -356,22 +346,22 @@ const AddressPageOptimized = () => {
           {/* Continue Button */}
           <div className="lg:col-span-1">
             <motion.div
-              className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-slate-200 sticky top-24"
+              className="bg-gray-900 rounded-xl p-5 border border-gray-800 sticky top-24"
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.2 }}
             >
-              <h3 className="font-medium text-slate-800 text-lg mb-4">Selected Address</h3>
+              <h3 className="font-semibold text-white text-lg mb-4">Selected Address</h3>
               {selectedAddress ? (
-                <div className="mb-6 p-4 bg-slate-50 rounded-xl">
-                  <p className="font-medium text-slate-800 mb-2">{selectedAddress.full_name}</p>
-                  <p className="text-sm text-slate-600 mb-1">{selectedAddress.phone}</p>
-                  <p className="text-sm text-slate-700 leading-relaxed">
+                <div className="mb-6 p-4 bg-gray-800 rounded-lg">
+                  <p className="font-medium text-white mb-2">{selectedAddress.full_name}</p>
+                  <p className="text-sm text-gray-400 mb-1">{selectedAddress.phone}</p>
+                  <p className="text-sm text-gray-500 leading-relaxed">
                     {selectedAddress.address_line_1}, {selectedAddress.city}, {selectedAddress.state} - {selectedAddress.postal_code}
                   </p>
                 </div>
               ) : (
-                <p className="text-slate-500 mb-6 text-sm">
+                <p className="text-gray-500 mb-6 text-sm">
                   Please select a delivery address to continue
                 </p>
               )}
@@ -380,7 +370,7 @@ const AddressPageOptimized = () => {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleContinueToOrderSummary}
                 disabled={!selectedAddress || loading}
-                className="w-full bg-gradient-to-r from-slate-700 to-slate-800 text-white py-4 rounded-xl font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                className="w-full bg-white text-black py-4 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Continue to Order Summary
               </motion.button>
@@ -395,7 +385,7 @@ const AddressPageOptimized = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
               onClick={() => setShowNewAddress(false)}
             >
               <motion.div
@@ -403,44 +393,32 @@ const AddressPageOptimized = () => {
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.95, y: 20 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                className="bg-gray-900 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-800"
               >
-                <div className="sticky top-0 bg-white border-b border-slate-200 px-8 py-6 flex items-center justify-between">
-                  <h3 className="text-2xl font-light text-slate-800">Add New Address</h3>
+                <div className="sticky top-0 bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+                  <h3 className="text-xl font-semibold text-white">Add New Address</h3>
                   <button
                     onClick={() => setShowNewAddress(false)}
-                    className="text-slate-400 hover:text-slate-600 p-2"
+                    className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
                   >
-                    <X className="w-6 h-6" />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <form onSubmit={handleAddAddress} className="p-8 space-y-6">
-                  {/* Location Button */}
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={getLocationFromBrowser}
-                    className="w-full flex items-center justify-center space-x-2 bg-blue-50 text-blue-700 py-3 rounded-xl font-medium hover:bg-blue-100 transition-all duration-300 border border-blue-200"
-                  >
-                    <LocateFixed className="w-5 h-5" />
-                    <span>Use My Current Location</span>
-                  </motion.button>
-
+                <form onSubmit={handleAddAddress} className="p-6 space-y-5">
                   {/* Address Type */}
                   <div>
-                    <label className="block text-slate-700 mb-3 font-medium">Address Type</label>
+                    <label className="block text-gray-300 mb-3 font-medium text-sm">Address Type</label>
                     <div className="grid grid-cols-3 gap-3">
                       {['Home', 'Work', 'Other'].map((type) => (
                         <button
                           key={type}
                           type="button"
                           onClick={() => setNewAddress({ ...newAddress, label: type })}
-                          className={`py-3 rounded-xl font-medium transition-all duration-200 ${
+                          className={`py-2.5 rounded-lg font-medium transition-all duration-200 text-sm ${
                             newAddress.label === type
-                              ? 'bg-slate-700 text-white'
-                              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                              ? 'bg-white text-black'
+                              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                           }`}
                         >
                           {type}
@@ -452,27 +430,27 @@ const AddressPageOptimized = () => {
                   {/* Name and Phone */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-slate-700 mb-2 font-medium">
+                      <label className="block text-gray-300 mb-2 font-medium text-sm">
                         Full Name <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={newAddress.full_name}
                         onChange={(e) => setNewAddress({ ...newAddress, full_name: e.target.value })}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-white text-white placeholder-gray-500"
                         placeholder="Enter full name"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-700 mb-2 font-medium">
+                      <label className="block text-gray-300 mb-2 font-medium text-sm">
                         Phone Number <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="tel"
                         value={newAddress.phone}
                         onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-white text-white placeholder-gray-500"
                         placeholder="10-digit mobile number"
                         required
                       />
@@ -481,41 +459,41 @@ const AddressPageOptimized = () => {
 
                   {/* Address Lines */}
                   <div>
-                    <label className="block text-slate-700 mb-2 font-medium">
+                    <label className="block text-gray-300 mb-2 font-medium text-sm">
                       Address Line 1 <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
                       value={newAddress.address_line_1}
                       onChange={(e) => setNewAddress({ ...newAddress, address_line_1: e.target.value })}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500"
+                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-white text-white placeholder-gray-500"
                       placeholder="House no., Building name"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-slate-700 mb-2 font-medium">
+                    <label className="block text-gray-300 mb-2 font-medium text-sm">
                       Address Line 2 (Optional)
                     </label>
                     <input
                       type="text"
                       value={newAddress.address_line_2}
                       onChange={(e) => setNewAddress({ ...newAddress, address_line_2: e.target.value })}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500"
+                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-white text-white placeholder-gray-500"
                       placeholder="Road name, Area, Colony"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-slate-700 mb-2 font-medium">
+                    <label className="block text-gray-300 mb-2 font-medium text-sm">
                       Landmark (Optional)
                     </label>
                     <input
                       type="text"
                       value={newAddress.landmark}
                       onChange={(e) => setNewAddress({ ...newAddress, landmark: e.target.value })}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500"
+                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-white text-white placeholder-gray-500"
                       placeholder="Nearby landmark"
                     />
                   </div>
@@ -523,40 +501,40 @@ const AddressPageOptimized = () => {
                   {/* City, State, Postal Code */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-slate-700 mb-2 font-medium">
+                      <label className="block text-gray-300 mb-2 font-medium text-sm">
                         City <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={newAddress.city}
                         onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-white text-white placeholder-gray-500"
                         placeholder="City"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-700 mb-2 font-medium">
+                      <label className="block text-gray-300 mb-2 font-medium text-sm">
                         State <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={newAddress.state}
                         onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-white text-white placeholder-gray-500"
                         placeholder="State"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-700 mb-2 font-medium">
-                        Postal Code <span className="text-red-500">*</span>
+                      <label className="block text-gray-300 mb-2 font-medium text-sm">
+                        PIN Code <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={newAddress.postal_code}
                         onChange={(e) => setNewAddress({ ...newAddress, postal_code: e.target.value })}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500"
+                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-white text-white placeholder-gray-500"
                         placeholder="6-digit PIN"
                         required
                       />
@@ -564,15 +542,15 @@ const AddressPageOptimized = () => {
                   </div>
 
                   {/* Make Default Checkbox */}
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
                     <input
                       type="checkbox"
                       id="make-default"
                       checked={newAddress.is_default || false}
                       onChange={(e) => setNewAddress({ ...newAddress, is_default: e.target.checked })}
-                      className="w-5 h-5 text-slate-700 border-slate-300 rounded focus:ring-slate-500"
+                      className="w-5 h-5 bg-gray-800 border-gray-700 rounded focus:ring-white text-white"
                     />
-                    <label htmlFor="make-default" className="text-slate-700 font-medium cursor-pointer">
+                    <label htmlFor="make-default" className="text-gray-300 font-medium cursor-pointer text-sm">
                       Make this my default address
                     </label>
                   </div>
@@ -584,7 +562,7 @@ const AddressPageOptimized = () => {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setShowNewAddress(false)}
-                      className="flex-1 border-2 border-slate-300 text-slate-700 py-4 rounded-xl font-medium hover:bg-slate-50 transition-all duration-300"
+                      className="flex-1 border border-gray-700 text-gray-300 py-3 rounded-lg font-medium hover:bg-gray-800 transition-all duration-300"
                     >
                       Cancel
                     </motion.button>
@@ -593,7 +571,7 @@ const AddressPageOptimized = () => {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       disabled={loading}
-                      className="flex-1 bg-gradient-to-r from-slate-700 to-slate-800 text-white py-4 rounded-xl font-medium hover:from-slate-800 hover:to-slate-900 transition-all duration-300 disabled:opacity-50"
+                      className="flex-1 bg-white text-black py-3 rounded-lg font-semibold hover:bg-gray-200 transition-all duration-300 disabled:opacity-50"
                     >
                       {loading ? 'Saving...' : 'Save Address'}
                     </motion.button>
@@ -603,15 +581,6 @@ const AddressPageOptimized = () => {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {loading && (
-          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 flex items-center justify-center">
-            <div className="bg-white rounded-2xl p-8 shadow-2xl">
-              <div className="animate-spin w-12 h-12 border-4 border-slate-200 border-t-slate-700 rounded-full mx-auto"></div>
-              <p className="mt-4 text-slate-700 font-medium">Loading...</p>
-            </div>
-          </div>
-        )}
       </div>
     </motion.div>
   );

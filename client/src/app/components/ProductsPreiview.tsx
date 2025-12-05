@@ -6,27 +6,51 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Heart, ShoppingCart, Eye, ArrowRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ProductService, Product } from "../services/productService";
 // import SplashCursor from "./ui/splash-cursor";
 
 gsap.registerPlugin(ScrollTrigger);
 
-interface Product {
-  id: number;
-  name: string;
-  price: number;
-  originalPrice: number;
-  discount: number;
-  image: string;
-  modelImage: string;
-}
-
 const Productspreiview = () => {
-  const [wishlist, setWishlist] = useState<number[]>([]);
+  const router = useRouter();
+  const [wishlist, setWishlist] = useState<string[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const sectionRef = useRef<HTMLDivElement>(null);
   const controls = useAnimation();
   const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
+  // Fetch products using ProductService
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        // Try to get featured products first
+        try {
+          const featuredProducts = await ProductService.getFeaturedProducts(8);
+          if (featuredProducts && featuredProducts.length > 0) {
+            setProducts(featuredProducts);
+            return;
+          }
+        } catch {
+          // If featured fails, get regular products
+        }
+        
+        // Fallback to regular products
+        const { products: allProducts } = await ProductService.getProducts({ limit: 8 });
+        setProducts(allProducts || []);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   useEffect(() => {
     if (isInView) {
@@ -63,89 +87,36 @@ const Productspreiview = () => {
     }, sectionRef);
 
     return () => ctx.revert();
-  }, []);
+  }, [products]);
 
-  const products: Product[] = [
-    {
-      id: 1,
-      name: "Elegant Summer Dress",
-      price: 201.00,
-      originalPrice: 299.00,
-      discount: 20,
-      image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=300&h=400&fit=crop",
-      modelImage: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=300&h=400&fit=crop"
-    },
-    {
-      id: 2,
-      name: "Designer Blazer",
-      price: 440.00,
-      originalPrice: 440.00,
-      discount: 0,
-      image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=300&h=400&fit=crop",
-      modelImage: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?w=300&h=400&fit=crop"
-    },
-    {
-      id: 3,
-      name: "Casual Denim Jacket",
-      price: 100.00,
-      originalPrice: 180.00,
-      discount: 20,
-     image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=300&h=400&fit=crop",
-      modelImage: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=300&h=400&fit=crop"
-    },
-    {
-      id: 4,
-      name: "Silk Evening Gown",
-      price: 300.00,
-      originalPrice: 300.00,
-      discount: 0,
-     image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=300&h=400&fit=crop",
-      modelImage: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=300&h=400&fit=crop"
-    },
-    {
-      id: 5,
-      name: "Leather Handbag",
-      price: 340.00,
-      originalPrice: 430.00,
-      discount: 90,
-      image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&h=400&fit=crop",
-      modelImage: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&h=400&fit=crop"
-    },
-    {
-      id: 6,
-      name: "High Heel Shoes",
-      price: 410.00,
-      originalPrice: 520.00,
-      discount: 110,
-      image: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=300&h=400&fit=crop",
-      modelImage: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=300&h=400&fit=crop"
-    },
-    {
-      id: 7,
-      name: "Wool Sweater",
-      price: 110.00,
-      originalPrice: 110.00,
-      discount: 0,
-      image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=300&h=400&fit=crop",
-      modelImage: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=300&h=400&fit=crop"
-    },
-    {
-      id: 8,
-      name: "Cotton T-Shirt",
-      price: 89.00,
-      originalPrice: 89.00,
-      discount: 0,
-      image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300&h=400&fit=crop",
-      modelImage: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300&h=400&fit=crop"
+  // Helper function to get primary image
+  const getProductImage = (product: Product): string => {
+    if (product.media && product.media.length > 0) {
+      const primaryImage = product.media.find(m => m.is_primary);
+      if (primaryImage) return primaryImage.media_url;
+      return product.media[0].media_url;
     }
-  ];
+    return 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&h=400&fit=crop';
+  };
 
-  const toggleWishlist = (productId: number) => {
+  // Calculate discount percentage
+  const getDiscountAmount = (product: Product): number => {
+    if (product.compare_at_price && product.compare_at_price > product.base_price) {
+      return Math.round(product.compare_at_price - product.base_price);
+    }
+    return 0;
+  };
+
+  const toggleWishlist = (productId: string) => {
     setWishlist((prev) =>
       prev.includes(productId)
         ? prev.filter((id) => id !== productId)
         : [...prev, productId]
     );
+  };
+
+  const handleProductClick = (product: Product) => {
+    router.push(`/productpage/${product.slug || product.id}`);
   };
 
   const containerVariants = {
@@ -251,24 +222,45 @@ const Productspreiview = () => {
 
           {/* Products Grid */}
           <div className="lg:col-span-2">
+            {isLoading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="bg-card rounded-lg overflow-hidden shadow-sm border border-border animate-pulse">
+                    <div className="aspect-[3/4] bg-muted"></div>
+                    <div className="p-3 space-y-2">
+                      <div className="h-4 bg-muted rounded w-3/4"></div>
+                      <div className="h-5 bg-muted rounded w-1/2"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : products.length === 0 ? (
+              <div className="flex items-center justify-center h-64 text-muted-foreground">
+                <p>No products found</p>
+              </div>
+            ) : (
             <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="visible"
               className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
             >
-              {products.map((product) => (
+              {products.map((product) => {
+                const productImage = getProductImage(product);
+                const discount = getDiscountAmount(product);
+                
+                return (
                 <motion.div
                   key={product.id}
                   variants={itemVariants}
                   whileHover={{ y: -8, scale: 1.02 }}
                   className="bg-card rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group cursor-pointer border border-border product-card"
-                  onClick={() => setSelectedProduct(product)}
+                  onClick={() => handleProductClick(product)}
                 >
                   <div className="relative aspect-[3/4] bg-muted">
                     {/* Product Image */}
                     <Image
-                      src={product.image}
+                      src={productImage}
                       alt={product.name}
                       fill
                       className="object-cover"
@@ -276,9 +268,9 @@ const Productspreiview = () => {
                     />
 
                     {/* Discount Badge */}
-                    {product.discount > 0 && (
+                    {discount > 0 && (
                       <div className="absolute top-2 left-2 bg-destructive text-destructive-foreground px-2 py-1 rounded text-xs font-bold">
-                        -${product.discount}
+                        -₹{discount}
                       </div>
                     )}
 
@@ -316,23 +308,25 @@ const Productspreiview = () => {
                   </div>
 
                   <div className="p-3">
-                    <h3 className="font-medium text-foreground text-sm mb-1 leading-tight">
+                    <h3 className="font-medium text-foreground text-sm mb-1 leading-tight line-clamp-2">
                       {product.name}
                     </h3>
                     <div className="flex items-center gap-2">
                       <span className="text-lg font-bold text-foreground">
-                        ${product.price.toFixed(2)}
+                        ₹{product.base_price.toFixed(2)}
                       </span>
-                      {product.originalPrice > product.price && (
+                      {product.compare_at_price && product.compare_at_price > product.base_price && (
                         <span className="text-sm text-muted-foreground line-through">
-                          ${product.originalPrice.toFixed(2)}
+                          ₹{product.compare_at_price.toFixed(2)}
                         </span>
                       )}
                     </div>
                   </div>
                 </motion.div>
-              ))}
+                );
+              })}
             </motion.div>
+            )}
           </div>
         </div>
 
@@ -367,7 +361,7 @@ const Productspreiview = () => {
 
                     <div className="aspect-[3/4] bg-muted rounded-t-2xl relative">
                       <Image
-                        src={selectedProduct.image}
+                        src={getProductImage(selectedProduct)}
                         alt={selectedProduct.name}
                         fill
                         className="object-cover"
@@ -379,13 +373,18 @@ const Productspreiview = () => {
                       <h3 className="text-xl font-bold text-foreground mb-2">
                         {selectedProduct.name}
                       </h3>
+                      {selectedProduct.short_description && (
+                        <p className="text-muted-foreground text-sm mb-3">
+                          {selectedProduct.short_description}
+                        </p>
+                      )}
                       <div className="flex items-center gap-3 mb-4">
                         <span className="text-2xl font-bold text-foreground">
-                          ${selectedProduct.price.toFixed(2)}
+                          ₹{selectedProduct.base_price.toFixed(2)}
                         </span>
-                        {selectedProduct.originalPrice > selectedProduct.price && (
+                        {selectedProduct.compare_at_price && selectedProduct.compare_at_price > selectedProduct.base_price && (
                           <span className="text-lg text-muted-foreground line-through">
-                            ${selectedProduct.originalPrice.toFixed(2)}
+                            ₹{selectedProduct.compare_at_price.toFixed(2)}
                           </span>
                         )}
                       </div>
@@ -394,10 +393,11 @@ const Productspreiview = () => {
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
+                          onClick={() => handleProductClick(selectedProduct)}
                           className="flex-1 bg-primary text-primary-foreground py-3 rounded-full font-medium flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors"
                         >
-                          <ShoppingCart className="w-4 h-4" />
-                          Add to Cart
+                          <Eye className="w-4 h-4" />
+                          View Details
                         </motion.button>
                         <motion.button
                           whileHover={{ scale: 1.05 }}

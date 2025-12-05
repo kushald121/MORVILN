@@ -143,14 +143,14 @@ const ProfilePage = () => {
 
       // Fetch orders (with error handling)
       try {
-        const ordersResponse = await apiClient.get('/api/orders');
-        const orders = ordersResponse.data.orders || [];
+        const ordersResponse = await apiClient.get('/orders/user/me');
+        const orders = ordersResponse.data.data || [];
         
         setStats(prev => ({
           ...prev,
           totalOrders: orders.length,
           pendingOrders: orders.filter((order: any) => 
-            order.status === 'pending' || order.status === 'processing'
+            order.payment_status === 'pending' || order.fulfillment_status === 'unfulfilled'
           ).length
         }));
       } catch (orderError) {
@@ -158,17 +158,17 @@ const ProfilePage = () => {
         // Keep default order stats
       }
 
-      // Fetch favorites (with error handling)
+      // Use localStorage favorites count (CartContext stores favorites in localStorage)
       try {
-        const favoritesResponse = await apiClient.get('/api/favorites');
-        const favorites = favoritesResponse.data.favorites || [];
+        const favoritesData = localStorage.getItem('morviln-favorites');
+        const favorites = favoritesData ? JSON.parse(favoritesData) : [];
         
         setStats(prev => ({
           ...prev,
           wishlistItems: favorites.length
         }));
       } catch (favError) {
-        console.log('Favorites endpoint not available yet');
+        console.log('Error reading favorites from localStorage');
         // Keep default favorites stats
       }
     } catch (error) {
@@ -341,7 +341,10 @@ const ProfilePage = () => {
 
               {/* Quick Stats */}
               <div className="space-y-3 border-t border-gray-800 pt-6">
-                <div className="flex items-center justify-between p-3 bg-purple-900/20 border border-purple-800/30 rounded-xl hover:bg-purple-900/30 transition-colors">
+                <button
+                  onClick={() => router.push('/profile/orders')}
+                  className="w-full flex items-center justify-between p-3 bg-purple-900/20 border border-purple-800/30 rounded-xl hover:bg-purple-900/30 transition-colors cursor-pointer"
+                >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-purple-900/50 rounded-lg">
                       <ShoppingBag className="w-5 h-5 text-purple-400" />
@@ -349,8 +352,11 @@ const ProfilePage = () => {
                     <span className="text-sm font-medium text-gray-300">Total Orders</span>
                   </div>
                   <span className="font-bold text-purple-400 text-lg">{stats.totalOrders}</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-pink-900/20 border border-pink-800/30 rounded-xl hover:bg-pink-900/30 transition-colors">
+                </button>
+                <button
+                  onClick={() => router.push('/favorites')}
+                  className="w-full flex items-center justify-between p-3 bg-pink-900/20 border border-pink-800/30 rounded-xl hover:bg-pink-900/30 transition-colors cursor-pointer"
+                >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-pink-900/50 rounded-lg">
                       <Heart className="w-5 h-5 text-pink-400" />
@@ -358,8 +364,11 @@ const ProfilePage = () => {
                     <span className="text-sm font-medium text-gray-300">Wishlist Items</span>
                   </div>
                   <span className="font-bold text-pink-400 text-lg">{stats.wishlistItems}</span>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-amber-900/20 border border-amber-800/30 rounded-xl hover:bg-amber-900/30 transition-colors">
+                </button>
+                <button
+                  onClick={() => router.push('/profile/orders')}
+                  className="w-full flex items-center justify-between p-3 bg-amber-900/20 border border-amber-800/30 rounded-xl hover:bg-amber-900/30 transition-colors cursor-pointer"
+                >
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-amber-900/50 rounded-lg">
                       <Clock className="w-5 h-5 text-amber-400" />
@@ -367,7 +376,7 @@ const ProfilePage = () => {
                     <span className="text-sm font-medium text-gray-300">Pending</span>
                   </div>
                   <span className="font-bold text-amber-400 text-lg">{stats.pendingOrders}</span>
-                </div>
+                </button>
               </div>
             </div>
           </motion.div>

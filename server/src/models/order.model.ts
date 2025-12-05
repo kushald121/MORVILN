@@ -58,6 +58,9 @@ export class OrderModel {
     try {
       console.log('📦 Creating order with data:', JSON.stringify(orderData, null, 2));
 
+      // If payment_gateway_id is provided, payment is already completed
+      const isPaid = !!orderData.payment_gateway_id;
+
       const { data, error } = await supabaseAdmin
         .from('orders')
         .insert({
@@ -75,7 +78,8 @@ export class OrderModel {
           payment_method: orderData.payment_method || null,
           payment_gateway: orderData.payment_gateway || 'razorpay',
           payment_gateway_id: orderData.payment_gateway_id || null,
-          payment_status: 'pending',
+          payment_status: isPaid ? 'paid' : 'pending',
+          paid_at: isPaid ? new Date().toISOString() : null,
           fulfillment_status: 'unfulfilled',
         })
         .select()

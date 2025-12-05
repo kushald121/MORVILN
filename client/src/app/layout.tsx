@@ -4,15 +4,16 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import CartSidebar from "@/app/components/CartSidebar";
-import { Suspense } from "react";
-import {Inter} from "next/font/google";
+// import { Suspense } from "react";
+// import {Inter} from "next/font/google";
 import Chatbot from "./components/Chatbot";
 import { CartProvider } from "./contexts/CartContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ToastProvider } from "./contexts/ToastContext";
+import PageLayout from "./components/PageLayout";
 
 
-const inter = Inter({subsets: ["latin"]});
+// const inter = Inter({subsets: ["latin"]});
 
 
 
@@ -111,13 +112,9 @@ export default function RootLayout({
             <CartProvider>
               <div className="relative min-h-screen flex flex-col">
                 <Navbar />
-                <main className="flex-1 max-w-full overflow-x-hidden pt-16 lg:pt-16 pb-14 lg:pb-0">
-
-                  <Suspense fallback={<div className="flex items-center justify-center py-24"><div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" /></div>}>
-                    {children}
-                  </Suspense>
-
-                </main>
+                <PageLayout>
+                  {children}
+                </PageLayout>
                 <CartSidebar />
                 <Footer />
                 <Chatbot/>

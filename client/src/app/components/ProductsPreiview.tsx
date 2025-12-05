@@ -49,7 +49,7 @@ const ExploreProducts: React.FC<ExploreProductsProps> = ({
       // Check if there are more products to load
       setHasMore(fetchedProducts.length > 0);
       setPage(pageNum);
-      
+
     } catch (error: any) {
       console.error("Error fetching products:", error);
       setError(error.message || "Failed to fetch products");
@@ -67,10 +67,10 @@ const ExploreProducts: React.FC<ExploreProductsProps> = ({
   const calculateDiscount = (product: Product) => {
     return product.compare_at_price && product.base_price
       ? Math.round(
-          ((product.compare_at_price - product.base_price) /
-            product.compare_at_price) *
-            100
-        )
+        ((product.compare_at_price - product.base_price) /
+          product.compare_at_price) *
+        100
+      )
       : 0;
   };
 
@@ -85,7 +85,7 @@ const ExploreProducts: React.FC<ExploreProductsProps> = ({
           <h2 className="text-3xl font-bold mb-12 text-center uppercase tracking-widest">
             {title}
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
             {Array.from({ length: 12 }).map((_, index) => (
               <div
                 key={index}
@@ -125,7 +125,7 @@ const ExploreProducts: React.FC<ExploreProductsProps> = ({
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
           {products.map((product) => {
             const discount = calculateDiscount(product);
             const mainImage =
@@ -158,7 +158,7 @@ const ExploreProducts: React.FC<ExploreProductsProps> = ({
                     </div>
                   )}
 
-                  
+
                   {/* Black Friday Tag */}
                   <div className="absolute top-12 left-2 transform -rotate-12">
                     <div className="bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-sm shadow-lg border border-white/20 relative">
@@ -228,11 +228,10 @@ const ExploreProducts: React.FC<ExploreProductsProps> = ({
                   {/* Stock Status */}
                   <div className="flex items-center gap-2 text-xs">
                     <div
-                      className={`w-2 h-2 rounded-full ${
-                        product.variants?.some((v) => v.stock_quantity > 0)
-                          ? "bg-green-500 animate-pulse"
-                          : "bg-red-500"
-                      }`}
+                      className={`w-2 h-2 rounded-full ${product.variants?.some((v) => v.stock_quantity > 0)
+                        ? "bg-green-500 animate-pulse"
+                        : "bg-red-500"
+                        }`}
                     />
                     <span className="text-gray-400">
                       {product.variants?.some((v) => v.stock_quantity > 0)
@@ -252,11 +251,10 @@ const ExploreProducts: React.FC<ExploreProductsProps> = ({
             <button
               onClick={handleLoadMore}
               disabled={isLoadingMore}
-              className={`border ${
-                isLoadingMore
-                  ? "border-gray-800 text-gray-800 cursor-not-allowed"
-                  : "border-white text-white hover:bg-white hover:text-black"
-              } px-8 py-3 font-bold uppercase tracking-wider transition-colors`}
+              className={`border ${isLoadingMore
+                ? "border-gray-800 text-gray-800 cursor-not-allowed"
+                : "border-white text-white hover:bg-white hover:text-black"
+                } px-8 py-3 font-bold uppercase tracking-wider transition-colors`}
             >
               {isLoadingMore ? "Loading..." : "Load More Products"}
             </button>

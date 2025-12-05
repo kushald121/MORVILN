@@ -441,14 +441,14 @@ const ProductPage = () => {
       <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Left Column - Images (60-65% width approx) */}
-          <div className="lg:col-span-7 flex gap-4 h-[85vh] sticky top-4">
+          <div className="lg:col-span-7 flex flex-col-reverse lg:flex-row gap-4 h-auto lg:h-[85vh] sticky top-4">
             {/* Thumbnails Strip */}
-            <div className="w-24 flex-shrink-0 flex flex-col gap-4 overflow-y-auto no-scrollbar">
+            <div className="w-full lg:w-24 flex-shrink-0 flex flex-row lg:flex-col gap-4 overflow-x-auto lg:overflow-y-auto no-scrollbar">
               {images.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentImageIndex(idx)}
-                  className={`w-full aspect-[3/4] relative border-2 transition-all duration-200 ${idx === currentImageIndex ? "border-white" : "border-transparent opacity-60 hover:opacity-100"
+                  className={`w-20 lg:w-full aspect-[3/4] relative border-2 flex-shrink-0 transition-all duration-200 ${idx === currentImageIndex ? "border-white" : "border-transparent opacity-60 hover:opacity-100"
                     }`}
                 >
                   <Image
@@ -462,7 +462,7 @@ const ProductPage = () => {
             </div>
 
             {/* Main Image */}
-            <div className="flex-1 relative bg-[#0a0a0a] h-full">
+            <div className="flex-1 relative bg-[#0a0a0a] min-h-[50vh] lg:h-full w-full">
               <Image
                 src={images[currentImageIndex]}
                 alt={product.name}

@@ -84,7 +84,7 @@ const HeroSection = () => {
   }
 
   return (
-    <div className="relative w-full h-[80vh] overflow-hidden bg-black">
+    <div className="relative w-full h-screen overflow-hidden bg-black">
       {/* Hero Images */}
       {heroImages.map((image, index) => {
         // Handle both camelCase and snake_case field names
@@ -99,8 +99,9 @@ const HeroSection = () => {
               }`}
           >
             {/* Background Image using img tag for better loading */}
-            <img
+            <Image
               src={imgUrl}
+              fill
               alt={image.title || `Hero ${index + 1}`}
               className="absolute inset-0 w-full h-full object-cover"
               onError={(e) => {

@@ -6,7 +6,7 @@ import Footer from "./components/Footer";
 import CartSidebar from "@/app/components/CartSidebar";
 import { Suspense } from "react";
 import {Inter} from "next/font/google";
-import Chatbot from "./components/chatbot";
+import Chatbot from "./components/Chatbot";
 import { CartProvider } from "./contexts/CartContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ToastProvider } from "./contexts/ToastContext";

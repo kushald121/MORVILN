@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
 
 interface HeroImage {
   _id: string;
@@ -30,7 +31,9 @@ const HeroSection = () => {
 
   const fetchHeroImages = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/hero`);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/hero`
+      );
       const data = await response.json();
       if (data.success && data.images && data.images.length > 0) {
         setHeroImages(data.images);
@@ -39,7 +42,7 @@ const HeroSection = () => {
       }
       setIsLoading(false);
     } catch (error) {
-      console.error('Error fetching hero images:', error);
+      console.error("Error fetching hero images:", error);
       setIsLoading(false);
     }
   };
@@ -67,7 +70,9 @@ const HeroSection = () => {
     return (
       <div className="relative w-full h-64 md:h-80 lg:h-96 bg-gray-900 flex items-center justify-center">
         <div className="text-center text-white px-4">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3">BLACK FRIDAY</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3">
+            BLACK FRIDAY
+          </h1>
           <h2 className="text-xl sm:text-2xl md:text-3xl mb-4">SALE!!!</h2>
           <p className="text-base sm:text-lg md:text-xl mb-6">UPTO 60% OFF</p>
           <button className="px-6 py-2.5 bg-white text-black font-semibold text-sm sm:text-base hover:bg-gray-200 transition-colors">
@@ -79,20 +84,19 @@ const HeroSection = () => {
   }
 
   return (
-    <div className="relative w-full h-64 sm:h-72 md:h-80 lg:h-screen overflow-hidden bg-black -mt-45">
+    <div className="relative w-full h-[80vh] overflow-hidden bg-black">
       {/* Hero Images */}
       {heroImages.map((image, index) => {
         // Handle both camelCase and snake_case field names
-        const imgUrl = image.imageUrl || image.image_url || '';
-        const ctaText = image.ctaText || image.cta_text || 'SHOP NOW';
-        const ctaLink = image.ctaLink || image.cta_link || '/allproducts';
-        
+        const imgUrl = image.imageUrl || image.image_url || "";
+        const ctaText = image.ctaText || image.cta_text || "SHOP NOW";
+        const ctaLink = image.ctaLink || image.cta_link || "/allproducts";
+
         return (
           <div
             key={image.id || image._id || index}
-            className={`absolute inset-0 transition-opacity duration-1000 ${
-              index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
-            }`}
+            className={`absolute inset-0 transition-opacity duration-1000 ${index === currentIndex ? "opacity-100 z-10" : "opacity-0 z-0"
+              }`}
           >
             {/* Background Image using img tag for better loading */}
             <img
@@ -100,11 +104,11 @@ const HeroSection = () => {
               alt={image.title || `Hero ${index + 1}`}
               className="absolute inset-0 w-full h-full object-cover"
               onError={(e) => {
-                console.error('Image failed to load:', imgUrl);
-                (e.target as HTMLImageElement).style.display = 'none';
+                console.error("Image failed to load:", imgUrl);
+                (e.target as HTMLImageElement).style.display = "none";
               }}
             />
-            
+
             {/* Overlay Content */}
             <div className="absolute inset-0 bg-black/30 flex items-center justify-center z-20 p-4">
               <div className="text-center text-white max-w-4xl">
@@ -118,7 +122,7 @@ const HeroSection = () => {
                     {image.subtitle || image.description}
                   </h2>
                 )}
-                <Link 
+                <Link
                   href={ctaLink}
                   className="inline-block px-5 sm:px-6 md:px-8 py-2 sm:py-2.5 md:py-3 bg-white text-black font-semibold text-sm sm:text-base md:text-lg hover:bg-gray-200 transition-all duration-200 hover:scale-105"
                 >
@@ -148,11 +152,10 @@ const HeroSection = () => {
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 ${
-                index === currentIndex
-                  ? 'bg-white w-6 sm:w-8'
-                  : 'bg-white/50 hover:bg-white/75 w-1.5 sm:w-2'
-              }`}
+              className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 ${index === currentIndex
+                ? "bg-white w-6 sm:w-8"
+                : "bg-white/50 hover:bg-white/75 w-1.5 sm:w-2"
+                }`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}

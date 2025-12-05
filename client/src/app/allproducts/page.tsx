@@ -18,7 +18,7 @@ const AllProducts = () => {
   const [priceRange, setPriceRange] = useState([0, 5000]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('default');
-  const [isLoading, setIsLoading] = useState<{[key: string]: {cart: boolean, favorite: boolean}}>({});
+  const [isLoading, setIsLoading] = useState<{ [key: string]: { cart: boolean, favorite: boolean } }>({});
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -41,8 +41,8 @@ const AllProducts = () => {
         const filters: ProductFilters = {
           page: currentPage,
           limit: 20,
-          sort_by: (sortBy === 'price-low' || sortBy === 'price-high') ? 'price' : 
-                   sortBy === 'name' ? 'name' : 'created_at',
+          sort_by: (sortBy === 'price-low' || sortBy === 'price-high') ? 'price' :
+            sortBy === 'name' ? 'name' : 'created_at',
           sort_order: sortBy === 'price-high' ? 'desc' : 'asc',
           min_price: priceRange[0],
           max_price: priceRange[1],
@@ -50,19 +50,19 @@ const AllProducts = () => {
         };
 
         const { products: fetchedProducts, pagination } = await ProductService.getProducts(filters);
-        
+
         // Apply availability filter on client side
         let filteredProducts = fetchedProducts;
         if (availabilityFilter === 'in-stock') {
-          filteredProducts = fetchedProducts.filter(p => 
+          filteredProducts = fetchedProducts.filter(p =>
             p.variants?.some(v => v.stock_quantity > 0)
           );
         } else if (availabilityFilter === 'out-of-stock') {
-          filteredProducts = fetchedProducts.filter(p => 
+          filteredProducts = fetchedProducts.filter(p =>
             !p.variants?.some(v => v.stock_quantity > 0)
           );
         }
-        
+
         setProducts(filteredProducts);
         setTotalPages(pagination?.total_pages || 1);
       } catch (error: any) {
@@ -118,8 +118,8 @@ const AllProducts = () => {
     try {
       const product = products.find(p => p.id === productId);
       if (product) {
-        const productImage = product.media?.find(m => m.is_primary)?.media_url || 
-          product.media?.[0]?.media_url || 
+        const productImage = product.media?.find(m => m.is_primary)?.media_url ||
+          product.media?.[0]?.media_url ||
           "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=250&fit=crop&crop=center";
 
         if (isInCart(productId)) {
@@ -148,8 +148,8 @@ const AllProducts = () => {
     try {
       const product = products.find(p => p.id === productId);
       if (product) {
-        const productImage = product.media?.find(m => m.is_primary)?.media_url || 
-          product.media?.[0]?.media_url || 
+        const productImage = product.media?.find(m => m.is_primary)?.media_url ||
+          product.media?.[0]?.media_url ||
           "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=250&fit=crop&crop=center";
 
         if (isInFavorites(productId)) {
@@ -193,7 +193,7 @@ const AllProducts = () => {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Error Loading Products</h1>
           <p className="text-gray-400 mb-4">{error}</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="px-6 py-2 bg-white text-black rounded hover:bg-gray-200 transition-colors"
           >
@@ -219,7 +219,7 @@ const AllProducts = () => {
           {/* Sidebar Filters */}
           <aside className={`w-full lg:w-64 flex-shrink-0 mb-8 lg:mb-0 ${isFilterOpen ? 'block' : 'hidden'} lg:block`}>
             <div className="lg:sticky lg:top-8 space-y-1">
-              
+
               {/* Category Filter - dropdown */}
               <div className="border-b border-gray-800 py-4">
                 <label className="block text-sm font-semibold uppercase tracking-wider mb-2 text-[#A6A6A6]">Category</label>
@@ -342,17 +342,17 @@ const AllProducts = () => {
             <AnimatePresence mode="wait">
               <motion.div
                 key={products.length}
-                className="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-16"
+                className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-8 md:gap-x-12 md:gap-y-16"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
               >
                 {products.map((product, index) => {
-                  const productImage = product.media?.find(m => m.is_primary)?.media_url || 
-                    product.media?.[0]?.media_url || 
+                  const productImage = product.media?.find(m => m.is_primary)?.media_url ||
+                    product.media?.[0]?.media_url ||
                     "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=250&fit=crop&crop=center";
-                  
+
                   const isOnSale = product.compare_at_price && product.compare_at_price > product.base_price;
                   const discountPercentage = isOnSale && product.compare_at_price
                     ? Math.round(((product.compare_at_price - product.base_price) / product.compare_at_price) * 100)
@@ -394,7 +394,7 @@ const AllProducts = () => {
                             Save {discountPercentage}%
                           </div>
                         )}
-                        
+
                         {/* Add to Cart Plus Button - Bottom Right - Hidden by default, visible on hover */}
                         <motion.button
                           onClick={(e) => {
@@ -415,8 +415,8 @@ const AllProducts = () => {
                       </motion.div>
 
                       <div className="space-y-2">
-                        <h3 
-                          className="font-semibold text-sm cursor-pointer hover:text-gray-300 transition-colors line-clamp-2 uppercase tracking-widest text-white text-center" 
+                        <h3
+                          className="font-semibold text-sm cursor-pointer hover:text-gray-300 transition-colors line-clamp-2 uppercase tracking-widest text-white text-center"
                           onClick={() => handleProductClick(product.id)}
                         >
                           {product.name}
@@ -448,21 +448,20 @@ const AllProducts = () => {
                 >
                   Previous
                 </button>
-                
+
                 <div className="flex gap-2">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                     const pageNum = currentPage <= 3 ? i + 1 : currentPage - 2 + i;
                     if (pageNum > totalPages) return null;
-                    
+
                     return (
                       <button
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
-                        className={`px-4 py-2 rounded transition-all duration-200 font-semibold ${
-                          currentPage === pageNum
+                        className={`px-4 py-2 rounded transition-all duration-200 font-semibold ${currentPage === pageNum
                             ? 'bg-white text-black'
                             : 'border border-gray-700 hover:bg-white hover:text-black'
-                        }`}
+                          }`}
                       >
                         {pageNum}
                       </button>

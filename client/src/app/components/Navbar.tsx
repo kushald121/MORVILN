@@ -1,3 +1,4 @@
+
 "use client"
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, ShoppingBag, User, Menu, X, ChevronRight, LogOut } from 'lucide-react';
@@ -326,10 +327,10 @@ const Navbar: React.FC = () => {
   // 4. Search is open
   // 5. Not on home page (for consistency)
   const isHomePage = pathname === "/";
-  const showBackground = 
-    !isHomePage || 
-    hasScrolled || 
-    isMobileMenuOpen || 
+  const showBackground =
+    !isHomePage ||
+    hasScrolled ||
+    isMobileMenuOpen ||
     isSearchOpen ||
     (isNavHovered && !isMobileMenuOpen);
 
@@ -374,15 +375,15 @@ const Navbar: React.FC = () => {
   return (
     <>
       {/* Add this div for the expanded background */}
-    <div 
-      className={`
+      <div
+        className={`
         fixed top-0 left-0 w-full z-40
         transition-all duration-300 ease-in-out
         pointer-events-none
-        ${isNavHovered 
-          ? 'h-20 bg-gradient-to-b from-black/90 to-transparent' 
-          : 'h-0 bg-transparent'
-        }
+        ${isNavHovered
+            ? 'h-20 bg-gradient-to-b from-black/90 to-transparent'
+            : 'h-0 bg-transparent'
+          }
       `}
       />
 
@@ -390,10 +391,10 @@ const Navbar: React.FC = () => {
 
       <header
         className={`
-          fixed top-13 left-0 w-full z-40 relative
+          fixed top-0 left-0 w-full  z-50
           flex items-center justify-start
           px-6 lg:px-12 
-          py-2 md:py-3
+          py-5 md:py-8
           text-white 
           transition-all duration-300 ease-in-out
           ${showBackground
